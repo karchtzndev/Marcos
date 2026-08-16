@@ -10,7 +10,7 @@
   *{margin:0;padding:0;box-sizing:border-box;}
   body{background:var(--pitch); color:var(--cream); font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;}
   .wrap{max-width:420px; width:100%; text-align:center;}
-  .badge{width:64px; height:64px; border-radius:50%; background:var(--ember); display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:28px; color:var(--pitch); margin:0 auto 18px;}
+  .badge{width:100px; height:100px; border-radius:50%; object-fit:cover; box-shadow:0 0 0 4px var(--pitch), 0 0 0 6px var(--ember); margin:0 auto 18px; display:block;}
   h1{font-family:'Anton',sans-serif; font-size:30px; letter-spacing:0.5px; margin-bottom:6px;}
   p{color:rgba(242,233,218,0.6); font-size:14px; margin-bottom:36px;}
   .card{display:block; background:var(--char); border:1px solid var(--line); border-radius:18px; padding:24px; margin-bottom:16px; text-decoration:none; color:var(--cream); transition:all .2s;}
@@ -23,7 +23,7 @@
 </head>
 <body>
   <div class="wrap">
-    <div class="badge">M</div>
+    <img src="mascot.jpg" alt="Mascote O Markin" class="badge">
     <h1>O MARKIN CHEF'S BURGUER</h1>
     <p>Escolha como você quer entrar</p>
     <a class="card" href="./cliente/">

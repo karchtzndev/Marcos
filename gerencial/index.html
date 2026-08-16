@@ -37,7 +37,7 @@
   header{position:sticky; top:0; z-index:40; background:rgba(18,14,11,0.88); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);}
   .nav{display:flex; align-items:center; justify-content:space-between; padding:16px 0; gap:14px;}
   .brand{display:flex; align-items:center; gap:10px;}
-  .brand-badge{width:40px; height:40px; border-radius:50%; background:var(--ember); display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:18px; color:var(--pitch); box-shadow:0 0 0 3px var(--pitch), 0 0 0 4px var(--ember); flex-shrink:0;}
+  .brand-badge{width:42px; height:42px; border-radius:50%; object-fit:cover; box-shadow:0 0 0 3px var(--pitch), 0 0 0 4px var(--ember); flex-shrink:0;}
   .brand-text{line-height:1.05;}
   .brand-text .l1{font-size:11px; letter-spacing:2px; color:var(--mustard); font-weight:700;}
   .brand-text .l2{font-family:'Anton',sans-serif; font-size:19px; letter-spacing:0.5px;}
@@ -177,6 +177,7 @@
   .panel-body{padding:30px;}
 
   .login-box{max-width:320px; margin:20px auto; text-align:center;}
+  .login-mascot{width:110px; height:110px; border-radius:50%; object-fit:cover; box-shadow:0 0 0 4px var(--pitch), 0 0 0 6px var(--ember); margin:0 auto 20px;}
   .login-box p{color:rgba(242,233,218,0.6); font-size:14px; margin-bottom:18px;}
   .field{margin-bottom:16px; text-align:left;}
   .field label{display:block; font-size:12px; letter-spacing:0.8px; color:rgba(242,233,218,0.55); margin-bottom:6px; text-transform:uppercase;}
@@ -378,7 +379,7 @@
 <header>
   <div class="wrap nav">
     <div class="brand">
-      <div class="brand-badge">M</div>
+      <img src="mascot.jpg" alt="Mascote O Markin" class="brand-badge">
       <div class="brand-text"><div class="l1">O MARKIN</div><div class="l2">Chef's Burguer</div></div>
     </div>
     <nav>
@@ -526,7 +527,7 @@
   <div class="wrap">
     <div class="foot-grid">
       <div class="foot-brand">
-        <div class="brand"><div class="brand-badge">M</div><div class="brand-text"><div class="l1">O MARKIN</div><div class="l2">Chef's Burguer</div></div></div>
+        <div class="brand"><img src="mascot.jpg" alt="Mascote O Markin" class="brand-badge"><div class="brand-text"><div class="l1">O MARKIN</div><div class="l2">Chef's Burguer</div></div></div>
         <p>Hambúrgueres artesanais feitos na chapa, com ingredientes selecionados e muito sabor em cada mordida.</p>
       </div>
       <div class="foot-col"><h4>Navegação</h4><ul><li><a href="#cardapio">Cardápio</a></li><li><a href="#sobre">Sobre nós</a></li><li><a href="#local">Localização</a></li></ul></div>
@@ -613,6 +614,7 @@
     <div class="panel-body">
 
       <div id="loginView" class="login-box">
+        <img src="mascot.jpg" alt="Mascote O Markin" class="login-mascot">
         <div class="type-toggle" style="margin-bottom:20px;">
           <button type="button" class="type-btn active" data-logintype="gerente">👔 Gerente</button>
           <button type="button" class="type-btn" data-logintype="funcionario">🧑‍🍳 Funcionário</button>
@@ -642,6 +644,7 @@
           <button class="admin-tab-btn" data-atab="estoque">Estoque <span id="lowStockBadge"></span></button>
           <button class="admin-tab-btn" data-atab="equipe">👥 Equipe</button>
           <button class="admin-tab-btn" data-atab="promocao">📣 Promoção</button>
+          <button class="admin-tab-btn" data-atab="loja">🏪 Loja</button>
         </div>
 
         <!-- DASHBOARD TAB -->
@@ -815,6 +818,25 @@
           <button class="btn-primary" id="savePromoBtn">Salvar aviso</button>
           <div class="error-msg" id="promoError"></div>
           <p style="margin-top:16px; font-size:12px; color:rgba(242,233,218,0.5);">O aviso aparece pro cliente assim que ele abre o app (uma vez por sessão). Toda vez que você salvar uma alteração, ele volta a aparecer pra todo mundo, mesmo quem já viu antes.</p>
+        </div>
+
+        <!-- LOJA TAB (só gerente) -->
+        <div id="atabLoja" style="display:none;">
+          <div class="admin-list" style="margin-top:0; border-top:none; padding-top:0;">
+            <h3>🕒 Horário de funcionamento</h3>
+            <div class="field"><label>Segunda a Quinta</label><input type="text" id="lojaHours1" placeholder="Ex: 18h – 23h"></div>
+            <div class="field"><label>Sexta e Sábado</label><input type="text" id="lojaHours2" placeholder="Ex: 18h – 00h30"></div>
+            <div class="field"><label>Domingo</label><input type="text" id="lojaHours3" placeholder="Ex: 18h – 22h30"></div>
+          </div>
+          <div class="admin-list">
+            <h3>📍 Contato & Endereço</h3>
+            <div class="field"><label>Endereço completo</label><textarea id="lojaAddress" placeholder="Rua, número, bairro, cidade"></textarea></div>
+            <div class="field"><label>WhatsApp (com DDD, só números)</label><input type="text" id="lojaWhatsapp" placeholder="Ex: 11999999999"></div>
+            <div class="field"><label>Instagram (com @)</label><input type="text" id="lojaInstagram" placeholder="Ex: @omarkinchefsburguer"></div>
+          </div>
+          <button class="btn-primary" id="saveLojaBtn">Salvar dados da loja</button>
+          <div class="error-msg" id="lojaError"></div>
+          <p style="margin-top:16px; font-size:12px; color:rgba(242,233,218,0.5);">O número de WhatsApp aqui é usado pelo botão flutuante 💬 e pelo link do rodapé no app do cliente — eles abrem uma conversa direto com você.</p>
         </div>
       </div>
 
@@ -1202,6 +1224,34 @@
       await db.collection('store').doc('promo').set(newPromo);
       showToast("Aviso salvo ✓");
     }catch(e){ alert("Não foi possível salvar. A imagem pode estar grande demais — tente uma foto menor."); }
+  });
+
+  /* ---------------- DADOS DA LOJA ---------------- */
+  function watchStoreInfo(){
+    db.collection('store').doc('info').onSnapshot((doc) => {
+      const info = doc.exists ? doc.data() : {};
+      document.getElementById('lojaHours1').value = info.hours1 || "";
+      document.getElementById('lojaHours2').value = info.hours2 || "";
+      document.getElementById('lojaHours3').value = info.hours3 || "";
+      document.getElementById('lojaAddress').value = info.address || "";
+      document.getElementById('lojaWhatsapp').value = info.whatsapp || "";
+      document.getElementById('lojaInstagram').value = info.instagram || "";
+    }, (err) => console.error("Erro info da loja:", err));
+  }
+  document.getElementById('saveLojaBtn').addEventListener('click', async () => {
+    const info = {
+      hours1: document.getElementById('lojaHours1').value.trim(),
+      hours2: document.getElementById('lojaHours2').value.trim(),
+      hours3: document.getElementById('lojaHours3').value.trim(),
+      address: document.getElementById('lojaAddress').value.trim(),
+      whatsapp: document.getElementById('lojaWhatsapp').value.trim(),
+      instagram: document.getElementById('lojaInstagram').value.trim()
+    };
+    try{
+      await db.collection('store').doc('info').set(info);
+      showToast("Dados da loja salvos ✓");
+      document.getElementById('lojaError').textContent = "";
+    }catch(e){ document.getElementById('lojaError').textContent = "Não foi possível salvar. Tente novamente."; }
   });
 
   function todayStr(){ return new Date().toISOString().slice(0,10); }
@@ -1663,6 +1713,7 @@
     document.getElementById('atabEstoque').style.display = tab === 'estoque' ? 'block' : 'none';
     document.getElementById('atabEquipe').style.display = tab === 'equipe' ? 'block' : 'none';
     document.getElementById('atabPromocao').style.display = tab === 'promocao' ? 'block' : 'none';
+    document.getElementById('atabLoja').style.display = tab === 'loja' ? 'block' : 'none';
     if(tab === 'pedidos') renderAdminOrders();
     if(tab === 'dashboard') renderDashboard();
     if(tab === 'financeiro') { renderFinKpis(); renderCashflowList(); renderFixedCostList(); }
@@ -1672,7 +1723,7 @@
   }));
 
   function applyRolePermissions(){
-    const restricted = ['dashboard', 'cardapio', 'financeiro', 'equipe', 'promocao'];
+    const restricted = ['dashboard', 'cardapio', 'financeiro', 'equipe', 'promocao', 'loja'];
     document.querySelectorAll('.admin-tab-btn').forEach(btn => {
       const tab = btn.dataset.atab;
       const blocked = currentRole === 'funcionario' && restricted.includes(tab);
@@ -1758,6 +1809,7 @@
   watchInventory();
   watchEmployees();
   watchPromo();
+  watchStoreInfo();
   updateCartUI();
 })();
 
