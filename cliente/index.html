@@ -114,6 +114,11 @@
   .price{font-family:'Anton',sans-serif; font-size:22px; color:var(--mustard);}
   .add{width:38px; height:38px; border-radius:50%; background:var(--ember); color:var(--pitch); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; cursor:pointer; border:none; transition:background .2s;}
   .add:hover{background:var(--mustard);}
+  .menu-qty{display:flex; align-items:center; gap:10px; background:var(--ember); border-radius:999px; padding:4px; animation:popIn .2s ease;}
+  .menu-qty button{width:30px; height:30px; border-radius:50%; background:var(--pitch); color:var(--cream); border:none; font-size:16px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .2s;}
+  .menu-qty button:hover{background:var(--char);}
+  .menu-qty span{min-width:18px; text-align:center; font-family:'Anton',sans-serif; font-size:15px; color:var(--pitch);}
+  @keyframes popIn{ from{ transform:scale(0.85); opacity:0.6; } to{ transform:scale(1); opacity:1; } }
   .empty-state{grid-column:1/-1; text-align:center; padding:50px 20px; color:rgba(242,233,218,0.5); font-size:15px;}
 
   .about{background:var(--char); padding:100px 0; position:relative;}
@@ -881,16 +886,28 @@
     document.getElementById('statCount').textContent = products.length + "+";
     const list = activeCategory === "todos" ? products : products.filter(p => p.cat === activeCategory);
     if(list.length === 0){ grid.innerHTML = '<div class="empty-state">Nenhum produto nessa categoria ainda. Volte em breve! 👨‍🍳</div>'; return; }
-    grid.innerHTML = list.map(p => `
+    grid.innerHTML = list.map(p => {
+      const inCart = cart.find(c => c.productId === p.id);
+      const qty = inCart ? inCart.qty : 0;
+      const footControl = qty > 0
+        ? `<div class="menu-qty">
+             <button data-menudec="${p.id}">−</button>
+             <span>${qty}</span>
+             <button data-menuinc="${p.id}">+</button>
+           </div>`
+        : `<button class="add" data-add="${p.id}">+</button>`;
+      return `
       <div class="menu-card">
         ${p.tag ? `<span class="tag">${escapeHtml(p.tag)}</span>` : ''}
         <div class="menu-icon">${p.icon || '🍔'}</div>
         <h3>${escapeHtml(p.name)}</h3>
         <p>${escapeHtml(p.desc || '')}</p>
-        <div class="menu-foot"><span class="price">${money(p.price)}</span><button class="add" data-add="${p.id}">+</button></div>
+        <div class="menu-foot"><span class="price">${money(p.price)}</span>${footControl}</div>
       </div>
-    `).join('');
+    `;}).join('');
     grid.querySelectorAll('[data-add]').forEach(btn => btn.addEventListener('click', () => addToCart(btn.dataset.add)));
+    grid.querySelectorAll('[data-menuinc]').forEach(btn => btn.addEventListener('click', () => addToCart(btn.dataset.menuinc)));
+    grid.querySelectorAll('[data-menudec]').forEach(btn => btn.addEventListener('click', () => changeQty(btn.dataset.menudec, -1)));
   }
 
   function renderAdminList(){
@@ -977,13 +994,14 @@
     const existing = cart.find(c => c.productId === productId);
     if(existing) existing.qty += 1;
     else cart.push({productId: p.id, name: p.name, price: p.price, icon: p.icon, qty: 1});
-    updateCartUI(); showToast(p.name + " adicionado ✓");
+    updateCartUI(); renderMenu();
+    if(!existing) showToast(p.name + " adicionado ✓");
   }
   function changeQty(productId, delta){
     const item = cart.find(c => c.productId === productId); if(!item) return;
     item.qty += delta;
     if(item.qty <= 0) cart = cart.filter(c => c.productId !== productId);
-    updateCartUI();
+    updateCartUI(); renderMenu();
   }
   function cartTotal(){ return cart.reduce((sum, c) => sum + c.price * c.qty, 0); }
   function updateCartUI(){
