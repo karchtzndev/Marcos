@@ -352,6 +352,14 @@
   /* App Cliente: painel administrativo não é acessível por aqui */
   #openAdmin{ display:none !important; }
 
+  /* ---------- BOTÃO ENVIAR PEDIDO WHATSAPP ---------- */
+  .wa-send-btn{
+    width:100%; background:#25D366; color:#0b2e18; border:none; border-radius:999px;
+    padding:14px 20px; font-size:15px; font-weight:700; cursor:pointer; margin-bottom:24px;
+    display:flex; align-items:center; justify-content:center; gap:8px; transition:filter .2s;
+  }
+  .wa-send-btn:hover{ filter:brightness(1.08); }
+
   /* ---------- PROMOÇÃO / AVISO ---------- */
   .promo-panel{ padding:0; overflow:hidden; position:relative; max-width:400px; }
   .promo-close{ position:absolute; top:12px; right:12px; z-index:3; background:rgba(18,14,11,0.6); border-radius:50%; width:32px; height:32px; backdrop-filter:blur(4px); }
@@ -575,10 +583,12 @@
         <label>Tipo de pedido</label>
         <div class="type-toggle">
           <button type="button" class="type-btn active" data-ordertype="entrega">🛵 Entrega</button>
-          <button type="button" class="type-btn" data-ordertype="retirada">🏠 Retirar no balcão</button>
+          <button type="button" class="type-btn" data-ordertype="retirada">🏠 Balcão</button>
+          <button type="button" class="type-btn" data-ordertype="mesa">🪑 Mesa</button>
         </div>
       </div>
       <div class="field" id="ckAddressField"><label>Endereço de entrega</label><textarea id="ckAddress" placeholder="Rua, número, bairro, ponto de referência"></textarea></div>
+      <div class="field" id="ckTableField" style="display:none;"><label>Número da mesa</label><input type="number" id="ckTable" placeholder="Ex: 7" min="1"></div>
       <div class="field"><label>Forma de pagamento</label>
         <select id="ckPayment">
           <option value="dinheiro">Dinheiro</option>
@@ -1029,7 +1039,8 @@
     document.querySelectorAll('[data-ordertype]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     selectedOrderType = btn.dataset.ordertype;
-    document.getElementById('ckAddressField').style.display = selectedOrderType === 'retirada' ? 'none' : 'block';
+    document.getElementById('ckAddressField').style.display = selectedOrderType === 'entrega' ? 'block' : 'none';
+    document.getElementById('ckTableField').style.display = selectedOrderType === 'mesa' ? 'block' : 'none';
   }));
 
   document.getElementById('openCart').addEventListener('click', () => { updateCartUI(); openOverlay('cartOverlay'); });
@@ -1103,6 +1114,7 @@
     const withCountry = digits.startsWith("55") ? digits : "55" + digits;
     return "https://wa.me/" + withCountry + (message ? "?text=" + encodeURIComponent(message) : "");
   }
+  let storeWhatsappNumber = "";
   function watchStoreInfo(){
     db.collection('store').doc('info').onSnapshot((doc) => {
       const info = doc.exists ? doc.data() : {};
@@ -1112,6 +1124,7 @@
       if(info.address) document.getElementById('infoAddress').textContent = info.address;
       if(info.instagram) document.getElementById('infoInstagram').textContent = info.instagram;
 
+      storeWhatsappNumber = info.whatsapp || "";
       const link = waLink(info.whatsapp, "Olá! Vim pelo site da O Markin Chef's Burguer 🍔");
       if(info.whatsapp) document.getElementById('infoWhatsapp').textContent = info.whatsapp;
       if(link){
@@ -1138,15 +1151,17 @@
     const address = document.getElementById('ckAddress').value.trim();
     const payment = document.getElementById('ckPayment').value;
     const notes = document.getElementById('ckNotes').value.trim();
+    const table = document.getElementById('ckTable').value.trim();
     const errEl = document.getElementById('checkoutError');
     if(!name || !phone){ errEl.textContent = "Preencha nome e WhatsApp."; return; }
     if(selectedOrderType === 'entrega' && !address){ errEl.textContent = "Informe o endereço de entrega."; return; }
+    if(selectedOrderType === 'mesa' && !table){ errEl.textContent = "Informe o número da mesa."; return; }
     errEl.textContent = "";
 
     const code = genOrderCode();
     const order = {
       code, dailyNumber: nextDailyNumber(),
-      customerName: name, phone, address, orderType: selectedOrderType, payment, notes,
+      customerName: name, phone, address, table, orderType: selectedOrderType, payment, notes,
       items: cart.map(c => ({name:c.name, price:c.price, qty:c.qty})),
       total: cartTotal(),
       status: "recebido",
@@ -1156,10 +1171,11 @@
     orders.unshift(order);
     await saveOrders();
 
-    cart = []; updateCartUI();
+    cart = []; updateCartUI(); renderMenu();
     document.getElementById('ckName').value = "";
     document.getElementById('ckPhone').value = "";
     document.getElementById('ckAddress').value = "";
+    document.getElementById('ckTable').value = "";
     document.getElementById('ckNotes').value = "";
     closeOverlay('checkoutOverlay');
 
@@ -1168,7 +1184,44 @@
     openOverlay('trackOverlay');
     doTrack(code);
     renderAdminOrders();
+
+    // Abre o WhatsApp da loja com o pedido completo
+    sendOrderToWhatsapp(order);
   });
+
+  function orderTypeLabel(o){
+    if(o.orderType === 'mesa') return "🪑 MESA " + (o.table || "?");
+    if(o.orderType === 'retirada') return "🏠 RETIRADA NO BALCÃO";
+    return "🛵 ENTREGA";
+  }
+
+  function buildOrderMessage(o){
+    const lines = [];
+    lines.push("*NOVO PEDIDO — O MARKIN CHEF'S BURGUER* 🍔");
+    lines.push("");
+    lines.push("*Pedido:* #" + (o.dailyNumber || "-") + " · " + o.code);
+    lines.push("*Tipo:* " + orderTypeLabel(o));
+    lines.push("");
+    lines.push("*Cliente:* " + o.customerName);
+    lines.push("*Telefone:* " + o.phone);
+    if(o.orderType === 'entrega' && o.address) lines.push("*Endereço:* " + o.address);
+    if(o.orderType === 'mesa' && o.table) lines.push("*Mesa:* " + o.table);
+    lines.push("");
+    lines.push("*ITENS:*");
+    o.items.forEach(i => lines.push("• " + i.qty + "x " + i.name + " — " + money(i.price * i.qty)));
+    lines.push("");
+    lines.push("*TOTAL: " + money(o.total) + "*");
+    lines.push("*Pagamento:* " + paymentLabelCliente(o.payment));
+    if(o.notes) { lines.push(""); lines.push("*Observações:* " + o.notes); }
+    return lines.join("\n");
+  }
+  function paymentLabelCliente(p){ return {dinheiro:"Dinheiro", cartao:"Cartão", pix:"Pix"}[p] || p || "-"; }
+
+  function sendOrderToWhatsapp(order){
+    const link = waLink(storeWhatsappNumber, buildOrderMessage(order));
+    if(!link){ return; }
+    window.open(link, '_blank');
+  }
 
   /* ---------------- TRACKING ---------------- */
   function stepIndex(status){ return STATUS_FLOW.findIndex(s => s.key === status); }
@@ -1181,9 +1234,11 @@
           <span class="order-code">#${order.dailyNumber || '–'} · ${order.code}</span>
           <span style="color:rgba(242,233,218,0.5); font-size:12px;">${new Date(order.createdAt).toLocaleString('pt-BR')}</span>
         </div>
+        <div style="font-size:12px; color:var(--ember); font-weight:700; margin-bottom:6px;">${orderTypeLabel(order)}</div>
         <div style="font-size:13px; color:rgba(242,233,218,0.7); margin-bottom:4px;">${order.items.map(i => i.qty + 'x ' + escapeHtml(i.name)).join(', ')}</div>
         <div style="font-family:'Anton',sans-serif; color:var(--mustard); font-size:16px;">${money(order.total)}</div>
       </div>
+      <button class="wa-send-btn" id="waSendBtn" data-wacode="${order.code}">📲 Enviar pedido pelo WhatsApp</button>
       <div class="stepper">
         ${STATUS_FLOW.map((s, i) => `
           <div class="step ${i < curIdx ? 'done' : i === curIdx ? 'current' : 'pending'}">
@@ -1214,6 +1269,13 @@
       return;
     }
     resultBox.innerHTML = renderStepper(order);
+    const waBtn = document.getElementById('waSendBtn');
+    if(waBtn) waBtn.addEventListener('click', () => {
+      const o = orders.find(x => x.code === waBtn.dataset.wacode);
+      if(!o) return;
+      if(!storeWhatsappNumber){ alert("O WhatsApp da loja ainda não foi cadastrado no painel."); return; }
+      sendOrderToWhatsapp(o);
+    });
   }
 
   document.getElementById('trackSearchBtn').addEventListener('click', () => {

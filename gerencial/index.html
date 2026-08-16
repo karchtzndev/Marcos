@@ -364,6 +364,7 @@
     .print-area .p-sub{text-align:center; font-size:10px; margin-bottom:10px;}
     .print-area .p-line{border-top:1px dashed #000; margin:8px 0;}
     .print-area .p-num{text-align:center; font-family:'Anton',sans-serif; font-size:30px; margin:6px 0;}
+    .print-area .p-table{text-align:center; font-family:'Anton',sans-serif; font-size:26px; border:2px solid #000; border-radius:6px; padding:4px; margin:6px 0;}
     .print-area .p-code{text-align:center; font-size:12px; margin-bottom:8px;}
     .print-area .p-row{display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;}
     .print-area .p-item{display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; font-weight:700;}
@@ -1387,7 +1388,7 @@
           <div>
             <span class="order-code">#${o.dailyNumber || '–'} · ${o.code}</span>
             <div class="order-meta">${escapeHtml(o.customerName)} · ${escapeHtml(o.phone)}</div>
-            <div class="order-meta">${o.orderType === 'retirada' ? '🏠 Retirada no balcão' : '🛵 ' + escapeHtml(o.address || '')}</div>
+            <div class="order-meta">${o.orderType === 'mesa' ? '🪑 MESA ' + escapeHtml(o.table || '?') : o.orderType === 'retirada' ? '🏠 Retirada no balcão' : '🛵 ' + escapeHtml(o.address || '')}</div>
             <div class="order-extra">
               <span>💳 ${paymentLabel(o.payment)}</span>
               <span>🕒 ${new Date(o.createdAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
@@ -1419,12 +1420,13 @@
       <div class="p-sub">CHEF'S BURGUER — COMANDA COZINHA</div>
       <div class="p-line"></div>
       <div class="p-num">#${o.dailyNumber || '–'}</div>
+      ${o.orderType === 'mesa' ? `<div class="p-table">MESA ${escapeHtml(o.table || '?')}</div>` : ''}
       <div class="p-code">${o.code} · ${new Date(o.createdAt).toLocaleString('pt-BR')}</div>
       <div class="p-line"></div>
       <div class="p-row"><span>Cliente:</span><span>${escapeHtml(o.customerName)}</span></div>
       <div class="p-row"><span>Telefone:</span><span>${escapeHtml(o.phone)}</span></div>
-      <div class="p-row"><span>Tipo:</span><span>${o.orderType === 'retirada' ? 'RETIRADA' : 'ENTREGA'}</span></div>
-      ${o.orderType !== 'retirada' ? `<div class="p-row"><span>Endereço:</span><span>${escapeHtml(o.address || '')}</span></div>` : ''}
+      <div class="p-row"><span>Tipo:</span><span>${o.orderType === 'mesa' ? 'MESA ' + escapeHtml(o.table || '?') : o.orderType === 'retirada' ? 'RETIRADA' : 'ENTREGA'}</span></div>
+      ${o.orderType === 'entrega' ? `<div class="p-row"><span>Endereço:</span><span>${escapeHtml(o.address || '')}</span></div>` : ''}
       <div class="p-row"><span>Pagamento:</span><span>${paymentLabel(o.payment).toUpperCase()}</span></div>
       <div class="p-line"></div>
       ${o.items.map(i => `<div class="p-item"><span>${i.qty}x ${escapeHtml(i.name)}</span><span>${money(i.price * i.qty)}</span></div>`).join('')}
