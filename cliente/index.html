@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>O Markin — Peça já</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<meta name="theme-color" content="#120e0b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="O Markin">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pitch:#120e0b; --char:#1c1613; --cream:#f2e9da;
+    --ember:#e5762e; --ember-deep:#c1521c; --tomato:#b6382c; --mustard:#f0b429; --green:#4caf6d;
+    --line: rgba(242,233,218,0.14);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--pitch); color:var(--cream); font-family:'DM Sans', sans-serif; overflow-x:hidden;}
+  ::selection{background:var(--ember);color:var(--pitch);}
+  .display{font-family:'Anton', sans-serif; letter-spacing:0.5px; text-transform:uppercase;}
+  .script{font-family:'Caveat', cursive;}
+  a{color:inherit; text-decoration:none;}
+  img{max-width:100%; display:block;}
+  button{font-family:inherit;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+
+  .grain{position:fixed; inset:0; pointer-events:none; z-index:50; opacity:0.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+  header{position:sticky; top:0; z-index:40; background:rgba(18,14,11,0.88); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);}
+  .nav{display:flex; align-items:center; justify-content:space-between; padding:16px 0; gap:14px;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand-badge{width:40px; height:40px; border-radius:50%; background:var(--ember); display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:18px; color:var(--pitch); box-shadow:0 0 0 3px var(--pitch), 0 0 0 4px var(--ember); flex-shrink:0;}
+  .brand-text{line-height:1.05;}
+  .brand-text .l1{font-size:11px; letter-spacing:2px; color:var(--mustard); font-weight:700;}
+  .brand-text .l2{font-family:'Anton',sans-serif; font-size:19px; letter-spacing:0.5px;}
+  nav ul{list-style:none; display:flex; gap:34px;}
+  nav ul a{font-size:14px; font-weight:700; letter-spacing:0.3px; opacity:0.85; transition:opacity .2s, color .2s; cursor:pointer;}
+  nav ul a:hover{opacity:1; color:var(--ember);}
+  .header-actions{display:flex; align-items:center; gap:10px;}
+  .cta-btn{background:var(--ember); color:var(--pitch); font-weight:700; font-size:14px; padding:12px 22px; border-radius:999px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:8px; transition:transform .15s ease, background .2s ease;}
+  .cta-btn:hover{background:var(--mustard); transform:translateY(-2px);}
+  .icon-link{position:relative; font-size:13px; font-weight:700; color:rgba(242,233,218,0.75); border:1px solid var(--line); padding:10px 16px; border-radius:999px; background:transparent; cursor:pointer; transition:all .2s; display:inline-flex; align-items:center; gap:6px;}
+  .icon-link:hover{color:var(--cream); border-color:var(--ember);}
+  .cart-count{background:var(--tomato); color:var(--cream); font-size:11px; font-weight:700; padding:1px 7px; border-radius:999px; min-width:18px; text-align:center;}
+  .menu-toggle{display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer;}
+  .menu-toggle span{width:24px; height:2px; background:var(--cream);}
+
+  .hero{position:relative; padding:90px 0 70px; overflow:hidden;}
+  .hero::before{content:""; position:absolute; inset:0; background:radial-gradient(circle at 82% 18%, rgba(229,118,46,0.20), transparent 45%), radial-gradient(circle at 10% 85%, rgba(182,56,44,0.16), transparent 40%); pointer-events:none;}
+  .hero-grid{display:grid; grid-template-columns:1.05fr 0.95fr; gap:40px; align-items:center; position:relative; z-index:2;}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:700; letter-spacing:2px; color:var(--mustard); margin-bottom:18px;}
+  .eyebrow .star{color:var(--ember);}
+  h1.hero-title{font-size:clamp(46px, 6.2vw, 78px); line-height:0.95; color:var(--cream);}
+  h1.hero-title span{color:var(--ember); -webkit-text-stroke:1px var(--cream); display:block;}
+  .hero-sub{margin-top:20px; max-width:440px; font-size:17px; line-height:1.65; color:rgba(242,233,218,0.78);}
+  .hero-actions{display:flex; gap:16px; margin-top:34px; flex-wrap:wrap;}
+  .btn-outline{padding:12px 24px; border-radius:999px; border:1.5px solid var(--cream); font-weight:700; font-size:14px; transition:background .2s, color .2s; cursor:pointer; background:none; color:var(--cream);}
+  .btn-outline:hover{background:var(--cream); color:var(--pitch);}
+  .hero-stats{display:flex; gap:34px; margin-top:46px;}
+  .hero-stats div{border-left:2px solid var(--ember); padding-left:14px;}
+  .hero-stats .num{font-family:'Anton',sans-serif; font-size:28px; color:var(--cream);}
+  .hero-stats .lbl{font-size:12px; letter-spacing:1px; color:rgba(242,233,218,0.6); text-transform:uppercase;}
+
+  .hero-art{position:relative; display:flex; justify-content:center; align-items:center; min-height:420px;}
+  .plate-glow{position:absolute; width:380px; height:380px; border-radius:50%; background:radial-gradient(circle, rgba(229,118,46,0.35), transparent 70%); filter:blur(10px);}
+  .burger-stack{position:relative; width:300px; z-index:2; animation:float 5s ease-in-out infinite;}
+  @keyframes float{0%,100%{transform:translateY(0px) rotate(-2deg);} 50%{transform:translateY(-14px) rotate(2deg);}}
+  .layer{position:relative; width:100%; height:46px; margin-top:-14px; border-radius:50%/60%;}
+  .bun-top{height:110px; margin-top:0; background:linear-gradient(180deg,#e8a34e,#c97a2b); border-radius:150px 150px 40px 40px; box-shadow:inset 0 -8px 0 rgba(0,0,0,0.12);}
+  .bun-top::after{content:""; position:absolute; top:22px; left:50%; transform:translateX(-50%); width:70%; height:14px; background-image:radial-gradient(circle,#f4d9a8 3px, transparent 3px); background-size:16px 14px;}
+  .lettuce{background:#5a8c3a; clip-path:polygon(0% 40%,8% 10%,16% 45%,24% 5%,33% 42%,42% 8%,50% 46%,58% 8%,67% 42%,76% 5%,84% 45%,92% 10%,100% 40%,100% 100%,0% 100%); height:40px;}
+  .cheese{background:#f2b21e; height:34px; clip-path:polygon(0 0,100% 0,94% 100%,6% 100%); box-shadow:inset 0 6px 0 rgba(255,255,255,0.15);}
+  .patty{background:#5c3420; height:34px; border-radius:20px;}
+  .tomato{background:#c1432f; height:16px; border-radius:20px;}
+  .bun-bottom{background:#c97a2b; height:40px; border-radius:20px 20px 60px 60px; margin-top:-10px;}
+  .fries-cup{position:absolute; bottom:-18px; right:-38px; width:130px; z-index:3; transform:rotate(8deg);}
+  .fries-box{background:linear-gradient(180deg,#c1432f,#9c2f21); height:90px; clip-path:polygon(8% 0,92% 0,100% 100%,0 100%); position:relative;}
+  .fry{position:absolute; bottom:78px; width:9px; height:70px; background:#f0c25a; border-radius:3px;}
+  .fry:nth-child(1){left:10px; transform:rotate(-14deg);}
+  .fry:nth-child(2){left:26px; transform:rotate(-4deg); height:80px; bottom:80px;}
+  .fry:nth-child(3){left:44px; transform:rotate(6deg); height:76px; bottom:80px;}
+  .fry:nth-child(4){left:62px; transform:rotate(-6deg); height:66px;}
+  .fry:nth-child(5){left:80px; transform:rotate(12deg); height:74px; bottom:80px;}
+  .fry:nth-child(6){left:98px; transform:rotate(18deg);}
+  .badge-stamp{position:absolute; top:-6px; left:-24px; width:104px; height:104px; z-index:4; background:transparent;}
+
+  .section{padding:100px 0;}
+  .section-head{text-align:center; max-width:600px; margin:0 auto 56px;}
+  .section-eyebrow{font-size:13px; font-weight:700; letter-spacing:2px; color:var(--ember); margin-bottom:12px;}
+  .section-title{font-size:clamp(32px,4vw,46px); line-height:1.05;}
+  .section-title em{font-style:normal; color:var(--ember);}
+  .section-desc{margin-top:16px; color:rgba(242,233,218,0.68); font-size:16px; line-height:1.6;}
+  .divider{height:14px; width:100%; background-repeat:repeat-x; background-size:28px 14px; background-image:linear-gradient(135deg, var(--ember) 25%, transparent 25%), linear-gradient(225deg, var(--ember) 25%, transparent 25%); opacity:0.5;}
+
+  .menu-tabs{display:flex; justify-content:center; gap:12px; margin-bottom:48px; flex-wrap:wrap;}
+  .tab{padding:9px 20px; border-radius:999px; border:1px solid var(--line); font-size:13px; font-weight:700; letter-spacing:0.4px; cursor:pointer; background:transparent; color:var(--cream); opacity:0.7; transition:all .2s;}
+  .tab.active, .tab:hover{opacity:1; border-color:var(--ember); background:rgba(229,118,46,0.12); color:var(--ember);}
+  .menu-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:26px;}
+  .menu-card{background:var(--char); border:1px solid var(--line); border-radius:18px; padding:26px; display:flex; flex-direction:column; gap:14px; position:relative; overflow:hidden; transition:transform .25s ease, border-color .25s ease;}
+  .menu-card:hover{transform:translateY(-6px); border-color:var(--ember);}
+  .menu-card .tag{position:absolute; top:16px; right:16px; background:var(--tomato); color:var(--cream); font-size:10px; font-weight:700; letter-spacing:1px; padding:4px 10px; border-radius:999px;}
+  .menu-icon{width:56px; height:56px; border-radius:14px; background:rgba(229,118,46,0.15); display:flex; align-items:center; justify-content:center; font-size:26px;}
+  .menu-card h3{font-family:'Anton',sans-serif; font-size:19px; letter-spacing:0.3px;}
+  .menu-card p{font-size:14px; color:rgba(242,233,218,0.62); line-height:1.55; flex-grow:1;}
+  .menu-foot{display:flex; align-items:center; justify-content:space-between; margin-top:auto;}
+  .price{font-family:'Anton',sans-serif; font-size:22px; color:var(--mustard);}
+  .add{width:38px; height:38px; border-radius:50%; background:var(--ember); color:var(--pitch); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; cursor:pointer; border:none; transition:background .2s;}
+  .add:hover{background:var(--mustard);}
+  .empty-state{grid-column:1/-1; text-align:center; padding:50px 20px; color:rgba(242,233,218,0.5); font-size:15px;}
+
+  .about{background:var(--char); padding:100px 0; position:relative;}
+  .about-grid{display:grid; grid-template-columns:0.9fr 1.1fr; gap:60px; align-items:center;}
+  .about-visual{aspect-ratio:4/5; border-radius:24px; background:radial-gradient(circle at 30% 20%, rgba(229,118,46,0.35), transparent 55%), linear-gradient(160deg,#221812,#120e0b); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;}
+  .about-visual .script{font-size:64px; color:var(--mustard); transform:rotate(-6deg); text-align:center;}
+  .about-visual .flame{position:absolute; bottom:-30px; right:-30px; width:220px; height:220px; background:radial-gradient(circle, rgba(193,82,28,0.5), transparent 70%);}
+  .about-copy .section-eyebrow{text-align:left;}
+  .about-copy h2{font-size:clamp(30px,3.6vw,42px); line-height:1.1; margin-bottom:20px;}
+  .about-copy p{color:rgba(242,233,218,0.7); font-size:16px; line-height:1.7; margin-bottom:16px;}
+  .about-list{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:28px;}
+  .about-list li{list-style:none; display:flex; gap:10px; align-items:flex-start; font-size:14px; color:rgba(242,233,218,0.85);}
+  .about-list li::before{content:"★"; color:var(--ember); flex-shrink:0;}
+
+  .strip{display:flex; gap:0; overflow:hidden; border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .strip-item{flex:1; min-width:0; aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; font-size:44px; border-right:1px solid var(--line); background:var(--char);}
+  .strip-item:nth-child(even){background:var(--pitch);}
+
+  .location{padding:100px 0;}
+  .loc-grid{display:grid; grid-template-columns:1fr 1fr; gap:40px;}
+  .loc-card{background:var(--char); border:1px solid var(--line); border-radius:20px; padding:36px;}
+  .loc-card h3{font-family:'Anton',sans-serif; font-size:22px; margin-bottom:22px; color:var(--ember);}
+  .hours-row{display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px dashed var(--line); font-size:15px;}
+  .hours-row span:last-child{color:var(--mustard); font-weight:700;}
+  .hours-row:last-child{border-bottom:none;}
+  .contact-row{display:flex; align-items:center; gap:14px; margin-bottom:20px;}
+  .contact-icon{width:42px; height:42px; border-radius:12px; background:rgba(229,118,46,0.15); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;}
+  .contact-row .lbl{font-size:12px; letter-spacing:1px; color:rgba(242,233,218,0.5); text-transform:uppercase;}
+  .contact-row .val{font-size:15px; font-weight:700;}
+
+  .band{background:linear-gradient(120deg, var(--ember-deep), var(--tomato)); padding:64px 0; text-align:center; position:relative; overflow:hidden;}
+  .band::before, .band::after{content:"★"; position:absolute; font-size:120px; color:rgba(255,255,255,0.08);}
+  .band::before{top:-30px; left:-20px;}
+  .band::after{bottom:-50px; right:-10px;}
+  .band h2{font-size:clamp(28px,4vw,42px); color:var(--pitch); margin-bottom:18px; position:relative;}
+  .band p{color:rgba(18,14,11,0.75); font-size:16px; margin-bottom:28px; position:relative;}
+  .band .cta-btn{background:var(--pitch); color:var(--cream); position:relative;}
+  .band .cta-btn:hover{background:#000;}
+
+  footer{padding:60px 0 30px;}
+  .foot-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:40px; padding-bottom:40px; border-bottom:1px solid var(--line);}
+  .foot-brand p{margin-top:16px; color:rgba(242,233,218,0.6); font-size:14px; line-height:1.6; max-width:280px;}
+  .foot-col h4{font-size:13px; letter-spacing:1.5px; color:var(--mustard); margin-bottom:16px; text-transform:uppercase;}
+  .foot-col li{list-style:none; margin-bottom:10px;}
+  .foot-col a{font-size:14px; color:rgba(242,233,218,0.7); transition:color .2s;}
+  .foot-col a:hover{color:var(--ember);}
+  .foot-bottom{display:flex; justify-content:space-between; align-items:center; padding-top:26px; font-size:13px; color:rgba(242,233,218,0.45); flex-wrap:wrap; gap:10px;}
+
+  .whatsapp-fab{position:fixed; bottom:26px; right:26px; z-index:45; width:58px; height:58px; border-radius:50%; background:#25D366; display:flex; align-items:center; justify-content:center; font-size:26px; box-shadow:0 8px 24px rgba(0,0,0,0.4); animation:pulse 2.4s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(37,211,102,0.5);}70%{box-shadow:0 0 0 14px rgba(37,211,102,0);}100%{box-shadow:0 0 0 0 rgba(37,211,102,0);}}
+
+  /* ---------- OVERLAYS (shared) ---------- */
+  .overlay{position:fixed; inset:0; background:rgba(8,6,4,0.82); backdrop-filter:blur(4px); z-index:100; display:none; align-items:center; justify-content:center; padding:20px;}
+  .overlay.open{display:flex;}
+  .panel{background:var(--char); border:1px solid var(--line); border-radius:20px; width:100%; max-width:920px; max-height:88vh; overflow-y:auto;}
+  .panel.narrow{max-width:480px;}
+  .panel-head{display:flex; align-items:center; justify-content:space-between; padding:24px 30px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--char); z-index:2;}
+  .panel-head h2{font-family:'Anton',sans-serif; font-size:20px; color:var(--ember);}
+  .close-btn{background:none; border:none; color:var(--cream); font-size:22px; cursor:pointer; opacity:0.6;}
+  .close-btn:hover{opacity:1;}
+  .panel-body{padding:30px;}
+
+  .login-box{max-width:320px; margin:20px auto; text-align:center;}
+  .login-box p{color:rgba(242,233,218,0.6); font-size:14px; margin-bottom:18px;}
+  .field{margin-bottom:16px; text-align:left;}
+  .field label{display:block; font-size:12px; letter-spacing:0.8px; color:rgba(242,233,218,0.55); margin-bottom:6px; text-transform:uppercase;}
+  .field input, .field select, .field textarea{width:100%; background:var(--pitch); border:1px solid var(--line); border-radius:10px; padding:11px 14px; color:var(--cream); font-size:14px; font-family:inherit;}
+  .field input:focus, .field select:focus, .field textarea:focus{outline:none; border-color:var(--ember);}
+  .field textarea{resize:vertical; min-height:60px;}
+  .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  .form-actions{display:flex; gap:12px; margin-top:6px; flex-wrap:wrap;}
+  .btn-primary{background:var(--ember); color:var(--pitch); border:none; padding:12px 22px; border-radius:999px; font-weight:700; font-size:14px; cursor:pointer;}
+  .btn-primary:hover{background:var(--mustard);}
+  .btn-ghost{background:transparent; border:1px solid var(--line); color:var(--cream); padding:12px 22px; border-radius:999px; font-weight:700; font-size:14px; cursor:pointer;}
+  .btn-ghost:hover{border-color:var(--ember);}
+  .error-msg{color:var(--tomato); font-size:13px; margin-top:8px; min-height:16px;}
+  .loading-row{text-align:center; padding:30px; color:rgba(242,233,218,0.5); font-size:14px;}
+  .save-toast{position:fixed; bottom:100px; right:26px; background:var(--green); color:var(--pitch); padding:12px 20px; border-radius:10px; font-weight:700; font-size:13px; z-index:101; opacity:0; transform:translateY(10px); transition:all .3s;}
+  .save-toast.show{opacity:1; transform:translateY(0);}
+
+  .admin-tabs{display:flex; gap:10px; margin-bottom:26px; overflow-x:auto; padding-bottom:4px;}
+  .admin-tab-btn{padding:9px 18px; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--cream); font-size:13px; font-weight:700; cursor:pointer; opacity:0.65; white-space:nowrap; flex-shrink:0;}
+  .admin-tab-btn.active{opacity:1; border-color:var(--ember); background:rgba(229,118,46,0.12); color:var(--ember);}
+
+  .admin-list{margin-top:34px; border-top:1px solid var(--line); padding-top:26px;}
+  .admin-list h3{font-size:14px; letter-spacing:1px; color:rgba(242,233,218,0.55); text-transform:uppercase; margin-bottom:16px;}
+  .prod-row{display:flex; align-items:center; gap:14px; padding:12px; border:1px solid var(--line); border-radius:12px; margin-bottom:10px;}
+  .prod-row .pi{width:40px; height:40px; border-radius:10px; background:rgba(229,118,46,0.15); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;}
+  .prod-row .pn{flex-grow:1; min-width:0;}
+  .prod-row .pn strong{display:block; font-size:14px;}
+  .prod-row .pn span{font-size:12px; color:rgba(242,233,218,0.5);}
+  .prod-row .pp{color:var(--mustard); font-family:'Anton',sans-serif; font-size:15px; flex-shrink:0;}
+  .row-actions{display:flex; gap:8px; flex-shrink:0;}
+  .icon-btn{width:32px; height:32px; border-radius:8px; border:1px solid var(--line); background:transparent; color:var(--cream); cursor:pointer; font-size:14px;}
+  .icon-btn:hover{border-color:var(--ember); color:var(--ember);}
+  .icon-btn.danger:hover{border-color:var(--tomato); color:var(--tomato);}
+
+  /* order rows in admin */
+  .order-row{border:1px solid var(--line); border-radius:14px; padding:18px; margin-bottom:14px;}
+  .order-row-top{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:10px;}
+  .order-code{font-family:'Anton',sans-serif; color:var(--mustard); font-size:16px;}
+  .order-meta{font-size:12px; color:rgba(242,233,218,0.5); margin-top:2px;}
+  .order-items{font-size:13px; color:rgba(242,233,218,0.75); line-height:1.6; margin:10px 0;}
+  .order-total{font-family:'Anton',sans-serif; color:var(--cream); font-size:15px;}
+  .status-pill{font-size:11px; font-weight:700; padding:5px 12px; border-radius:999px; letter-spacing:0.5px; text-transform:uppercase;}
+  .status-buttons{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;}
+  .status-btn{padding:8px 14px; border-radius:999px; border:1px solid var(--line); background:transparent; color:rgba(242,233,218,0.7); font-size:12px; font-weight:700; cursor:pointer; transition:all .2s;}
+  .status-btn:hover{border-color:var(--ember);}
+  .status-btn.current{background:var(--ember); border-color:var(--ember); color:var(--pitch);}
+
+  /* cart drawer */
+  .cart-items{display:flex; flex-direction:column; gap:12px; margin-bottom:20px;}
+  .cart-item{display:flex; align-items:center; gap:12px; padding:12px; border:1px solid var(--line); border-radius:12px;}
+  .cart-item .ci{width:38px; height:38px; border-radius:10px; background:rgba(229,118,46,0.15); display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0;}
+  .cart-item .cn{flex-grow:1; min-width:0;}
+  .cart-item .cn strong{display:block; font-size:14px;}
+  .cart-item .cn span{font-size:12px; color:rgba(242,233,218,0.5);}
+  .qty-ctrl{display:flex; align-items:center; gap:8px;}
+  .qty-ctrl button{width:26px; height:26px; border-radius:8px; border:1px solid var(--line); background:transparent; color:var(--cream); cursor:pointer;}
+  .qty-ctrl button:hover{border-color:var(--ember);}
+  .cart-total-row{display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-top:1px solid var(--line); font-size:16px; font-weight:700;}
+  .cart-total-row span:last-child{color:var(--mustard); font-family:'Anton',sans-serif; font-size:22px;}
+
+  /* tracking stepper */
+  .track-search{display:flex; gap:10px; margin-bottom:26px;}
+  .track-search input{flex-grow:1;}
+  .order-summary-box{background:var(--pitch); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin-bottom:26px;}
+  .stepper{display:flex; flex-direction:column; gap:0;}
+  .step{display:flex; gap:16px; position:relative; padding-bottom:34px;}
+  .step:last-child{padding-bottom:0;}
+  .step-dot{width:34px; height:34px; border-radius:50%; background:var(--char); border:2px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; z-index:2; transition:all .3s;}
+  .step-line{position:absolute; left:16px; top:34px; bottom:-6px; width:2px; background:var(--line); z-index:1;}
+  .step:last-child .step-line{display:none;}
+  .step.done .step-dot{background:var(--ember); border-color:var(--ember); color:var(--pitch);}
+  .step.done .step-line{background:var(--ember);}
+  .step.current .step-dot{background:var(--mustard); border-color:var(--mustard); color:var(--pitch); box-shadow:0 0 0 5px rgba(240,180,41,0.2);}
+  .step-text strong{display:block; font-size:15px; margin-bottom:2px;}
+  .step-text span{font-size:12px; color:rgba(242,233,218,0.5);}
+  .step.pending .step-text strong{color:rgba(242,233,218,0.4);}
+
+  @media(max-width:900px){
+    nav ul{display:none;}
+    .menu-toggle{display:flex;}
+    .hero-grid{grid-template-columns:1fr;}
+    .hero-art{order:-1; min-height:320px;}
+    .about-grid{grid-template-columns:1fr;}
+    .about-visual{aspect-ratio:16/9;}
+    .menu-grid{grid-template-columns:1fr 1fr;}
+    .loc-grid{grid-template-columns:1fr;}
+    .foot-grid{grid-template-columns:1fr 1fr;}
+    .strip-item{font-size:28px;}
+    .form-grid{grid-template-columns:1fr;}
+    .icon-link span.lbl{display:none;}
+  }
+  @media(max-width:560px){
+    .menu-grid{grid-template-columns:1fr;}
+    .hero-stats{gap:20px; flex-wrap:wrap;}
+    .foot-grid{grid-template-columns:1fr;}
+    .about-list{grid-template-columns:1fr;}
+    .prod-row{flex-wrap:wrap;}
+  }
+  @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important;} }
+
+  /* ---------- DAY STATS ---------- */
+  .day-stats{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:26px;}
+  .day-stat{background:var(--pitch); border:1px solid var(--line); border-radius:14px; padding:16px; text-align:center;}
+  .day-stat .dv{font-family:'Anton',sans-serif; font-size:22px; color:var(--mustard);}
+  .day-stat .dl{font-size:11px; letter-spacing:0.5px; color:rgba(242,233,218,0.55); text-transform:uppercase; margin-top:4px;}
+  @media(max-width:560px){ .day-stats{grid-template-columns:1fr 1fr;} .day-stats .day-stat:last-child{grid-column:1/-1;} }
+
+  /* ---------- DASHBOARD ---------- */
+  .kpi-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:28px;}
+  .kpi-card{background:var(--pitch); border:1px solid var(--line); border-radius:14px; padding:18px;}
+  .kpi-card .kv{font-family:'Anton',sans-serif; font-size:24px; color:var(--mustard); line-height:1;}
+  .kpi-card .kl{font-size:11px; letter-spacing:0.5px; color:rgba(242,233,218,0.55); text-transform:uppercase; margin-top:6px;}
+  .kpi-card.profit .kv{color:var(--green);}
+  .kpi-card.profit.negative .kv{color:var(--tomato);}
+  .dash-cols{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  .dash-card{background:var(--pitch); border:1px solid var(--line); border-radius:16px; padding:22px;}
+  .dash-card h3{font-size:14px; margin-bottom:16px; color:var(--cream);}
+  .bestseller-row{display:flex; align-items:center; gap:12px; margin-bottom:12px;}
+  .bestseller-row .bs-rank{width:24px; height:24px; border-radius:50%; background:var(--ember); color:var(--pitch); font-family:'Anton',sans-serif; font-size:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .bestseller-row .bs-name{flex-grow:1; font-size:13px; min-width:0;}
+  .bestseller-row .bs-bar-track{background:var(--char); border-radius:999px; height:6px; margin-top:4px; overflow:hidden;}
+  .bestseller-row .bs-bar-fill{background:var(--ember); height:100%; border-radius:999px;}
+  .bestseller-row .bs-count{font-family:'Anton',sans-serif; font-size:13px; color:var(--mustard); flex-shrink:0;}
+  .chart-bars{display:flex; align-items:flex-end; gap:8px; height:140px;}
+  .chart-bar-col{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:6px;}
+  .chart-bar{width:100%; background:linear-gradient(180deg,var(--ember),var(--ember-deep)); border-radius:6px 6px 0 0; min-height:3px;}
+  .chart-bar-col .cb-label{font-size:10px; color:rgba(242,233,218,0.5);}
+  .low-stock-banner{background:rgba(182,56,44,0.15); border:1px solid var(--tomato); color:var(--tomato); border-radius:12px; padding:14px 18px; font-size:13px; font-weight:700; margin-bottom:24px;}
+
+  /* ---------- FINANCEIRO ---------- */
+  .cf-row{display:flex; align-items:center; gap:12px; padding:12px; border:1px solid var(--line); border-radius:12px; margin-bottom:10px;}
+  .cf-row .cf-icon{width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0;}
+  .cf-row.entrada .cf-icon{background:rgba(76,175,109,0.18); color:var(--green);}
+  .cf-row.saida .cf-icon{background:rgba(182,56,44,0.18); color:var(--tomato);}
+  .cf-row .cf-info{flex-grow:1; min-width:0;}
+  .cf-row .cf-info strong{display:block; font-size:14px;}
+  .cf-row .cf-info span{font-size:12px; color:rgba(242,233,218,0.5);}
+  .cf-row .cf-amount{font-family:'Anton',sans-serif; font-size:15px; flex-shrink:0;}
+  .cf-row.entrada .cf-amount{color:var(--green);}
+  .cf-row.saida .cf-amount{color:var(--tomato);}
+  .fc-total{margin-top:16px; text-align:right; font-size:15px; font-weight:700;}
+  .fc-total span{color:var(--mustard); font-family:'Anton',sans-serif; font-size:19px;}
+
+  /* ---------- ESTOQUE ---------- */
+  .stock-row.low{border-color:var(--tomato); background:rgba(182,56,44,0.08);}
+  .stock-qty-ctrl{display:flex; align-items:center; gap:6px;}
+  .stock-qty-ctrl button{width:26px; height:26px; border-radius:8px; border:1px solid var(--line); background:transparent; color:var(--cream); cursor:pointer;}
+  .stock-qty-ctrl button:hover{border-color:var(--ember);}
+  .stock-badge-low{background:var(--tomato); color:var(--cream); font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; margin-left:8px;}
+
+  @media(max-width:900px){
+    .kpi-grid{grid-template-columns:1fr 1fr;}
+    .dash-cols{grid-template-columns:1fr;}
+  }
+
+  /* App Cliente: painel administrativo não é acessível por aqui */
+  #openAdmin{ display:none !important; }
+
+  /* ---------- ORDER TYPE TOGGLE ---------- */
+  .type-toggle{display:flex; gap:10px;}
+  .type-btn{flex:1; padding:12px 10px; border-radius:10px; border:1px solid var(--line); background:var(--pitch); color:rgba(242,233,218,0.7); font-size:13px; font-weight:700; cursor:pointer; transition:all .2s;}
+  .type-btn.active{border-color:var(--ember); background:rgba(229,118,46,0.15); color:var(--ember);}
+
+  /* ---------- PRINT COMANDA BUTTON ---------- */
+  .print-btn{background:var(--char); border:1px solid var(--mustard); color:var(--mustard); padding:8px 14px; border-radius:999px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;}
+  .print-btn:hover{background:var(--mustard); color:var(--pitch);}
+  .order-actions-row{display:flex; justify-content:space-between; align-items:center; margin-top:12px; flex-wrap:wrap; gap:10px;}
+  .order-extra{font-size:12px; color:rgba(242,233,218,0.55); display:flex; gap:14px; flex-wrap:wrap; margin-top:4px;}
+
+  /* ---------- PRINT AREA (comanda térmica) ---------- */
+  .print-area{display:none;}
+  @media print{
+    body > *:not(.print-area){display:none !important;}
+    .print-area{
+      display:block !important; width:78mm; margin:0 auto; padding:6px;
+      font-family:'DM Sans', monospace; color:#000; background:#fff;
+    }
+    .print-area .p-logo{font-family:'Anton',sans-serif; font-size:20px; text-align:center; margin-bottom:2px;}
+    .print-area .p-sub{text-align:center; font-size:10px; margin-bottom:10px;}
+    .print-area .p-line{border-top:1px dashed #000; margin:8px 0;}
+    .print-area .p-num{text-align:center; font-family:'Anton',sans-serif; font-size:30px; margin:6px 0;}
+    .print-area .p-code{text-align:center; font-size:12px; margin-bottom:8px;}
+    .print-area .p-row{display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;}
+    .print-area .p-item{display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; font-weight:700;}
+    .print-area .p-total{display:flex; justify-content:space-between; font-size:15px; font-weight:700; margin-top:8px;}
+    .print-area .p-notes{font-size:12px; margin-top:10px; border:1px solid #000; padding:8px; border-radius:4px;}
+    .print-area .p-foot{text-align:center; font-size:10px; margin-top:14px;}
+  }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<header>
+  <div class="wrap nav">
+    <div class="brand">
+      <div class="brand-badge">M</div>
+      <div class="brand-text"><div class="l1">O MARKIN</div><div class="l2">Chef's Burguer</div></div>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="#cardapio">Cardápio</a></li>
+        <li><a href="#sobre">Sobre</a></li>
+        <li><a href="#local">Localização</a></li>
+        <li><a id="navTrack">Acompanhar pedido</a></li>
+      </ul>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-link" id="openTrack">📦 <span class="lbl">Meu pedido</span></button>
+      <button class="icon-link" id="openCart">🛒 <span class="lbl">Carrinho</span> <span class="cart-count" id="cartCount">0</span></button>
+      <button class="icon-link" id="openAdmin">⚙️ <span class="lbl">Adm</span></button>
+    </div>
+    <button class="menu-toggle" aria-label="Abrir menu"><span></span><span></span><span></span></button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow"><span class="star">★</span> FEITO NA CHAPA, NA HORA <span class="star">★</span></div>
+      <h1 class="hero-title">O MARKIN<span>CHEF'S BURGUER</span></h1>
+      <p class="hero-sub">Pão brioche tostado, blend artesanal suculento e o toque de chef em cada camada. Sem pressa, sem atalho — só burguer de verdade.</p>
+      <div class="hero-actions">
+        <a href="#cardapio" class="cta-btn">Ver cardápio →</a>
+        <button class="btn-outline" id="heroTrackBtn">Acompanhar meu pedido</button>
+      </div>
+      <div class="hero-stats">
+        <div><div class="num" id="statCount">–</div><div class="lbl">Lanches no cardápio</div></div>
+        <div><div class="num">4.9★</div><div class="lbl">Avaliação dos clientes</div></div>
+        <div><div class="num">20min</div><div class="lbl">Tempo médio de preparo</div></div>
+      </div>
+    </div>
+
+    <div class="hero-art">
+      <div class="plate-glow"></div>
+      <svg class="badge-stamp" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="none" stroke="#f0b429" stroke-width="2" stroke-dasharray="4 4"/><text x="50" y="35" text-anchor="middle" fill="#f2e9da" font-family="Anton" font-size="11">100%</text><text x="50" y="58" text-anchor="middle" fill="#e5762e" font-family="Anton" font-size="13">CHEF'S</text><text x="50" y="72" text-anchor="middle" fill="#f2e9da" font-family="Anton" font-size="8">ARTESANAL</text></svg>
+      <div class="burger-stack">
+        <div class="layer bun-top"></div>
+        <div class="layer lettuce"></div>
+        <div class="layer cheese"></div>
+        <div class="layer patty"></div>
+        <div class="layer tomato"></div>
+        <div class="layer cheese" style="clip-path:polygon(0 0,100% 0,88% 100%,12% 100%);"></div>
+        <div class="layer bun-bottom"></div>
+        <div class="fries-cup">
+          <div class="fry"></div><div class="fry"></div><div class="fry"></div>
+          <div class="fry"></div><div class="fry"></div><div class="fry"></div>
+          <div class="fries-box"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap"><div class="divider"></div></div>
+
+<section class="section" id="cardapio">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-eyebrow">CARDÁPIO</div>
+      <h2 class="section-title">Nossos <em>mais pedidos</em></h2>
+      <p class="section-desc">Cada burguer leva blend 100% bovino moído na casa, pão brioche selado na manteiga e molhos autorais. Escolha e adicione ao carrinho.</p>
+    </div>
+
+    <div class="menu-tabs" id="menuTabs">
+      <div class="tab active" data-cat="todos">Todos</div>
+      <div class="tab" data-cat="burguers">Hambúrgueres</div>
+      <div class="tab" data-cat="entradas">Entradas</div>
+      <div class="tab" data-cat="bebidas">Bebidas</div>
+      <div class="tab" data-cat="adicionais">Adicionais</div>
+      <div class="tab" data-cat="combo">Combo</div>
+    </div>
+
+    <div class="menu-grid" id="menuGrid">
+      <div class="empty-state">Carregando cardápio...</div>
+    </div>
+  </div>
+</section>
+
+<section class="about" id="sobre">
+  <div class="wrap about-grid">
+    <div class="about-visual">
+      <div class="flame"></div>
+      <div class="script">"na chapa,<br>na hora."</div>
+    </div>
+    <div class="about-copy">
+      <div class="section-eyebrow">NOSSA HISTÓRIA</div>
+      <h2>Burguer de bairro com<br>alma de chef.</h2>
+      <p>O Markin nasceu da vontade de fazer o hambúrguer que a gente mesmo queria comer: pão quentinho, carne suculenta e ingredientes de verdade — sem fórmula pronta.</p>
+      <p>Cada receita passa pela bancada do chef antes de entrar no cardápio. É assim que garantimos o mesmo sabor em todo pedido, seja no salão ou na entrega.</p>
+      <ul class="about-list">
+        <li>Blend moído diariamente</li>
+        <li>Pão brioche artesanal</li>
+        <li>Molhos feitos na casa</li>
+        <li>Chapa sempre quente</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="strip">
+  <div class="strip-item">🍔</div>
+  <div class="strip-item">🧀</div>
+  <div class="strip-item">🥓</div>
+  <div class="strip-item">🍟</div>
+  <div class="strip-item">🌶️</div>
+  <div class="strip-item">🥤</div>
+</div>
+
+<section class="location" id="local">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-eyebrow">VISITE A GENTE</div>
+      <h2 class="section-title">Horário e <em>localização</em></h2>
+    </div>
+    <div class="loc-grid">
+      <div class="loc-card">
+        <h3>Funcionamento</h3>
+        <div class="hours-row"><span>Segunda a Quinta</span><span>18h – 23h</span></div>
+        <div class="hours-row"><span>Sexta e Sábado</span><span>18h – 00h30</span></div>
+        <div class="hours-row"><span>Domingo</span><span>18h – 22h30</span></div>
+      </div>
+      <div class="loc-card">
+        <h3>Contato & Endereço</h3>
+        <div class="contact-row"><div class="contact-icon">📍</div><div><div class="lbl">Endereço</div><div class="val">Preencha seu endereço aqui</div></div></div>
+        <div class="contact-row"><div class="contact-icon">📱</div><div><div class="lbl">WhatsApp</div><div class="val">(00) 00000-0000</div></div></div>
+        <div class="contact-row"><div class="contact-icon">📷</div><div><div class="lbl">Instagram</div><div class="val">@omarkinchefsburguer</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <h2>Bateu a fome? Monta teu pedido.</h2>
+    <p>Escolha no cardápio, finalize o pedido e acompanhe tudo em tempo real por aqui.</p>
+    <a href="#cardapio" class="cta-btn">Ver cardápio →</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <div class="brand"><div class="brand-badge">M</div><div class="brand-text"><div class="l1">O MARKIN</div><div class="l2">Chef's Burguer</div></div></div>
+        <p>Hambúrgueres artesanais feitos na chapa, com ingredientes selecionados e muito sabor em cada mordida.</p>
+      </div>
+      <div class="foot-col"><h4>Navegação</h4><ul><li><a href="#cardapio">Cardápio</a></li><li><a href="#sobre">Sobre nós</a></li><li><a href="#local">Localização</a></li></ul></div>
+      <div class="foot-col"><h4>Cardápio</h4><ul><li><a href="#cardapio">Burguers</a></li><li><a href="#cardapio">Acompanhamentos</a></li><li><a href="#cardapio">Bebidas</a></li></ul></div>
+      <div class="foot-col"><h4>Redes sociais</h4><ul><li><a href="#">Instagram</a></li><li><a href="#">WhatsApp</a></li><li><a href="#">iFood</a></li></ul></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 O Markin Chef's Burguer. Todos os direitos reservados.</span>
+      <span>Feito com 🔥 e queijo derretido.</span>
+    </div>
+  </div>
+</footer>
+
+<a href="#" class="whatsapp-fab">💬</a>
+
+<!-- ================= CART DRAWER ================= -->
+<div class="overlay" id="cartOverlay">
+  <div class="panel narrow">
+    <div class="panel-head"><h2>🛒 Seu carrinho</h2><button class="close-btn" data-close="cartOverlay">✕</button></div>
+    <div class="panel-body">
+      <div class="cart-items" id="cartItems"></div>
+      <div class="cart-total-row"><span>Total</span><span id="cartTotal">R$ 0,00</span></div>
+      <div class="form-actions">
+        <button class="btn-primary" id="goCheckout" style="width:100%;">Finalizar pedido</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= CHECKOUT ================= -->
+<div class="overlay" id="checkoutOverlay">
+  <div class="panel narrow">
+    <div class="panel-head"><h2>Finalizar pedido</h2><button class="close-btn" data-close="checkoutOverlay">✕</button></div>
+    <div class="panel-body">
+      <div class="field"><label>Seu nome</label><input type="text" id="ckName" placeholder="Nome completo"></div>
+      <div class="field"><label>WhatsApp</label><input type="text" id="ckPhone" placeholder="(00) 00000-0000"></div>
+      <div class="field">
+        <label>Tipo de pedido</label>
+        <div class="type-toggle">
+          <button type="button" class="type-btn active" data-ordertype="entrega">🛵 Entrega</button>
+          <button type="button" class="type-btn" data-ordertype="retirada">🏠 Retirar no balcão</button>
+        </div>
+      </div>
+      <div class="field" id="ckAddressField"><label>Endereço de entrega</label><textarea id="ckAddress" placeholder="Rua, número, bairro, ponto de referência"></textarea></div>
+      <div class="field"><label>Forma de pagamento</label>
+        <select id="ckPayment">
+          <option value="dinheiro">Dinheiro</option>
+          <option value="cartao">Cartão (na entrega/retirada)</option>
+          <option value="pix">Pix</option>
+        </select>
+      </div>
+      <div class="field"><label>Observações (opcional)</label><textarea id="ckNotes" placeholder="Ex: sem cebola, ponto da carne, troco para R$ 50..."></textarea></div>
+      <div class="error-msg" id="checkoutError"></div>
+      <button class="btn-primary" id="confirmOrderBtn" style="width:100%;">Confirmar pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= TRACKING ================= -->
+<div class="overlay" id="trackOverlay">
+  <div class="panel narrow">
+    <div class="panel-head"><h2>📦 Acompanhar pedido</h2><button class="close-btn" data-close="trackOverlay">✕</button></div>
+    <div class="panel-body">
+      <div class="track-search">
+        <input type="text" id="trackCodeInput" placeholder="Digite o código do pedido (ex: MK-1234)">
+        <button class="btn-primary" id="trackSearchBtn">Buscar</button>
+      </div>
+      <div id="trackResult"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= ADMIN PANEL ================= -->
+<div class="overlay" id="adminOverlay">
+  <div class="panel">
+    <div class="panel-head"><h2>⚙️ Painel do Chef</h2><button class="close-btn" data-close="adminOverlay">✕</button></div>
+    <div class="panel-body">
+
+      <div id="loginView" class="login-box">
+        <p>Digite a senha de administrador para gerenciar o cardápio e os pedidos.</p>
+        <div class="field"><input type="password" id="adminPass" placeholder="Senha"></div>
+        <button class="btn-primary" id="loginBtn" style="width:100%;">Entrar</button>
+        <div class="error-msg" id="loginError"></div>
+        <p style="margin-top:16px; font-size:12px; opacity:0.5;">Senha padrão: <strong>markin123</strong> — peça pra eu trocar quando quiser.</p>
+      </div>
+
+      <div id="managerView" style="display:none;">
+        <div class="admin-tabs">
+          <button class="admin-tab-btn active" data-atab="dashboard">📊 Dashboard</button>
+          <button class="admin-tab-btn" data-atab="cardapio">Cardápio</button>
+          <button class="admin-tab-btn" data-atab="pedidos">Pedidos <span id="pendingBadge"></span></button>
+          <button class="admin-tab-btn" data-atab="financeiro">Financeiro</button>
+          <button class="admin-tab-btn" data-atab="estoque">Estoque <span id="lowStockBadge"></span></button>
+        </div>
+
+        <!-- DASHBOARD TAB -->
+        <div id="atabDashboard">
+          <div id="lowStockAlert"></div>
+          <div id="kpiGrid" class="kpi-grid"></div>
+          <div class="dash-cols">
+            <div class="dash-card">
+              <h3>🏆 Mais vendidos</h3>
+              <div id="bestSellers"><div class="loading-row">Sem dados ainda.</div></div>
+            </div>
+            <div class="dash-card">
+              <h3>📈 Faturamento — últimos 7 dias</h3>
+              <div id="revenueChart" class="chart-bars"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARDÁPIO TAB -->
+        <div id="atabCardapio" style="display:none;">
+          <input type="hidden" id="editingId">
+          <div class="form-grid">
+            <div class="field"><label>Nome do produto</label><input type="text" id="fName" placeholder="Ex: Cheddar Bacon"></div>
+            <div class="field"><label>Categoria</label>
+              <select id="fCat">
+                <option value="burguers">Hambúrgueres</option>
+                <option value="entradas">Entradas</option>
+                <option value="bebidas">Bebidas</option>
+                <option value="adicionais">Adicionais</option>
+                <option value="combo">Combo</option>
+              </select>
+            </div>
+            <div class="field"><label>Preço (R$)</label><input type="number" step="0.01" id="fPrice" placeholder="Ex: 29.90"></div>
+            <div class="field"><label>Ícone (emoji)</label><input type="text" id="fIcon" placeholder="🍔" maxlength="4"></div>
+            <div class="field"><label>Etiqueta (opcional)</label><input type="text" id="fTag" placeholder="Ex: NOVO, PICANTE, MAIS PEDIDO"></div>
+          </div>
+          <div class="field"><label>Descrição</label><textarea id="fDesc" placeholder="Descrição curta do produto"></textarea></div>
+          <div class="form-actions">
+            <button class="btn-primary" id="saveBtn">Adicionar produto</button>
+            <button class="btn-ghost" id="cancelEditBtn" style="display:none;">Cancelar edição</button>
+          </div>
+          <div class="error-msg" id="formError"></div>
+
+          <div class="admin-list">
+            <h3>Produtos cadastrados</h3>
+            <div id="adminProductList"><div class="loading-row">Carregando...</div></div>
+          </div>
+        </div>
+
+        <!-- PEDIDOS TAB -->
+        <div id="atabPedidos" style="display:none;">
+          <div id="dayStats" class="day-stats"></div>
+          <div class="admin-list" style="margin-top:0; border-top:none; padding-top:0;">
+            <h3>Pedidos recebidos</h3>
+            <div id="adminOrderList"><div class="loading-row">Carregando...</div></div>
+          </div>
+        </div>
+
+        <!-- FINANCEIRO TAB -->
+        <div id="atabFinanceiro" style="display:none;">
+          <div id="finKpis" class="kpi-grid"></div>
+
+          <div class="dash-card" style="margin-bottom:26px;">
+            <h3>💵 Lançar entrada ou saída</h3>
+            <div class="type-toggle" style="margin-bottom:14px;">
+              <button type="button" class="type-btn active" data-cftype="entrada">⬆️ Entrada</button>
+              <button type="button" class="type-btn" data-cftype="saida">⬇️ Saída</button>
+            </div>
+            <div class="form-grid">
+              <div class="field"><label>Descrição</label><input type="text" id="cfDesc" placeholder="Ex: Venda balcão, compra de carne..."></div>
+              <div class="field"><label>Valor (R$)</label><input type="number" step="0.01" id="cfAmount" placeholder="Ex: 150.00"></div>
+              <div class="field"><label>Categoria</label>
+                <select id="cfCategory">
+                  <option value="vendas">Vendas</option>
+                  <option value="insumos">Insumos / Ingredientes</option>
+                  <option value="fornecedor">Fornecedor</option>
+                  <option value="manutencao">Manutenção</option>
+                  <option value="outros">Outros</option>
+                </select>
+              </div>
+              <div class="field"><label>Data</label><input type="date" id="cfDate"></div>
+            </div>
+            <button class="btn-primary" id="addCashflowBtn">Lançar</button>
+            <div class="error-msg" id="cfError"></div>
+          </div>
+
+          <div class="admin-list" style="margin-top:0; border-top:none; padding-top:0;">
+            <h3>Movimentações recentes</h3>
+            <div id="cashflowList"><div class="loading-row">Carregando...</div></div>
+          </div>
+
+          <div class="admin-list">
+            <h3>🏢 Custos fixos mensais</h3>
+            <div class="form-grid">
+              <div class="field"><label>Nome do custo</label><input type="text" id="fcName" placeholder="Ex: Aluguel, Energia, Funcionário..."></div>
+              <div class="field"><label>Valor mensal (R$)</label><input type="number" step="0.01" id="fcAmount" placeholder="Ex: 1200.00"></div>
+            </div>
+            <button class="btn-primary" id="addFixedCostBtn">Adicionar custo fixo</button>
+            <div id="fixedCostList" style="margin-top:18px;"><div class="loading-row">Carregando...</div></div>
+            <div class="fc-total" id="fcTotal"></div>
+          </div>
+        </div>
+
+        <!-- ESTOQUE TAB -->
+        <div id="atabEstoque" style="display:none;">
+          <div class="form-grid">
+            <div class="field"><label>Item</label><input type="text" id="stName" placeholder="Ex: Pão brioche, Carne 150g, Cheddar..."></div>
+            <div class="field"><label>Unidade</label>
+              <select id="stUnit">
+                <option value="un">Unidade</option>
+                <option value="kg">Kg</option>
+                <option value="g">Gramas</option>
+                <option value="l">Litros</option>
+                <option value="pct">Pacote</option>
+              </select>
+            </div>
+            <div class="field"><label>Quantidade atual</label><input type="number" step="0.01" id="stQty" placeholder="Ex: 40"></div>
+            <div class="field"><label>Estoque mínimo (alerta)</label><input type="number" step="0.01" id="stMin" placeholder="Ex: 10"></div>
+          </div>
+          <button class="btn-primary" id="addStockBtn">Adicionar item</button>
+          <div class="error-msg" id="stError"></div>
+          <div class="admin-list">
+            <h3>Itens em estoque</h3>
+            <div id="stockList"><div class="loading-row">Carregando...</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<div class="save-toast" id="saveToast">Alterações salvas ✓</div>
+
+<div class="print-area" id="printArea"></div>
+
+<!-- ============ FIREBASE ============ -->
+<!-- Projeto conectado: omarkin-burguer-39bda -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyA-7sy4ox0ErDZAw7prhXYJ3MaSA7G_scY",
+    authDomain: "omarkin-burguer-39bda.firebaseapp.com",
+    projectId: "omarkin-burguer-39bda",
+    storageBucket: "omarkin-burguer-39bda.firebasestorage.app",
+    messagingSenderId: "476114578010",
+    appId: "1:476114578010:web:fb22f3159e86edf0a5c663"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+
+<script>
+(function(){
+  const ADMIN_PASSWORD = "markin123";
+
+  let products = [];
+  let orders = [];
+  let cashflow = [];
+  let fixedCosts = [];
+  let inventory = [];
+  let activeCategory = "todos";
+  let cart = []; // {productId, name, price, icon, qty}
+  let lastOrderCode = null;
+  let currentTrackedCode = null;
+
+  const STATUS_FLOW = [
+    {key:"recebido", label:"Pedido recebido", icon:"📝"},
+    {key:"aceito", label:"Aceito", icon:"✅"},
+    {key:"preparo", label:"Em preparo", icon:"👨‍🍳"},
+    {key:"caminho", label:"Indo até você", icon:"🛵"},
+    {key:"entregue", label:"Entregue", icon:"🎉"}
+  ];
+  const STATUS_COLORS = {recebido:"#8a8a8a", aceito:"#4c9aef", preparo:"#f0b429", caminho:"#e5762e", entregue:"#4caf6d"};
+
+  const defaultProducts = [
+    {id:"p1", name:"Bugue do Papai", cat:"burguers", price:31.00, icon:"🍔", tag:"", desc:"Pão brioche tostado, hambúrguer bovino 180g, queijo cheddar, tarê de melaço de cana, fatias de bacon artesanal, picles e molho defumado."},
+    {id:"p2", name:"Prime Chicken", cat:"burguers", price:24.00, icon:"🍗", tag:"", desc:"Pão brioche tostado, hambúrguer de frango 180g, queijo provolone, alface fresco, tomate e molho especial do chef."},
+    {id:"p3", name:"Big Chef", cat:"burguers", price:30.00, icon:"🍔", tag:"", desc:"Hambúrguer, alface, queijo, molho especial, cebola e picles, no pão de briochin."},
+    {id:"p4", name:"Classic Onion", cat:"burguers", price:24.00, icon:"🧅", tag:"", desc:"Pão brioche tostado, hambúrguer bovino 180g, cebola caramelizada e queijo cheddar."},
+    {id:"p5", name:"Chef's Burguer", cat:"burguers", price:35.00, icon:"🌶️", tag:"MAIS PEDIDO", desc:"Pão brioche tostado, hambúrguer bovino 180g, queijo cheddar, geleia de bacon com pimenta de cheiro, cebola crispy e molho picante jalapeño."},
+    {id:"p6", name:"Retro Burguer", cat:"burguers", price:26.00, icon:"🍔", tag:"", desc:"Pão brioche, hambúrguer bovino 180g, queijo cheddar, picles, cebola, ketchup, maionese e mostarda."},
+    {id:"p7", name:"Salad Bacon", cat:"burguers", price:29.00, icon:"🥓", tag:"", desc:"Pão brioche tostado, hambúrguer bovino 180g, queijo cheddar, fatias de bacon artesanal, alface fresco, tomate e molho especial do chef."},
+    {id:"p8", name:"Classic Bacon", cat:"burguers", price:27.00, icon:"🥓", tag:"", desc:"Pão brioche tostado, hambúrguer bovino 180g, queijo cheddar, fatias de bacon artesanal e molho especial do chef."},
+    {id:"p9", name:"Classic Salad", cat:"burguers", price:27.00, icon:"🥬", tag:"", desc:"Pão brioche tostado, hambúrguer bovino 180g, queijo cheddar, alface fresco, tomate e molho especial do chef."},
+    {id:"p10", name:"Classic Burguer", cat:"burguers", price:20.00, icon:"🍔", tag:"", desc:"Pão brioche tostado, hambúrguer bovino 180g e queijo cheddar. (Neste não é possível colocar adicionais.)"},
+    {id:"p11", name:"Porção de Batata", cat:"entradas", price:26.00, icon:"🍟", tag:"", desc:"Porção de batata frita — 400g."},
+    {id:"p12", name:"Croqueta de Cupim Desfiada com Queijo", cat:"entradas", price:39.00, icon:"🧀", tag:"", desc:"Croqueta recheada de cupim desfiado com queijo — 350g."},
+    {id:"p13", name:"Dadinho de Mussarela Crocante", cat:"entradas", price:37.00, icon:"🧀", tag:"", desc:"Dadinhos de mussarela empanados e crocantes — 400g."},
+    {id:"p14", name:"Refrigerante Lata", cat:"bebidas", price:6.00, icon:"🥤", tag:"", desc:"Lata gelada."},
+    {id:"p15", name:"Suco Lata", cat:"bebidas", price:7.00, icon:"🧃", tag:"", desc:"Lata gelada."},
+    {id:"p16", name:"Água com Gás", cat:"bebidas", price:4.00, icon:"💧", tag:"", desc:"Garrafa gelada."},
+    {id:"p17", name:"Adicional Hambúrguer", cat:"adicionais", price:10.00, icon:"🍔", tag:"", desc:"Carne extra para adicionar ao seu lanche."},
+    {id:"p18", name:"Adicional Bacon", cat:"adicionais", price:4.00, icon:"🥓", tag:"", desc:"Fatias de bacon artesanal extra."},
+    {id:"p19", name:"Adicional Picles", cat:"adicionais", price:2.00, icon:"🥒", tag:"", desc:"Picles extra."},
+    {id:"p20", name:"Adicional Cheddar", cat:"adicionais", price:4.00, icon:"🧀", tag:"", desc:"2 fatias de queijo cheddar."},
+    {id:"p21", name:"Adicional Molhos", cat:"adicionais", price:3.00, icon:"🥫", tag:"", desc:"Molho extra à sua escolha."},
+    {id:"p22", name:"Combo Batata + Refri", cat:"combo", price:15.00, icon:"🎁", tag:"NOVO", desc:"Batata (100g) + refrigerante."}
+  ];
+
+  function genId(){ return "p" + Date.now() + Math.floor(Math.random()*1000); }
+  function genOrderCode(){ return "MK-" + Math.floor(1000 + Math.random()*9000); }
+  function escapeHtml(str){ return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function money(n){ return "R$ " + Number(n).toFixed(2).replace('.',','); }
+
+  function openOverlay(id){ document.getElementById(id).classList.add('open'); }
+  function closeOverlay(id){ document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => closeOverlay(btn.dataset.close)));
+  document.querySelectorAll('.overlay').forEach(ov => ov.addEventListener('click', (e) => { if(e.target === ov) closeOverlay(ov.id); }));
+
+  function showToast(msg){
+    const t = document.getElementById('saveToast');
+    t.textContent = msg || "Alterações salvas ✓";
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 2200);
+  }
+
+  /* ---------------- PRODUCTS (Firestore) ---------------- */
+  function watchProducts(){
+    db.collection('store').doc('menu').onSnapshot(async (doc) => {
+      if(doc.exists && doc.data().items){
+        products = doc.data().items;
+      }else{
+        products = defaultProducts;
+        try{ await db.collection('store').doc('menu').set({items: defaultProducts}); }catch(e){}
+      }
+      renderMenu();
+      renderAdminList();
+    }, (err) => {
+      console.error("Erro ao ler cardápio:", err);
+      products = defaultProducts;
+      renderMenu();
+    });
+  }
+  async function saveProducts(){
+    try{ await db.collection('store').doc('menu').set({items: products}); showToast("Cardápio atualizado ✓"); }
+    catch(e){ alert("Não foi possível salvar. Tente novamente."); }
+  }
+  function catLabel(cat){ return {burguers:"Hambúrgueres", entradas:"Entradas", bebidas:"Bebidas", adicionais:"Adicionais", combo:"Combo"}[cat] || cat; }
+
+  function renderMenu(){
+    const grid = document.getElementById('menuGrid');
+    document.getElementById('statCount').textContent = products.length + "+";
+    const list = activeCategory === "todos" ? products : products.filter(p => p.cat === activeCategory);
+    if(list.length === 0){ grid.innerHTML = '<div class="empty-state">Nenhum produto nessa categoria ainda. Volte em breve! 👨‍🍳</div>'; return; }
+    grid.innerHTML = list.map(p => `
+      <div class="menu-card">
+        ${p.tag ? `<span class="tag">${escapeHtml(p.tag)}</span>` : ''}
+        <div class="menu-icon">${p.icon || '🍔'}</div>
+        <h3>${escapeHtml(p.name)}</h3>
+        <p>${escapeHtml(p.desc || '')}</p>
+        <div class="menu-foot"><span class="price">${money(p.price)}</span><button class="add" data-add="${p.id}">+</button></div>
+      </div>
+    `).join('');
+    grid.querySelectorAll('[data-add]').forEach(btn => btn.addEventListener('click', () => addToCart(btn.dataset.add)));
+  }
+
+  function renderAdminList(){
+    const list = document.getElementById('adminProductList');
+    if(products.length === 0){ list.innerHTML = '<div class="loading-row">Nenhum produto cadastrado ainda.</div>'; return; }
+    list.innerHTML = products.map(p => `
+      <div class="prod-row">
+        <div class="pi">${p.icon || '🍔'}</div>
+        <div class="pn"><strong>${escapeHtml(p.name)}</strong><span>${catLabel(p.cat)}${p.tag ? ' · ' + escapeHtml(p.tag) : ''}</span></div>
+        <div class="pp">${money(p.price)}</div>
+        <div class="row-actions">
+          <button class="icon-btn" data-edit="${p.id}" title="Editar">✎</button>
+          <button class="icon-btn danger" data-del="${p.id}" title="Excluir">🗑</button>
+        </div>
+      </div>
+    `).join('');
+    list.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => startEdit(btn.dataset.edit)));
+    list.querySelectorAll('[data-del]').forEach(btn => btn.addEventListener('click', () => deleteProduct(btn.dataset.del)));
+  }
+
+  function clearForm(){
+    document.getElementById('editingId').value = "";
+    document.getElementById('fName').value = "";
+    document.getElementById('fCat').value = "burguers";
+    document.getElementById('fPrice').value = "";
+    document.getElementById('fIcon').value = "";
+    document.getElementById('fTag').value = "";
+    document.getElementById('fDesc').value = "";
+    document.getElementById('saveBtn').textContent = "Adicionar produto";
+    document.getElementById('cancelEditBtn').style.display = "none";
+    document.getElementById('formError').textContent = "";
+  }
+  function startEdit(id){
+    const p = products.find(x => x.id === id);
+    if(!p) return;
+    document.getElementById('editingId').value = p.id;
+    document.getElementById('fName').value = p.name;
+    document.getElementById('fCat').value = p.cat;
+    document.getElementById('fPrice').value = p.price;
+    document.getElementById('fIcon').value = p.icon || "";
+    document.getElementById('fTag').value = p.tag || "";
+    document.getElementById('fDesc').value = p.desc || "";
+    document.getElementById('saveBtn').textContent = "Salvar alterações";
+    document.getElementById('cancelEditBtn').style.display = "inline-block";
+    document.getElementById('formError').textContent = "";
+    document.querySelector('#adminOverlay .panel').scrollTop = 0;
+  }
+  async function deleteProduct(id){
+    if(!confirm("Excluir este produto do cardápio?")) return;
+    products = products.filter(p => p.id !== id);
+    await saveProducts(); renderMenu(); renderAdminList();
+  }
+  document.getElementById('saveBtn').addEventListener('click', async () => {
+    const name = document.getElementById('fName').value.trim();
+    const cat = document.getElementById('fCat').value;
+    const priceRaw = document.getElementById('fPrice').value;
+    const icon = document.getElementById('fIcon').value.trim();
+    const tag = document.getElementById('fTag').value.trim();
+    const desc = document.getElementById('fDesc').value.trim();
+    const editingId = document.getElementById('editingId').value;
+    const errEl = document.getElementById('formError');
+    if(!name || !priceRaw || isNaN(parseFloat(priceRaw))){ errEl.textContent = "Preencha ao menos o nome e um preço válido."; return; }
+    errEl.textContent = "";
+    const price = parseFloat(priceRaw);
+    if(editingId){
+      const idx = products.findIndex(p => p.id === editingId);
+      if(idx > -1) products[idx] = {id: editingId, name, cat, price, icon, tag, desc};
+    }else{
+      products.push({id: genId(), name, cat, price, icon, tag, desc});
+    }
+    await saveProducts(); renderMenu(); renderAdminList(); clearForm();
+  });
+  document.getElementById('cancelEditBtn').addEventListener('click', clearForm);
+
+  document.getElementById('menuTabs').addEventListener('click', (e) => {
+    const tab = e.target.closest('.tab'); if(!tab) return;
+    document.querySelectorAll('#menuTabs .tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active'); activeCategory = tab.dataset.cat; renderMenu();
+  });
+
+  /* ---------------- CART ---------------- */
+  function addToCart(productId){
+    const p = products.find(x => x.id === productId); if(!p) return;
+    const existing = cart.find(c => c.productId === productId);
+    if(existing) existing.qty += 1;
+    else cart.push({productId: p.id, name: p.name, price: p.price, icon: p.icon, qty: 1});
+    updateCartUI(); showToast(p.name + " adicionado ✓");
+  }
+  function changeQty(productId, delta){
+    const item = cart.find(c => c.productId === productId); if(!item) return;
+    item.qty += delta;
+    if(item.qty <= 0) cart = cart.filter(c => c.productId !== productId);
+    updateCartUI();
+  }
+  function cartTotal(){ return cart.reduce((sum, c) => sum + c.price * c.qty, 0); }
+  function updateCartUI(){
+    document.getElementById('cartCount').textContent = cart.reduce((s,c)=>s+c.qty,0);
+    const box = document.getElementById('cartItems');
+    if(cart.length === 0){ box.innerHTML = '<div class="loading-row">Seu carrinho está vazio. Adicione algo gostoso! 🍔</div>'; }
+    else{
+      box.innerHTML = cart.map(c => `
+        <div class="cart-item">
+          <div class="ci">${c.icon || '🍔'}</div>
+          <div class="cn"><strong>${escapeHtml(c.name)}</strong><span>${money(c.price)} un.</span></div>
+          <div class="qty-ctrl">
+            <button data-qty="${c.productId}" data-delta="-1">−</button>
+            <span>${c.qty}</span>
+            <button data-qty="${c.productId}" data-delta="1">+</button>
+          </div>
+        </div>
+      `).join('');
+      box.querySelectorAll('[data-qty]').forEach(btn => btn.addEventListener('click', () => changeQty(btn.dataset.qty, parseInt(btn.dataset.delta))));
+    }
+    document.getElementById('cartTotal').textContent = money(cartTotal());
+  }
+  let selectedOrderType = "entrega";
+  document.querySelectorAll('[data-ordertype]').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-ordertype]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedOrderType = btn.dataset.ordertype;
+    document.getElementById('ckAddressField').style.display = selectedOrderType === 'retirada' ? 'none' : 'block';
+  }));
+
+  document.getElementById('openCart').addEventListener('click', () => { updateCartUI(); openOverlay('cartOverlay'); });
+  document.getElementById('goCheckout').addEventListener('click', () => {
+    if(cart.length === 0){ alert("Seu carrinho está vazio."); return; }
+    closeOverlay('cartOverlay'); openOverlay('checkoutOverlay');
+  });
+
+  /* ---------------- ORDERS (Firestore) ---------------- */
+  function watchOrders(){
+    db.collection('store').doc('orders').onSnapshot((doc) => {
+      orders = (doc.exists && doc.data().list) ? doc.data().list : [];
+      renderAdminOrders();
+      renderDashboard();
+      if(currentTrackedCode) refreshTrackView();
+    }, (err) => { console.error("Erro ao ler pedidos:", err); });
+  }
+  async function saveOrders(){
+    try{ await db.collection('store').doc('orders').set({list: orders}); }
+    catch(e){ alert("Não foi possível salvar o pedido. Verifique sua conexão e tente novamente."); }
+  }
+
+  /* ---------------- CASHFLOW / FIXED COSTS / INVENTORY (Firestore) ---------------- */
+  function watchCashflow(){
+    db.collection('store').doc('cashflow').onSnapshot((doc) => {
+      cashflow = (doc.exists && doc.data().list) ? doc.data().list : [];
+      renderCashflowList(); renderDashboard(); renderFinKpis();
+    }, (err) => console.error("Erro cashflow:", err));
+  }
+  async function saveCashflow(){ try{ await db.collection('store').doc('cashflow').set({list: cashflow}); showToast("Lançamento salvo ✓"); }catch(e){ alert("Não foi possível salvar."); } }
+
+  function watchFixedCosts(){
+    db.collection('store').doc('fixedcosts').onSnapshot((doc) => {
+      fixedCosts = (doc.exists && doc.data().list) ? doc.data().list : [];
+      renderFixedCostList(); renderDashboard(); renderFinKpis();
+    }, (err) => console.error("Erro custos fixos:", err));
+  }
+  async function saveFixedCosts(){ try{ await db.collection('store').doc('fixedcosts').set({list: fixedCosts}); showToast("Custo fixo salvo ✓"); }catch(e){ alert("Não foi possível salvar."); } }
+
+  function watchInventory(){
+    db.collection('store').doc('inventory').onSnapshot((doc) => {
+      inventory = (doc.exists && doc.data().list) ? doc.data().list : [];
+      renderStockList(); renderDashboard();
+    }, (err) => console.error("Erro estoque:", err));
+  }
+  async function saveInventory(){ try{ await db.collection('store').doc('inventory').set({list: inventory}); showToast("Estoque atualizado ✓"); }catch(e){ alert("Não foi possível salvar."); } }
+
+  function todayStr(){ return new Date().toISOString().slice(0,10); }
+  function nextDailyNumber(){
+    const today = todayStr();
+    const todays = orders.filter(o => (o.createdAt || "").slice(0,10) === today);
+    return todays.length + 1;
+  }
+
+  document.getElementById('confirmOrderBtn').addEventListener('click', async () => {
+    const name = document.getElementById('ckName').value.trim();
+    const phone = document.getElementById('ckPhone').value.trim();
+    const address = document.getElementById('ckAddress').value.trim();
+    const payment = document.getElementById('ckPayment').value;
+    const notes = document.getElementById('ckNotes').value.trim();
+    const errEl = document.getElementById('checkoutError');
+    if(!name || !phone){ errEl.textContent = "Preencha nome e WhatsApp."; return; }
+    if(selectedOrderType === 'entrega' && !address){ errEl.textContent = "Informe o endereço de entrega."; return; }
+    errEl.textContent = "";
+
+    const code = genOrderCode();
+    const order = {
+      code, dailyNumber: nextDailyNumber(),
+      customerName: name, phone, address, orderType: selectedOrderType, payment, notes,
+      items: cart.map(c => ({name:c.name, price:c.price, qty:c.qty})),
+      total: cartTotal(),
+      status: "recebido",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    orders.unshift(order);
+    await saveOrders();
+
+    cart = []; updateCartUI();
+    document.getElementById('ckName').value = "";
+    document.getElementById('ckPhone').value = "";
+    document.getElementById('ckAddress').value = "";
+    document.getElementById('ckNotes').value = "";
+    closeOverlay('checkoutOverlay');
+
+    lastOrderCode = code;
+    document.getElementById('trackCodeInput').value = code;
+    openOverlay('trackOverlay');
+    doTrack(code);
+    renderAdminOrders();
+  });
+
+  /* ---------------- TRACKING ---------------- */
+  function stepIndex(status){ return STATUS_FLOW.findIndex(s => s.key === status); }
+
+  function renderStepper(order){
+    const curIdx = stepIndex(order.status);
+    return `
+      <div class="order-summary-box">
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span class="order-code">#${order.dailyNumber || '–'} · ${order.code}</span>
+          <span style="color:rgba(242,233,218,0.5); font-size:12px;">${new Date(order.createdAt).toLocaleString('pt-BR')}</span>
+        </div>
+        <div style="font-size:13px; color:rgba(242,233,218,0.7); margin-bottom:4px;">${order.items.map(i => i.qty + 'x ' + escapeHtml(i.name)).join(', ')}</div>
+        <div style="font-family:'Anton',sans-serif; color:var(--mustard); font-size:16px;">${money(order.total)}</div>
+      </div>
+      <div class="stepper">
+        ${STATUS_FLOW.map((s, i) => `
+          <div class="step ${i < curIdx ? 'done' : i === curIdx ? 'current' : 'pending'}">
+            <div style="position:relative;">
+              <div class="step-dot">${i <= curIdx ? s.icon : i+1}</div>
+              ${i < STATUS_FLOW.length - 1 ? '<div class="step-line"></div>' : ''}
+            </div>
+            <div class="step-text">
+              <strong>${s.label}</strong>
+              <span>${i === curIdx ? 'Status atual' : i < curIdx ? 'Concluído' : 'Aguardando'}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function doTrack(code){
+    currentTrackedCode = code.trim();
+    refreshTrackView();
+  }
+  function refreshTrackView(){
+    const resultBox = document.getElementById('trackResult');
+    if(!currentTrackedCode) return;
+    const order = orders.find(o => o.code.toLowerCase() === currentTrackedCode.toLowerCase());
+    if(!order){
+      resultBox.innerHTML = '<div class="loading-row">Pedido não encontrado. Confira o código e tente novamente.</div>';
+      return;
+    }
+    resultBox.innerHTML = renderStepper(order);
+  }
+
+  document.getElementById('trackSearchBtn').addEventListener('click', () => {
+    const code = document.getElementById('trackCodeInput').value.trim();
+    if(!code){ document.getElementById('trackResult').innerHTML = '<div class="loading-row">Digite o código do seu pedido.</div>'; return; }
+    doTrack(code);
+  });
+  document.getElementById('trackCodeInput').addEventListener('keydown', (e) => { if(e.key === 'Enter') document.getElementById('trackSearchBtn').click(); });
+  function openTrackFlow(){
+    document.getElementById('trackCodeInput').value = lastOrderCode || "";
+    openOverlay('trackOverlay');
+    if(lastOrderCode) doTrack(lastOrderCode);
+    else document.getElementById('trackResult').innerHTML = '<div class="loading-row">Digite o código do seu pedido para ver o status.</div>';
+  }
+  document.getElementById('openTrack').addEventListener('click', openTrackFlow);
+  document.getElementById('heroTrackBtn').addEventListener('click', openTrackFlow);
+  document.getElementById('navTrack').addEventListener('click', openTrackFlow);
+  document.getElementById('trackOverlay').querySelector('[data-close]').addEventListener('click', () => { currentTrackedCode = null; });
+
+  /* ---------------- ADMIN: ORDERS TAB ---------------- */
+  function renderDayStats(){
+    const today = todayStr();
+    const todays = orders.filter(o => (o.createdAt || "").slice(0,10) === today);
+    const revenue = todays.reduce((s,o) => s + o.total, 0);
+    const active = orders.filter(o => o.status !== 'entregue').length;
+    document.getElementById('dayStats').innerHTML = `
+      <div class="day-stat"><div class="dv">${todays.length}</div><div class="dl">Pedidos hoje</div></div>
+      <div class="day-stat"><div class="dv">${active}</div><div class="dl">Em andamento</div></div>
+      <div class="day-stat"><div class="dv">${money(revenue)}</div><div class="dl">Faturamento hoje</div></div>
+    `;
+  }
+
+  function renderAdminOrders(){
+    renderDayStats();
+    const box = document.getElementById('adminOrderList');
+    const pendingCount = orders.filter(o => o.status !== 'entregue').length;
+    document.getElementById('pendingBadge').textContent = pendingCount > 0 ? `(${pendingCount})` : '';
+    if(orders.length === 0){ box.innerHTML = '<div class="loading-row">Nenhum pedido ainda.</div>'; return; }
+    box.innerHTML = orders.map(o => `
+      <div class="order-row">
+        <div class="order-row-top">
+          <div>
+            <span class="order-code">#${o.dailyNumber || '–'} · ${o.code}</span>
+            <div class="order-meta">${escapeHtml(o.customerName)} · ${escapeHtml(o.phone)}</div>
+            <div class="order-meta">${o.orderType === 'retirada' ? '🏠 Retirada no balcão' : '🛵 ' + escapeHtml(o.address || '')}</div>
+            <div class="order-extra">
+              <span>💳 ${paymentLabel(o.payment)}</span>
+              <span>🕒 ${new Date(o.createdAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
+            </div>
+          </div>
+          <span class="status-pill" style="background:${STATUS_COLORS[o.status]}22; color:${STATUS_COLORS[o.status]};">${STATUS_FLOW.find(s=>s.key===o.status).label}</span>
+        </div>
+        <div class="order-items">${o.items.map(i => i.qty + 'x ' + escapeHtml(i.name)).join(', ')}</div>
+        ${o.notes ? `<div class="order-meta" style="color:var(--mustard);">📝 ${escapeHtml(o.notes)}</div>` : ''}
+        <div class="order-total">${money(o.total)}</div>
+        <div class="status-buttons">
+          ${STATUS_FLOW.map(s => `<button class="status-btn ${s.key===o.status ? 'current':''}" data-setstatus="${o.code}" data-status="${s.key}">${s.icon} ${s.label}</button>`).join('')}
+        </div>
+        <div class="order-actions-row">
+          <button class="print-btn" data-print="${o.code}">🖨️ Imprimir comanda</button>
+        </div>
+      </div>
+    `).join('');
+    box.querySelectorAll('[data-setstatus]').forEach(btn => btn.addEventListener('click', () => setOrderStatus(btn.dataset.setstatus, btn.dataset.status)));
+    box.querySelectorAll('[data-print]').forEach(btn => btn.addEventListener('click', () => printComanda(btn.dataset.print)));
+  }
+  function paymentLabel(p){ return {dinheiro:"Dinheiro", cartao:"Cartão", pix:"Pix"}[p] || p || "–"; }
+
+  function printComanda(code){
+    const o = orders.find(x => x.code === code); if(!o) return;
+    const area = document.getElementById('printArea');
+    area.innerHTML = `
+      <div class="p-logo">O MARKIN</div>
+      <div class="p-sub">CHEF'S BURGUER — COMANDA COZINHA</div>
+      <div class="p-line"></div>
+      <div class="p-num">#${o.dailyNumber || '–'}</div>
+      <div class="p-code">${o.code} · ${new Date(o.createdAt).toLocaleString('pt-BR')}</div>
+      <div class="p-line"></div>
+      <div class="p-row"><span>Cliente:</span><span>${escapeHtml(o.customerName)}</span></div>
+      <div class="p-row"><span>Telefone:</span><span>${escapeHtml(o.phone)}</span></div>
+      <div class="p-row"><span>Tipo:</span><span>${o.orderType === 'retirada' ? 'RETIRADA' : 'ENTREGA'}</span></div>
+      ${o.orderType !== 'retirada' ? `<div class="p-row"><span>Endereço:</span><span>${escapeHtml(o.address || '')}</span></div>` : ''}
+      <div class="p-row"><span>Pagamento:</span><span>${paymentLabel(o.payment).toUpperCase()}</span></div>
+      <div class="p-line"></div>
+      ${o.items.map(i => `<div class="p-item"><span>${i.qty}x ${escapeHtml(i.name)}</span><span>${money(i.price * i.qty)}</span></div>`).join('')}
+      <div class="p-line"></div>
+      <div class="p-total"><span>TOTAL</span><span>${money(o.total)}</span></div>
+      ${o.notes ? `<div class="p-notes"><strong>OBSERVAÇÕES:</strong><br>${escapeHtml(o.notes)}</div>` : ''}
+      <div class="p-foot">Feito na chapa, na hora 🔥</div>
+    `;
+    setTimeout(() => window.print(), 100);
+  }
+
+  /* ---------------- DASHBOARD ---------------- */
+  function ordersInRange(days){
+    const cutoff = Date.now() - days*24*60*60*1000;
+    return orders.filter(o => new Date(o.createdAt).getTime() >= cutoff);
+  }
+  function sumRevenue(list){ return list.reduce((s,o) => s + o.total, 0); }
+
+  function renderDashboard(){
+    // low stock banner
+    const low = inventory.filter(i => Number(i.qty) <= Number(i.min));
+    document.getElementById('lowStockAlert').innerHTML = low.length > 0
+      ? `<div class="low-stock-banner">⚠️ Estoque baixo: ${low.map(i => escapeHtml(i.name)).join(', ')}</div>`
+      : '';
+    document.getElementById('lowStockBadge').textContent = low.length > 0 ? `(${low.length})` : '';
+
+    const today = ordersInRange(1), week = ordersInRange(7), month = ordersInRange(30);
+    const revToday = sumRevenue(today), revWeek = sumRevenue(week), revMonth = sumRevenue(month);
+    const ticketMedio = orders.length ? sumRevenue(orders)/orders.length : 0;
+    const fixedTotal = fixedCosts.reduce((s,c) => s + Number(c.amount), 0);
+    const saidasMonth = cashflow.filter(c => c.type==='saida' && new Date(c.date).getTime() >= Date.now()-30*24*60*60*1000).reduce((s,c)=>s+Number(c.amount),0);
+    const entradasManualMonth = cashflow.filter(c => c.type==='entrada' && new Date(c.date).getTime() >= Date.now()-30*24*60*60*1000).reduce((s,c)=>s+Number(c.amount),0);
+    const lucroEstimado = revMonth + entradasManualMonth - fixedTotal - saidasMonth;
+
+    document.getElementById('kpiGrid').innerHTML = `
+      <div class="kpi-card"><div class="kv">${money(revToday)}</div><div class="kl">Faturamento hoje</div></div>
+      <div class="kpi-card"><div class="kv">${money(revWeek)}</div><div class="kl">Últimos 7 dias</div></div>
+      <div class="kpi-card"><div class="kv">${money(revMonth)}</div><div class="kl">Últimos 30 dias</div></div>
+      <div class="kpi-card"><div class="kv">${money(ticketMedio)}</div><div class="kl">Ticket médio</div></div>
+      <div class="kpi-card profit ${lucroEstimado<0?'negative':''}"><div class="kv">${money(lucroEstimado)}</div><div class="kl">Lucro estimado (30d)</div></div>
+      <div class="kpi-card"><div class="kv">${today.length}</div><div class="kl">Pedidos hoje</div></div>
+      <div class="kpi-card"><div class="kv">${money(fixedTotal)}</div><div class="kl">Custos fixos / mês</div></div>
+      <div class="kpi-card"><div class="kv">${inventory.length}</div><div class="kl">Itens no estoque</div></div>
+    `;
+
+    // best sellers
+    const counts = {};
+    orders.forEach(o => o.items.forEach(i => { counts[i.name] = (counts[i.name]||0) + i.qty; }));
+    const ranked = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const maxCount = ranked.length ? ranked[0][1] : 1;
+    document.getElementById('bestSellers').innerHTML = ranked.length ? ranked.map(([name,count],i) => `
+      <div class="bestseller-row">
+        <div class="bs-rank">${i+1}</div>
+        <div class="bs-name">${escapeHtml(name)}<div class="bs-bar-track"><div class="bs-bar-fill" style="width:${(count/maxCount)*100}%"></div></div></div>
+        <div class="bs-count">${count}x</div>
+      </div>
+    `).join('') : '<div class="loading-row">Ainda sem vendas registradas.</div>';
+
+    // 7-day chart
+    const days = [];
+    for(let i=6;i>=0;i--){
+      const d = new Date(); d.setDate(d.getDate()-i);
+      const key = d.toISOString().slice(0,10);
+      const dayRevenue = orders.filter(o => (o.createdAt||"").slice(0,10) === key).reduce((s,o)=>s+o.total,0);
+      days.push({label: d.toLocaleDateString('pt-BR',{weekday:'short'}).replace('.',''), value: dayRevenue});
+    }
+    const maxRev = Math.max(...days.map(d=>d.value), 1);
+    document.getElementById('revenueChart').innerHTML = days.map(d => `
+      <div class="chart-bar-col">
+        <div class="chart-bar" style="height:${Math.max((d.value/maxRev)*100,2)}%" title="${money(d.value)}"></div>
+        <div class="cb-label">${d.label}</div>
+      </div>
+    `).join('');
+  }
+
+  /* ---------------- FINANCEIRO ---------------- */
+  let selectedCfType = "entrada";
+  document.querySelectorAll('[data-cftype]').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-cftype]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedCfType = btn.dataset.cftype;
+  }));
+
+  function renderFinKpis(){
+    const totalEntradas = cashflow.filter(c=>c.type==='entrada').reduce((s,c)=>s+Number(c.amount),0);
+    const totalSaidas = cashflow.filter(c=>c.type==='saida').reduce((s,c)=>s+Number(c.amount),0);
+    const fixedTotal = fixedCosts.reduce((s,c)=>s+Number(c.amount),0);
+    const saldo = totalEntradas - totalSaidas - fixedTotal;
+    document.getElementById('finKpis').innerHTML = `
+      <div class="kpi-card"><div class="kv" style="color:var(--green);">${money(totalEntradas)}</div><div class="kl">Entradas manuais</div></div>
+      <div class="kpi-card"><div class="kv" style="color:var(--tomato);">${money(totalSaidas)}</div><div class="kl">Saídas registradas</div></div>
+      <div class="kpi-card"><div class="kv">${money(fixedTotal)}</div><div class="kl">Custos fixos / mês</div></div>
+      <div class="kpi-card profit ${saldo<0?'negative':''}"><div class="kv">${money(saldo)}</div><div class="kl">Saldo</div></div>
+    `;
+  }
+
+  function renderCashflowList(){
+    const box = document.getElementById('cashflowList');
+    if(cashflow.length === 0){ box.innerHTML = '<div class="loading-row">Nenhuma movimentação lançada ainda.</div>'; return; }
+    const sorted = [...cashflow].sort((a,b) => new Date(b.date) - new Date(a.date));
+    box.innerHTML = sorted.map(c => `
+      <div class="cf-row ${c.type}">
+        <div class="cf-icon">${c.type === 'entrada' ? '⬆️' : '⬇️'}</div>
+        <div class="cf-info"><strong>${escapeHtml(c.desc)}</strong><span>${catFinLabel(c.category)} · ${new Date(c.date).toLocaleDateString('pt-BR')}</span></div>
+        <div class="cf-amount">${c.type==='entrada'?'+':'-'} ${money(c.amount)}</div>
+        <button class="icon-btn danger" data-delcf="${c.id}" title="Excluir">🗑</button>
+      </div>
+    `).join('');
+    box.querySelectorAll('[data-delcf]').forEach(btn => btn.addEventListener('click', async () => {
+      cashflow = cashflow.filter(c => c.id !== btn.dataset.delcf);
+      await saveCashflow();
+    }));
+  }
+  function catFinLabel(c){ return {vendas:"Vendas", insumos:"Insumos", fornecedor:"Fornecedor", manutencao:"Manutenção", outros:"Outros"}[c] || c; }
+
+  document.getElementById('cfDate').valueAsDate = new Date();
+  document.getElementById('addCashflowBtn').addEventListener('click', async () => {
+    const desc = document.getElementById('cfDesc').value.trim();
+    const amount = parseFloat(document.getElementById('cfAmount').value);
+    const category = document.getElementById('cfCategory').value;
+    const date = document.getElementById('cfDate').value || new Date().toISOString().slice(0,10);
+    const errEl = document.getElementById('cfError');
+    if(!desc || isNaN(amount) || amount <= 0){ errEl.textContent = "Preencha descrição e um valor válido."; return; }
+    errEl.textContent = "";
+    cashflow.push({id: genId(), type: selectedCfType, desc, amount, category, date});
+    await saveCashflow();
+    document.getElementById('cfDesc').value = ""; document.getElementById('cfAmount').value = "";
+  });
+
+  function renderFixedCostList(){
+    const box = document.getElementById('fixedCostList');
+    if(fixedCosts.length === 0){ box.innerHTML = '<div class="loading-row">Nenhum custo fixo cadastrado.</div>'; document.getElementById('fcTotal').innerHTML=''; return; }
+    box.innerHTML = fixedCosts.map(c => `
+      <div class="prod-row">
+        <div class="pi">🏢</div>
+        <div class="pn"><strong>${escapeHtml(c.name)}</strong><span>Mensal</span></div>
+        <div class="pp">${money(c.amount)}</div>
+        <div class="row-actions"><button class="icon-btn danger" data-delfc="${c.id}" title="Excluir">🗑</button></div>
+      </div>
+    `).join('');
+    const total = fixedCosts.reduce((s,c)=>s+Number(c.amount),0);
+    document.getElementById('fcTotal').innerHTML = `Total mensal: <span>${money(total)}</span>`;
+    box.querySelectorAll('[data-delfc]').forEach(btn => btn.addEventListener('click', async () => {
+      fixedCosts = fixedCosts.filter(c => c.id !== btn.dataset.delfc);
+      await saveFixedCosts();
+    }));
+  }
+  document.getElementById('addFixedCostBtn').addEventListener('click', async () => {
+    const name = document.getElementById('fcName').value.trim();
+    const amount = parseFloat(document.getElementById('fcAmount').value);
+    if(!name || isNaN(amount) || amount <= 0) return;
+    fixedCosts.push({id: genId(), name, amount});
+    await saveFixedCosts();
+    document.getElementById('fcName').value = ""; document.getElementById('fcAmount').value = "";
+  });
+
+  /* ---------------- ESTOQUE ---------------- */
+  function renderStockList(){
+    const box = document.getElementById('stockList');
+    if(inventory.length === 0){ box.innerHTML = '<div class="loading-row">Nenhum item cadastrado ainda.</div>'; return; }
+    box.innerHTML = inventory.map(i => {
+      const isLow = Number(i.qty) <= Number(i.min);
+      return `
+      <div class="prod-row stock-row ${isLow?'low':''}">
+        <div class="pi">📦</div>
+        <div class="pn"><strong>${escapeHtml(i.name)}${isLow?'<span class="stock-badge-low">BAIXO</span>':''}</strong><span>Mín: ${i.min} ${i.unit}</span></div>
+        <div class="stock-qty-ctrl">
+          <button data-stockdelta="${i.id}" data-delta="-1">−</button>
+          <span style="min-width:50px; text-align:center; font-family:'Anton',sans-serif; color:${isLow?'var(--tomato)':'var(--mustard)'};">${i.qty} ${i.unit}</span>
+          <button data-stockdelta="${i.id}" data-delta="1">+</button>
+        </div>
+        <div class="row-actions"><button class="icon-btn danger" data-delstock="${i.id}" title="Excluir">🗑</button></div>
+      </div>
+    `;}).join('');
+    box.querySelectorAll('[data-stockdelta]').forEach(btn => btn.addEventListener('click', async () => {
+      const item = inventory.find(i => i.id === btn.dataset.stockdelta);
+      if(!item) return;
+      const step = item.unit === 'kg' || item.unit === 'l' ? 0.5 : 1;
+      item.qty = Math.max(0, Number(item.qty) + step * parseInt(btn.dataset.delta));
+      await saveInventory();
+    }));
+    box.querySelectorAll('[data-delstock]').forEach(btn => btn.addEventListener('click', async () => {
+      inventory = inventory.filter(i => i.id !== btn.dataset.delstock);
+      await saveInventory();
+    }));
+  }
+  document.getElementById('addStockBtn').addEventListener('click', async () => {
+    const name = document.getElementById('stName').value.trim();
+    const unit = document.getElementById('stUnit').value;
+    const qty = parseFloat(document.getElementById('stQty').value);
+    const min = parseFloat(document.getElementById('stMin').value);
+    const errEl = document.getElementById('stError');
+    if(!name || isNaN(qty) || isNaN(min)){ errEl.textContent = "Preencha nome, quantidade e estoque mínimo."; return; }
+    errEl.textContent = "";
+    inventory.push({id: genId(), name, unit, qty, min});
+    await saveInventory();
+    document.getElementById('stName').value = ""; document.getElementById('stQty').value = ""; document.getElementById('stMin').value = "";
+  });
+
+  async function setOrderStatus(code, status){
+    const order = orders.find(o => o.code === code); if(!order) return;
+    order.status = status; order.updatedAt = new Date().toISOString();
+    await saveOrders(); renderAdminOrders(); showToast("Status do pedido " + code + " atualizado ✓");
+  }
+
+  document.querySelectorAll('.admin-tab-btn').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.atab;
+    document.getElementById('atabDashboard').style.display = tab === 'dashboard' ? 'block' : 'none';
+    document.getElementById('atabCardapio').style.display = tab === 'cardapio' ? 'block' : 'none';
+    document.getElementById('atabPedidos').style.display = tab === 'pedidos' ? 'block' : 'none';
+    document.getElementById('atabFinanceiro').style.display = tab === 'financeiro' ? 'block' : 'none';
+    document.getElementById('atabEstoque').style.display = tab === 'estoque' ? 'block' : 'none';
+    if(tab === 'pedidos') renderAdminOrders();
+    if(tab === 'dashboard') renderDashboard();
+    if(tab === 'financeiro') { renderFinKpis(); renderCashflowList(); renderFixedCostList(); }
+    if(tab === 'estoque') renderStockList();
+  }));
+
+  /* ---------------- ADMIN LOGIN ---------------- */
+  document.getElementById('openAdmin').addEventListener('click', () => openOverlay('adminOverlay'));
+  document.getElementById('loginBtn').addEventListener('click', doLogin);
+  document.getElementById('adminPass').addEventListener('keydown', (e) => { if(e.key === 'Enter') doLogin(); });
+  function doLogin(){
+    const val = document.getElementById('adminPass').value;
+    if(val === ADMIN_PASSWORD){
+      document.getElementById('loginView').style.display = 'none';
+      document.getElementById('managerView').style.display = 'block';
+      document.getElementById('loginError').textContent = "";
+    }else{
+      document.getElementById('loginError').textContent = "Senha incorreta. Tente novamente.";
+    }
+  }
+
+  const toggle = document.querySelector('.menu-toggle');
+  const navList = document.querySelector('nav ul');
+  toggle.addEventListener('click', () => {
+    navList.style.display = navList.style.display === 'flex' ? 'none' : 'flex';
+    navList.style.cssText += 'flex-direction:column; position:absolute; top:64px; right:20px; background:#1c1613; padding:20px 26px; border-radius:12px; gap:16px; border:1px solid rgba(242,233,218,0.14); z-index:60;';
+  });
+
+  watchProducts();
+  watchOrders();
+  watchCashflow();
+  watchFixedCosts();
+  watchInventory();
+  updateCartUI();
+})();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+
+</body>
+</html>
