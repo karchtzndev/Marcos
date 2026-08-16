@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>O Markin Chef's Burguer</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --pitch:#120e0b; --char:#1c1613; --cream:#f2e9da; --ember:#e5762e; --mustard:#f0b429; --line:rgba(242,233,218,0.14); }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--pitch); color:var(--cream); font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;}
+  .wrap{max-width:420px; width:100%; text-align:center;}
+  .badge{width:64px; height:64px; border-radius:50%; background:var(--ember); display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:28px; color:var(--pitch); margin:0 auto 18px;}
+  h1{font-family:'Anton',sans-serif; font-size:30px; letter-spacing:0.5px; margin-bottom:6px;}
+  p{color:rgba(242,233,218,0.6); font-size:14px; margin-bottom:36px;}
+  .card{display:block; background:var(--char); border:1px solid var(--line); border-radius:18px; padding:24px; margin-bottom:16px; text-decoration:none; color:var(--cream); transition:all .2s;}
+  .card:hover{border-color:var(--ember); transform:translateY(-3px);}
+  .card .ci{font-size:30px; margin-bottom:10px;}
+  .card strong{display:block; font-family:'Anton',sans-serif; font-size:17px; margin-bottom:4px;}
+  .card span{font-size:13px; color:rgba(242,233,218,0.55);}
+  .card.gerencial strong{color:var(--mustard);}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="badge">M</div>
+    <h1>O MARKIN CHEF'S BURGUER</h1>
+    <p>Escolha como você quer entrar</p>
+    <a class="card" href="./cliente/">
+      <div class="ci">🍔</div>
+      <strong>Sou Cliente</strong>
+      <span>Ver cardápio, pedir e acompanhar meu pedido</span>
+    </a>
+    <a class="card gerencial" href="./gerencial/">
+      <div class="ci">⚙️</div>
+      <strong>Área Gerencial</strong>
+      <span>Pedidos, cardápio, financeiro e estoque</span>
+    </a>
+  </div>
+</body>
+</html>
