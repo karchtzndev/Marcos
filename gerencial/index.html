@@ -641,6 +641,7 @@
           <button class="admin-tab-btn" data-atab="financeiro">Financeiro</button>
           <button class="admin-tab-btn" data-atab="estoque">Estoque <span id="lowStockBadge"></span></button>
           <button class="admin-tab-btn" data-atab="equipe">👥 Equipe</button>
+          <button class="admin-tab-btn" data-atab="promocao">📣 Promoção</button>
         </div>
 
         <!-- DASHBOARD TAB -->
@@ -790,6 +791,30 @@
             <h3>Funcionários cadastrados</h3>
             <div id="employeeList"><div class="loading-row">Carregando...</div></div>
           </div>
+        </div>
+
+        <!-- PROMOÇÃO TAB (só gerente) -->
+        <div id="atabPromocao" style="display:none;">
+          <div class="field">
+            <label>Status do aviso</label>
+            <div class="type-toggle">
+              <button type="button" class="type-btn" data-promoactive="off">⏸️ Desativado</button>
+              <button type="button" class="type-btn active" data-promoactive="on">🔔 Ativo</button>
+            </div>
+          </div>
+          <div class="field"><label>Título</label><input type="text" id="promoTitleInput" placeholder="Ex: Promoção de hoje!"></div>
+          <div class="field"><label>Mensagem</label><textarea id="promoMessageInput" placeholder="Ex: Todo Classic Burguer com 20% off até às 22h. Só hoje!" style="min-height:100px;"></textarea></div>
+          <div class="field">
+            <label>Imagem (opcional)</label>
+            <input type="file" id="promoImageInput" accept="image/*">
+            <div id="promoImgPreviewWrap" style="margin-top:12px; display:none;">
+              <img id="promoImgPreview" style="max-width:200px; border-radius:12px; border:1px solid var(--line); display:block;">
+              <button class="btn-ghost" id="removePromoImgBtn" style="margin-top:10px; padding:8px 16px; font-size:12px;">Remover imagem</button>
+            </div>
+          </div>
+          <button class="btn-primary" id="savePromoBtn">Salvar aviso</button>
+          <div class="error-msg" id="promoError"></div>
+          <p style="margin-top:16px; font-size:12px; color:rgba(242,233,218,0.5);">O aviso aparece pro cliente assim que ele abre o app (uma vez por sessão). Toda vez que você salvar uma alteração, ele volta a aparecer pra todo mundo, mesmo quem já viu antes.</p>
         </div>
       </div>
 
@@ -1107,6 +1132,77 @@
     }, (err) => console.error("Erro funcionários:", err));
   }
   async function saveEmployees(){ try{ await db.collection('store').doc('employees').set({list: employees}); showToast("Equipe atualizada ✓"); }catch(e){ alert("Não foi possível salvar."); } }
+
+  /* ---------------- PROMOÇÃO / AVISO (Firestore) ---------------- */
+  let promoData = {active:false, title:"", message:"", image:""};
+  let pendingPromoImage = null; // base64 staged before saving, "" to remove, null = unchanged
+
+  function watchPromo(){
+    db.collection('store').doc('promo').onSnapshot((doc) => {
+      promoData = doc.exists ? doc.data() : {active:false, title:"", message:"", image:""};
+      renderPromoForm();
+    }, (err) => console.error("Erro promo:", err));
+  }
+
+  function renderPromoForm(){
+    document.querySelectorAll('[data-promoactive]').forEach(b => b.classList.remove('active'));
+    document.querySelector(`[data-promoactive="${promoData.active ? 'on' : 'off'}"]`).classList.add('active');
+    document.getElementById('promoTitleInput').value = promoData.title || "";
+    document.getElementById('promoMessageInput').value = promoData.message || "";
+    pendingPromoImage = null;
+    const wrap = document.getElementById('promoImgPreviewWrap');
+    const img = document.getElementById('promoImgPreview');
+    if(promoData.image){ img.src = promoData.image; wrap.style.display = 'block'; }
+    else { wrap.style.display = 'none'; img.src = ""; }
+  }
+
+  let selectedPromoActive = true;
+  document.querySelectorAll('[data-promoactive]').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-promoactive]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedPromoActive = btn.dataset.promoactive === 'on';
+  }));
+
+  document.getElementById('promoImageInput').addEventListener('change', (e) => {
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const imgEl = new Image();
+      imgEl.onload = () => {
+        const maxW = 800;
+        const scale = Math.min(1, maxW / imgEl.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = imgEl.width * scale;
+        canvas.height = imgEl.height * scale;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(imgEl, 0, 0, canvas.width, canvas.height);
+        pendingPromoImage = canvas.toDataURL('image/jpeg', 0.72);
+        document.getElementById('promoImgPreview').src = pendingPromoImage;
+        document.getElementById('promoImgPreviewWrap').style.display = 'block';
+      };
+      imgEl.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('removePromoImgBtn').addEventListener('click', () => {
+    pendingPromoImage = "";
+    document.getElementById('promoImgPreviewWrap').style.display = 'none';
+    document.getElementById('promoImageInput').value = "";
+  });
+
+  document.getElementById('savePromoBtn').addEventListener('click', async () => {
+    const title = document.getElementById('promoTitleInput').value.trim();
+    const message = document.getElementById('promoMessageInput').value.trim();
+    const errEl = document.getElementById('promoError');
+    if(selectedPromoActive && (!title || !message)){ errEl.textContent = "Preencha título e mensagem pra ativar o aviso."; return; }
+    errEl.textContent = "";
+    const finalImage = pendingPromoImage !== null ? pendingPromoImage : (promoData.image || "");
+    const newPromo = { active: selectedPromoActive, title, message, image: finalImage, updatedAt: Date.now().toString() };
+    try{
+      await db.collection('store').doc('promo').set(newPromo);
+      showToast("Aviso salvo ✓");
+    }catch(e){ alert("Não foi possível salvar. A imagem pode estar grande demais — tente uma foto menor."); }
+  });
 
   function todayStr(){ return new Date().toISOString().slice(0,10); }
   function nextDailyNumber(){
@@ -1566,15 +1662,17 @@
     document.getElementById('atabFinanceiro').style.display = tab === 'financeiro' ? 'block' : 'none';
     document.getElementById('atabEstoque').style.display = tab === 'estoque' ? 'block' : 'none';
     document.getElementById('atabEquipe').style.display = tab === 'equipe' ? 'block' : 'none';
+    document.getElementById('atabPromocao').style.display = tab === 'promocao' ? 'block' : 'none';
     if(tab === 'pedidos') renderAdminOrders();
     if(tab === 'dashboard') renderDashboard();
     if(tab === 'financeiro') { renderFinKpis(); renderCashflowList(); renderFixedCostList(); }
     if(tab === 'estoque') renderStockList();
     if(tab === 'equipe') { renderEmployeeList(); renderEmployeeRanking(); }
+    if(tab === 'promocao') renderPromoForm();
   }));
 
   function applyRolePermissions(){
-    const restricted = ['dashboard', 'cardapio', 'financeiro', 'equipe'];
+    const restricted = ['dashboard', 'cardapio', 'financeiro', 'equipe', 'promocao'];
     document.querySelectorAll('.admin-tab-btn').forEach(btn => {
       const tab = btn.dataset.atab;
       const blocked = currentRole === 'funcionario' && restricted.includes(tab);
@@ -1659,6 +1757,7 @@
   watchFixedCosts();
   watchInventory();
   watchEmployees();
+  watchPromo();
   updateCartUI();
 })();
 

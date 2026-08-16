@@ -335,6 +335,14 @@
   /* App Cliente: painel administrativo não é acessível por aqui */
   #openAdmin{ display:none !important; }
 
+  /* ---------- PROMOÇÃO / AVISO ---------- */
+  .promo-panel{ padding:0; overflow:hidden; position:relative; max-width:400px; }
+  .promo-close{ position:absolute; top:12px; right:12px; z-index:3; background:rgba(18,14,11,0.6); border-radius:50%; width:32px; height:32px; backdrop-filter:blur(4px); }
+  .promo-image{ width:100%; max-height:280px; object-fit:cover; display:block; }
+  .promo-body{ padding:26px; }
+  .promo-title{ font-family:'Anton',sans-serif; font-size:22px; color:var(--ember); margin-bottom:10px; line-height:1.1; }
+  .promo-message{ font-size:14px; color:rgba(242,233,218,0.8); line-height:1.6; margin-bottom:20px; white-space:pre-line; }
+
   /* ---------- ORDER TYPE TOGGLE ---------- */
   .type-toggle{display:flex; gap:10px;}
   .type-btn{flex:1; padding:12px 10px; border-radius:10px; border:1px solid var(--line); background:var(--pitch); color:rgba(242,233,218,0.7); font-size:13px; font-weight:700; cursor:pointer; transition:all .2s;}
@@ -590,6 +598,19 @@
         <button class="btn-primary" id="trackSearchBtn">Buscar</button>
       </div>
       <div id="trackResult"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PROMOÇÃO / AVISO ================= -->
+<div class="overlay promo-overlay" id="promoOverlay">
+  <div class="panel narrow promo-panel">
+    <button class="close-btn promo-close" data-close="promoOverlay">✕</button>
+    <img id="promoImage" class="promo-image" style="display:none;">
+    <div class="promo-body">
+      <h2 id="promoTitle" class="promo-title"></h2>
+      <p id="promoMessage" class="promo-message"></p>
+      <button class="cta-btn" style="width:100%; justify-content:center;" data-close="promoOverlay">Entendi 👍</button>
     </div>
   </div>
 </div>
@@ -1038,6 +1059,24 @@
   }
   async function saveInventory(){ try{ await db.collection('store').doc('inventory').set({list: inventory}); showToast("Estoque atualizado ✓"); }catch(e){ alert("Não foi possível salvar."); } }
 
+  /* ---------------- PROMOÇÃO / AVISO (App Cliente) ---------------- */
+  function watchPromo(){
+    db.collection('store').doc('promo').onSnapshot((doc) => {
+      if(!doc.exists) return;
+      const promo = doc.data();
+      if(!promo.active) return;
+      const seenKey = "omarkin_promo_seen_" + (promo.updatedAt || "");
+      if(sessionStorage.getItem(seenKey)) return;
+      document.getElementById('promoTitle').textContent = promo.title || "";
+      document.getElementById('promoMessage').textContent = promo.message || "";
+      const img = document.getElementById('promoImage');
+      if(promo.image){ img.src = promo.image; img.style.display = 'block'; }
+      else { img.style.display = 'none'; }
+      openOverlay('promoOverlay');
+      sessionStorage.setItem(seenKey, "1");
+    }, (err) => console.error("Erro promo:", err));
+  }
+
   function todayStr(){ return new Date().toISOString().slice(0,10); }
   function nextDailyNumber(){
     const today = todayStr();
@@ -1456,6 +1495,7 @@
   watchCashflow();
   watchFixedCosts();
   watchInventory();
+  watchPromo();
   updateCartUI();
 })();
 
