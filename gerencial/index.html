@@ -176,6 +176,8 @@
   .close-btn:hover{opacity:1;}
   .panel-body{padding:30px;}
 
+  .back-to-site{color:rgba(242,233,218,0.35); font-size:17px; text-decoration:none; padding:6px; transition:color .2s;}
+  .back-to-site:hover{color:var(--ember);}
   .login-box{max-width:320px; margin:20px auto; text-align:center;}
   .login-mascot{width:110px; height:110px; border-radius:50%; object-fit:cover; box-shadow:0 0 0 4px var(--pitch), 0 0 0 6px var(--ember); margin:0 auto 20px;}
   .login-box p{color:rgba(242,233,218,0.6); font-size:14px; margin-bottom:18px;}
@@ -320,6 +322,58 @@
   .cf-row.saida .cf-amount{color:var(--tomato);}
   .fc-total{margin-top:16px; text-align:right; font-size:15px; font-weight:700;}
   .fc-total span{color:var(--mustard); font-family:'Anton',sans-serif; font-size:19px;}
+
+  /* ---------- CAIXA ---------- */
+  .register-banner{border-radius:12px; padding:14px 18px; font-size:14px; font-weight:700; margin-bottom:22px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+  .register-banner.open{background:rgba(76,175,109,0.12); border:1px solid var(--green); color:var(--green);}
+  .register-banner.closed{background:rgba(182,56,44,0.12); border:1px solid var(--tomato); color:var(--tomato);}
+  .bill-row{display:flex; align-items:center; gap:14px; padding:16px; border:1px solid var(--line); border-radius:14px; margin-bottom:12px; flex-wrap:wrap;}
+  .bill-row .bill-icon{width:44px; height:44px; border-radius:12px; background:rgba(229,118,46,0.15); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;}
+  .bill-row .bill-info{flex-grow:1; min-width:120px;}
+  .bill-row .bill-info strong{display:block; font-size:15px;}
+  .bill-row .bill-info span{font-size:12px; color:rgba(242,233,218,0.55);}
+  .bill-row .bill-amount{font-family:'Anton',sans-serif; font-size:20px; color:var(--mustard); flex-shrink:0;}
+  .pay-now-btn{background:var(--green); color:#0b2e18; border:none; border-radius:999px; padding:10px 18px; font-weight:700; font-size:13px; cursor:pointer; flex-shrink:0;}
+  .pay-now-btn:hover{filter:brightness(1.1);}
+  .paid-row{display:flex; align-items:center; gap:12px; padding:12px; border:1px solid var(--line); border-radius:12px; margin-bottom:8px; opacity:0.85;}
+  .paid-row .pd-info{flex-grow:1; min-width:0;}
+  .paid-row .pd-info strong{display:block; font-size:14px;}
+  .paid-row .pd-info span{font-size:12px; color:rgba(242,233,218,0.5);}
+  .paid-row .pd-amount{font-family:'Anton',sans-serif; color:var(--green); font-size:15px;}
+
+  .pay-summary{background:var(--pitch); border:1px solid var(--line); border-radius:14px; padding:18px;}
+  .pay-title{font-family:'Anton',sans-serif; font-size:19px; color:var(--ember); margin-bottom:12px;}
+  .pay-items{font-size:13px; color:rgba(242,233,218,0.65); line-height:1.6; margin-bottom:14px; padding-bottom:14px; border-bottom:1px dashed var(--line);}
+  .pay-row{display:flex; justify-content:space-between; align-items:center; padding:7px 0; font-size:14px; color:rgba(242,233,218,0.8);}
+  .pay-row span:last-child{font-weight:700; color:var(--cream);}
+  .pay-total-row{display:flex; justify-content:space-between; align-items:center; padding-top:14px; margin-top:10px; border-top:1px solid var(--line); font-size:15px; font-weight:700;}
+  .pay-total-row span:last-child{font-family:'Anton',sans-serif; font-size:26px; color:var(--mustard);}
+  .pay-methods{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .pay-method-btn{padding:14px 10px; border-radius:12px; border:1px solid var(--line); background:var(--pitch); color:rgba(242,233,218,0.7); font-size:14px; font-weight:700; cursor:pointer; transition:all .2s;}
+  .pay-method-btn.active{border-color:var(--ember); background:rgba(229,118,46,0.15); color:var(--ember);}
+  .change-box{background:rgba(76,175,109,0.12); border:1px solid var(--green); color:var(--green); border-radius:12px; padding:16px; text-align:center; font-size:15px; margin-bottom:14px;}
+  .change-box strong{font-family:'Anton',sans-serif; font-size:26px; display:block; margin-top:4px;}
+  .change-box.insufficient{background:rgba(182,56,44,0.12); border-color:var(--tomato); color:var(--tomato);}
+  .quick-cash{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+  .quick-cash button{flex:1; min-width:70px; padding:10px 6px; border-radius:10px; border:1px solid var(--line); background:var(--pitch); color:var(--cream); font-size:13px; font-weight:700; cursor:pointer;}
+  .quick-cash button:hover{border-color:var(--ember); color:var(--ember);}
+  .split-section{margin-top:16px; padding-top:16px; border-top:1px solid var(--line);}
+  .split-status{text-align:center; padding:12px; border-radius:10px; font-size:14px; font-weight:700; margin-top:6px;}
+  .split-status.ok{background:rgba(76,175,109,0.12); color:var(--green);}
+  .split-status.pending{background:rgba(240,180,41,0.12); color:var(--mustard);}
+  .close-summary-row{display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed var(--line); font-size:14px;}
+  .close-summary-row span:last-child{font-weight:700; color:var(--cream);}
+  .close-summary-row.highlight span:last-child{color:var(--mustard); font-family:'Anton',sans-serif; font-size:17px;}
+  .diff-box{border-radius:12px; padding:14px; text-align:center; font-weight:700; margin:14px 0;}
+  .diff-box.ok{background:rgba(76,175,109,0.12); border:1px solid var(--green); color:var(--green);}
+  .diff-box.bad{background:rgba(182,56,44,0.12); border:1px solid var(--tomato); color:var(--tomato);}
+
+  /* ---------- COMANDAS DE MESA ---------- */
+  .tab-round{background:var(--pitch); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:10px;}
+  .tab-round-head{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; font-size:12px; color:rgba(242,233,218,0.55); margin-bottom:8px;}
+  .tab-round-foot{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-top:10px;}
+  .tab-round-foot > span{font-family:'Anton',sans-serif; color:var(--mustard); font-size:15px;}
+  .tab-round .status-btn{padding:6px 10px; font-size:13px;}
 
   /* ---------- ESTOQUE ---------- */
   .stock-row.low{border-color:var(--tomato); background:rgba(182,56,44,0.08);}
@@ -607,7 +661,9 @@
     <div class="panel-head">
       <h2>⚙️ Painel do Chef</h2>
       <div style="display:flex; align-items:center; gap:12px;">
+        <a href="/" class="back-to-site" title="Ir para o site">🍔</a>
         <span id="whoAmI" style="font-size:12px; color:rgba(242,233,218,0.55); display:none;"></span>
+        <button class="btn-ghost" id="soundToggleBtn" style="display:none; padding:8px 14px; font-size:14px;" title="Ligar/desligar som de pedido novo">🔔</button>
         <button class="btn-ghost" id="logoutBtn" style="display:none; padding:8px 16px; font-size:12px;">Sair</button>
         <button class="close-btn" data-close="adminOverlay">✕</button>
       </div>
@@ -616,24 +672,17 @@
 
       <div id="loginView" class="login-box">
         <img src="mascot.jpg" alt="Mascote O Markin" class="login-mascot">
-        <div class="type-toggle" style="margin-bottom:20px;">
-          <button type="button" class="type-btn active" data-logintype="gerente">👔 Gerente</button>
-          <button type="button" class="type-btn" data-logintype="funcionario">🧑‍🍳 Funcionário</button>
-        </div>
-
-        <div id="loginGerente">
-          <p>Digite a senha de administrador pra acessar tudo, incluindo o financeiro.</p>
-          <div class="field"><input type="password" id="adminPass" placeholder="Senha do gerente"></div>
-        </div>
-
-        <div id="loginFuncionario" style="display:none;">
-          <p>Selecione seu nome e digite sua senha pessoal.</p>
-          <div class="field"><select id="empSelect"><option value="">Selecione seu nome...</option></select></div>
-          <div class="field"><input type="password" id="empPass" placeholder="Sua senha"></div>
-        </div>
-
+        <p>Entre com seu e-mail e senha.</p>
+        <div class="field"><input type="email" id="authEmail" placeholder="E-mail" autocomplete="username"></div>
+        <div class="field"><input type="password" id="authPass" placeholder="Senha" autocomplete="current-password"></div>
         <button class="btn-primary" id="loginBtn" style="width:100%;">Entrar</button>
         <div class="error-msg" id="loginError"></div>
+        <button class="btn-ghost" id="forgotPassBtn" style="width:100%; margin-top:12px; font-size:13px;">Esqueci minha senha</button>
+      </div>
+
+      <div id="loadingView" class="login-box">
+        <img src="mascot.jpg" alt="Mascote O Markin" class="login-mascot">
+        <p>Verificando acesso...</p>
       </div>
 
       <div id="managerView" style="display:none;">
@@ -641,6 +690,8 @@
           <button class="admin-tab-btn active" data-atab="dashboard">📊 Dashboard</button>
           <button class="admin-tab-btn" data-atab="cardapio">Cardápio</button>
           <button class="admin-tab-btn" data-atab="pedidos">Pedidos <span id="pendingBadge"></span></button>
+          <button class="admin-tab-btn" data-atab="mesas">🪑 Mesas <span id="openTablesBadge"></span></button>
+          <button class="admin-tab-btn" data-atab="caixa">💳 Caixa <span id="caixaBadge"></span></button>
           <button class="admin-tab-btn" data-atab="financeiro">Financeiro</button>
           <button class="admin-tab-btn" data-atab="estoque">Estoque <span id="lowStockBadge"></span></button>
           <button class="admin-tab-btn" data-atab="equipe">👥 Equipe</button>
@@ -660,6 +711,10 @@
             <div class="dash-card">
               <h3>📈 Faturamento — últimos 7 dias</h3>
               <div id="revenueChart" class="chart-bars"></div>
+            </div>
+            <div class="dash-card">
+              <h3>💰 Quem dá mais lucro</h3>
+              <div id="profitRanking"><div class="loading-row">Cadastre o custo dos produtos no Cardápio.</div></div>
             </div>
           </div>
         </div>
@@ -682,7 +737,8 @@
                 <option value="combo">Combo</option>
               </select>
             </div>
-            <div class="field"><label>Preço (R$)</label><input type="number" step="0.01" id="fPrice" placeholder="Ex: 29.90"></div>
+            <div class="field"><label>Preço de venda (R$)</label><input type="number" step="0.01" id="fPrice" placeholder="Ex: 29.90"></div>
+            <div class="field"><label>Custo de produção (R$)</label><input type="number" step="0.01" id="fCost" placeholder="Ex: 12.50 (opcional)"></div>
             <div class="field"><label>Ícone (emoji)</label><input type="text" id="fIcon" placeholder="🍔" maxlength="4"></div>
             <div class="field"><label>Etiqueta (opcional)</label><input type="text" id="fTag" placeholder="Ex: NOVO, PICANTE, MAIS PEDIDO"></div>
           </div>
@@ -705,6 +761,46 @@
           <div class="admin-list" style="margin-top:0; border-top:none; padding-top:0;">
             <h3>Pedidos recebidos</h3>
             <div id="adminOrderList"><div class="loading-row">Carregando...</div></div>
+          </div>
+        </div>
+
+        <!-- MESAS TAB -->
+        <div id="atabMesas" style="display:none;">
+          <p style="font-size:13px; color:rgba(242,233,218,0.6); margin-bottom:20px;">Cada mesa acumula todos os pedidos numa comanda só. Quando o cliente pedir mais, entra aqui automaticamente.</p>
+          <div id="tablesList"><div class="loading-row">Carregando...</div></div>
+        </div>
+
+        <!-- CAIXA TAB -->
+        <div id="atabCaixa" style="display:none;">
+          <div id="registerStatus"></div>
+
+          <div id="registerClosedView" style="display:none;">
+            <div class="dash-card">
+              <h3>🔓 Abrir o caixa</h3>
+              <p style="font-size:13px; color:rgba(242,233,218,0.6); margin-bottom:16px;">Informe quanto tem de dinheiro na gaveta pra começar o dia. No fechamento a gente confere.</p>
+              <div class="field"><label>Fundo de troco (R$)</label><input type="number" step="0.01" id="openingAmount" placeholder="Ex: 100.00"></div>
+              <button class="btn-primary" id="openRegisterBtn">Abrir caixa</button>
+              <div class="error-msg" id="registerError"></div>
+            </div>
+          </div>
+
+          <div id="registerOpenView" style="display:none;">
+            <div id="caixaKpis" class="kpi-grid"></div>
+            <div class="admin-list" style="margin-top:0; border-top:none; padding-top:0;">
+              <h3>🧾 Contas a receber</h3>
+              <div id="pendingBillsList"><div class="loading-row">Carregando...</div></div>
+            </div>
+            <div class="admin-list">
+              <h3>✅ Pagamentos de hoje</h3>
+              <div id="paidTodayList"><div class="loading-row">Carregando...</div></div>
+            </div>
+            <div class="admin-list" id="closeRegisterSection">
+              <h3>🔒 Fechar o caixa</h3>
+              <div id="closeSummary"></div>
+              <div class="field"><label>Dinheiro contado na gaveta (R$)</label><input type="number" step="0.01" id="closingAmount" placeholder="Conte e digite o valor"></div>
+              <button class="btn-primary" id="closeRegisterBtn">Conferir e fechar caixa</button>
+              <div class="error-msg" id="closeError"></div>
+            </div>
           </div>
         </div>
 
@@ -786,10 +882,16 @@
 
           <div class="form-grid">
             <div class="field"><label>Nome do funcionário</label><input type="text" id="empName" placeholder="Ex: João Silva"></div>
-            <div class="field"><label>Usuário (login)</label><input type="text" id="empUser" placeholder="Ex: joao"></div>
-            <div class="field"><label>Senha</label><input type="text" id="empPassNew" placeholder="Ex: 1234"></div>
+            <div class="field"><label>E-mail (será o login)</label><input type="email" id="empEmail" placeholder="joao@omarkin.com"></div>
+            <div class="field"><label>Senha inicial (mín. 6 caracteres)</label><input type="text" id="empPassNew" placeholder="Ex: markin2026"></div>
+            <div class="field"><label>Função</label>
+              <select id="empRole">
+                <option value="funcionario">Funcionário (não vê financeiro)</option>
+                <option value="gerente">Gerente (acesso total)</option>
+              </select>
+            </div>
           </div>
-          <button class="btn-primary" id="addEmployeeBtn">Adicionar funcionário</button>
+          <button class="btn-primary" id="addEmployeeBtn">Criar acesso</button>
           <div class="error-msg" id="empError"></div>
           <div class="admin-list">
             <h3>Funcionários cadastrados</h3>
@@ -824,6 +926,22 @@
         <!-- LOJA TAB (só gerente) -->
         <div id="atabLoja" style="display:none;">
           <div class="admin-list" style="margin-top:0; border-top:none; padding-top:0;">
+            <h3>🚦 Status da loja</h3>
+            <div id="storeStatusBanner"></div>
+            <div class="type-toggle" style="margin-bottom:14px;">
+              <button type="button" class="type-btn" data-storeopen="closed">🔒 Fechada</button>
+              <button type="button" class="type-btn active" data-storeopen="open">✅ Aberta</button>
+            </div>
+            <div class="field"><label>Mensagem quando fechada</label><input type="text" id="lojaClosedMsg" placeholder="Ex: Abrimos hoje às 18h!"></div>
+          </div>
+          <div class="admin-list">
+            <h3>🛵 Taxa de entrega</h3>
+            <div class="form-grid">
+              <div class="field"><label>Valor da taxa (R$)</label><input type="number" step="0.01" id="lojaDeliveryFee" placeholder="Ex: 8.00"></div>
+              <div class="field"><label>Frete grátis acima de (R$)</label><input type="number" step="0.01" id="lojaFreeFrom" placeholder="Ex: 80.00 (0 = nunca)"></div>
+            </div>
+          </div>
+          <div class="admin-list">
             <h3>🕒 Horário de funcionamento</h3>
             <div class="field"><label>Segunda a Quinta</label><input type="text" id="lojaHours1" placeholder="Ex: 18h – 23h"></div>
             <div class="field"><label>Sexta e Sábado</label><input type="text" id="lojaHours2" placeholder="Ex: 18h – 00h30"></div>
@@ -838,12 +956,104 @@
           <button class="btn-primary" id="saveLojaBtn">Salvar dados da loja</button>
           <div class="error-msg" id="lojaError"></div>
           <p style="margin-top:16px; font-size:12px; color:rgba(242,233,218,0.5);">O número de WhatsApp aqui é usado pelo botão flutuante 💬 e pelo link do rodapé no app do cliente — eles abrem uma conversa direto com você.</p>
+
+          <div class="admin-list">
+            <h3>💾 Backup dos dados</h3>
+            <p style="font-size:13px; color:rgba(242,233,218,0.6); margin-bottom:14px;">Baixa um arquivo com cardápio, pedidos, estoque, financeiro e equipe. Guarde de vez em quando — se algo for apagado por engano, dá pra restaurar.</p>
+            <div class="form-actions">
+              <button class="btn-primary" id="exportDataBtn">⬇️ Baixar backup</button>
+              <button class="btn-ghost" id="importDataBtn">⬆️ Restaurar backup</button>
+            </div>
+            <input type="file" id="importDataInput" accept="application/json" style="display:none;">
+            <div class="error-msg" id="backupMsg"></div>
+          </div>
         </div>
       </div>
 
     </div>
   </div>
 </div>
+<!-- ================= PAGAMENTO (CAIXA) ================= -->
+<div class="overlay" id="payOverlay">
+  <div class="panel narrow">
+    <div class="panel-head"><h2>💳 Receber pagamento</h2><button class="close-btn" data-close="payOverlay">✕</button></div>
+    <div class="panel-body">
+      <input type="hidden" id="payBillId">
+      <div class="pay-summary">
+        <div class="pay-title" id="payBillTitle"></div>
+        <div id="payBillItems" class="pay-items"></div>
+        <div class="pay-row"><span>Subtotal</span><span id="paySubtotal">R$ 0,00</span></div>
+        <div class="pay-row" id="payFeeRow" style="display:none;"><span>Taxa de entrega</span><span id="payDeliveryFee">R$ 0,00</span></div>
+        <div class="pay-row">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
+            <input type="checkbox" id="payServiceChk" style="width:auto;"> Serviço 10%
+          </label>
+          <span id="payServiceVal">R$ 0,00</span>
+        </div>
+        <div class="pay-row">
+          <span>Desconto (R$)</span>
+          <input type="number" step="0.01" id="payDiscount" placeholder="0,00" style="width:110px; text-align:right; padding:6px 10px;">
+        </div>
+        <div class="pay-total-row"><span>TOTAL A PAGAR</span><span id="payTotal">R$ 0,00</span></div>
+      </div>
+
+      <div class="field" style="margin-top:20px;">
+        <label>Formas de pagamento</label>
+        <div class="pay-methods">
+          <button type="button" class="pay-method-btn active" data-paymethod="dinheiro">💵 Dinheiro</button>
+          <button type="button" class="pay-method-btn" data-paymethod="pix">📱 Pix</button>
+          <button type="button" class="pay-method-btn" data-paymethod="debito">💳 Débito</button>
+          <button type="button" class="pay-method-btn" data-paymethod="credito">💳 Crédito</button>
+        </div>
+      </div>
+
+      <div id="cashFields">
+        <div class="field"><label>Valor recebido em dinheiro (R$)</label><input type="number" step="0.01" id="payReceived" placeholder="Ex: 100.00"></div>
+        <div class="change-box" id="changeBox">Troco: <strong id="payChange">R$ 0,00</strong></div>
+        <div class="quick-cash" id="quickCash"></div>
+      </div>
+
+      <div class="split-section">
+        <button class="btn-ghost" id="toggleSplitBtn" style="width:100%; font-size:13px;">➗ Dividir entre formas de pagamento</button>
+        <div id="splitFields" style="display:none; margin-top:14px;">
+          <div class="form-grid">
+            <div class="field"><label>💵 Dinheiro</label><input type="number" step="0.01" id="splitCash" placeholder="0,00"></div>
+            <div class="field"><label>📱 Pix</label><input type="number" step="0.01" id="splitPix" placeholder="0,00"></div>
+            <div class="field"><label>💳 Débito</label><input type="number" step="0.01" id="splitDebit" placeholder="0,00"></div>
+            <div class="field"><label>💳 Crédito</label><input type="number" step="0.01" id="splitCredit" placeholder="0,00"></div>
+          </div>
+          <div class="split-status" id="splitStatus"></div>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="confirmPayBtn" style="width:100%; margin-top:18px; padding:16px; font-size:16px;">✅ Confirmar pagamento</button>
+      <div class="error-msg" id="payError"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= FICHA TÉCNICA (RECEITA) ================= -->
+<div class="overlay" id="recipeOverlay">
+  <div class="panel narrow">
+    <div class="panel-head"><h2>🧾 Ficha técnica</h2><button class="close-btn" data-close="recipeOverlay">✕</button></div>
+    <div class="panel-body">
+      <p style="font-size:13px; color:rgba(242,233,218,0.6); margin-bottom:18px;">Diga quanto de cada item do estoque esse produto consome. Quando um pedido for marcado como <strong>Entregue</strong>, o estoque desconta sozinho.</p>
+      <h3 id="recipeProductName" style="font-family:'Anton',sans-serif; color:var(--ember); font-size:18px; margin-bottom:18px;"></h3>
+      <input type="hidden" id="recipeProductId">
+      <div class="form-grid">
+        <div class="field"><label>Item do estoque</label><select id="recipeItemSelect"></select></div>
+        <div class="field"><label>Quantidade usada</label><input type="number" step="0.01" id="recipeQty" placeholder="Ex: 1"></div>
+      </div>
+      <button class="btn-primary" id="addRecipeItemBtn">Adicionar ingrediente</button>
+      <div class="error-msg" id="recipeError"></div>
+      <div class="admin-list">
+        <h3>Ingredientes deste produto</h3>
+        <div id="recipeList"><div class="loading-row">Nenhum ingrediente vinculado.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="save-toast" id="saveToast">Alterações salvas ✓</div>
 
 <div class="print-area" id="printArea"></div>
@@ -852,6 +1062,7 @@
 <!-- Projeto conectado: omarkin-burguer-39bda -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyA-7sy4ox0ErDZAw7prhXYJ3MaSA7G_scY",
@@ -863,12 +1074,13 @@
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
+  const auth = firebase.auth();
+  // app secundário: usado só pra criar contas de funcionário sem deslogar o gerente
+  const secondaryApp = firebase.initializeApp(firebaseConfig, "secondary");
 </script>
 
 <script>
 (function(){
-  const ADMIN_PASSWORD = "markin123";
-
   let products = [];
   let orders = [];
   let cashflow = [];
@@ -979,9 +1191,10 @@
     list.innerHTML = products.map(p => `
       <div class="prod-row">
         <div class="pi">${p.icon || '🍔'}</div>
-        <div class="pn"><strong>${escapeHtml(p.name)}</strong><span>${catLabel(p.cat)}${p.tag ? ' · ' + escapeHtml(p.tag) : ''}</span></div>
+        <div class="pn"><strong>${escapeHtml(p.name)}</strong><span>${catLabel(p.cat)}${p.tag ? ' · ' + escapeHtml(p.tag) : ''}${p.cost ? ' · custo ' + money(p.cost) + ' · margem ' + Math.round(((p.price - p.cost)/p.price)*100) + '%' : ''}</span></div>
         <div class="pp">${money(p.price)}</div>
         <div class="row-actions">
+          <button class="icon-btn" data-recipe="${p.id}" title="Ficha técnica (ingredientes)">🧾</button>
           <button class="icon-btn" data-edit="${p.id}" title="Editar">✎</button>
           <button class="icon-btn danger" data-del="${p.id}" title="Excluir">🗑</button>
         </div>
@@ -989,6 +1202,7 @@
     `).join('');
     list.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => startEdit(btn.dataset.edit)));
     list.querySelectorAll('[data-del]').forEach(btn => btn.addEventListener('click', () => deleteProduct(btn.dataset.del)));
+    list.querySelectorAll('[data-recipe]').forEach(btn => btn.addEventListener('click', () => openRecipeEditor(btn.dataset.recipe)));
   }
 
   function clearForm(){
@@ -996,6 +1210,7 @@
     document.getElementById('fName').value = "";
     document.getElementById('fCat').value = "burguers";
     document.getElementById('fPrice').value = "";
+    document.getElementById('fCost').value = "";
     document.getElementById('fIcon').value = "";
     document.getElementById('fTag').value = "";
     document.getElementById('fDesc').value = "";
@@ -1010,6 +1225,7 @@
     document.getElementById('fName').value = p.name;
     document.getElementById('fCat').value = p.cat;
     document.getElementById('fPrice').value = p.price;
+    document.getElementById('fCost').value = (p.cost !== undefined && p.cost !== null) ? p.cost : "";
     document.getElementById('fIcon').value = p.icon || "";
     document.getElementById('fTag').value = p.tag || "";
     document.getElementById('fDesc').value = p.desc || "";
@@ -1027,6 +1243,7 @@
     const name = document.getElementById('fName').value.trim();
     const cat = document.getElementById('fCat').value;
     const priceRaw = document.getElementById('fPrice').value;
+    const cost = parseFloat(document.getElementById('fCost').value) || 0;
     const icon = document.getElementById('fIcon').value.trim();
     const tag = document.getElementById('fTag').value.trim();
     const desc = document.getElementById('fDesc').value.trim();
@@ -1037,9 +1254,9 @@
     const price = parseFloat(priceRaw);
     if(editingId){
       const idx = products.findIndex(p => p.id === editingId);
-      if(idx > -1) products[idx] = {id: editingId, name, cat, price, icon, tag, desc};
+      if(idx > -1) products[idx] = {id: editingId, name, cat, price, cost, icon, tag, desc, recipe: (products[idx] && products[idx].recipe) || []};
     }else{
-      products.push({id: genId(), name, cat, price, icon, tag, desc});
+      products.push({id: genId(), name, cat, price, cost, icon, tag, desc, recipe: []});
     }
     await saveProducts(); renderMenu(); renderAdminList(); clearForm();
   });
@@ -1109,17 +1326,68 @@
   });
 
   /* ---------------- ORDERS (Firestore) ---------------- */
+  /* ---------------- ALERTA SONORO DE PEDIDO NOVO ---------------- */
+  let knownOrderCodes = null; // null = primeira carga (não alerta)
+  let audioCtx = null;
+  let soundEnabled = true;
+
+  function initAudio(){
+    if(!audioCtx){
+      try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){}
+    }
+    if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  }
+  // desbloqueia o som no primeiro toque do usuário (exigência dos navegadores)
+  document.addEventListener('click', initAudio, {once:true});
+  document.addEventListener('touchstart', initAudio, {once:true});
+
+  function playNewOrderSound(){
+    if(!soundEnabled) return;
+    initAudio();
+    if(!audioCtx) return;
+    // dois "dings" curtos
+    [0, 0.28].forEach((delay, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = i === 0 ? 880 : 1170;
+      gain.gain.setValueAtTime(0.0001, audioCtx.currentTime + delay);
+      gain.gain.exponentialRampToValueAtTime(0.35, audioCtx.currentTime + delay + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + delay + 0.26);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(audioCtx.currentTime + delay);
+      osc.stop(audioCtx.currentTime + delay + 0.28);
+    });
+    if(navigator.vibrate) navigator.vibrate([180, 90, 180]);
+  }
+
+  function checkForNewOrders(){
+    const currentCodes = new Set(orders.map(o => o.code));
+    if(knownOrderCodes === null){ knownOrderCodes = currentCodes; return; }
+    const brandNew = orders.filter(o => !knownOrderCodes.has(o.code));
+    knownOrderCodes = currentCodes;
+    if(brandNew.length > 0){
+      playNewOrderSound();
+      const o = brandNew[0];
+      showToast("🔔 Pedido novo! #" + (o.dailyNumber || '') + " — " + o.customerName);
+    }
+  }
+
   function watchOrders(){
-    db.collection('store').doc('orders').onSnapshot((doc) => {
-      orders = (doc.exists && doc.data().list) ? doc.data().list : [];
+    // coleção 'orders': 1 documento por pedido (ID = código do pedido)
+    db.collection('orders').orderBy('createdAt', 'desc').limit(300).onSnapshot((snap) => {
+      orders = snap.docs.map(d => d.data());
+      checkForNewOrders();
       renderAdminOrders();
+      renderTables();
+      renderCaixa();
       renderDashboard();
       renderEmployeeRanking();
       if(currentTrackedCode) refreshTrackView();
     }, (err) => { console.error("Erro ao ler pedidos:", err); });
   }
-  async function saveOrders(){
-    try{ await db.collection('store').doc('orders').set({list: orders}); }
+  async function saveOrder(order){
+    try{ await db.collection('orders').doc(order.code).set(order); }
     catch(e){ alert("Não foi possível salvar o pedido. Verifique sua conexão e tente novamente."); }
   }
 
@@ -1149,12 +1417,14 @@
   async function saveInventory(){ try{ await db.collection('store').doc('inventory').set({list: inventory}); showToast("Estoque atualizado ✓"); }catch(e){ alert("Não foi possível salvar."); } }
 
   function watchEmployees(){
-    db.collection('store').doc('employees').onSnapshot((doc) => {
-      employees = (doc.exists && doc.data().list) ? doc.data().list : [];
-      renderEmployeeSelect(); renderEmployeeList(); renderEmployeeRanking();
-    }, (err) => console.error("Erro funcionários:", err));
+    db.collection('users').onSnapshot((snap) => {
+      employees = snap.docs.map(d => Object.assign({id: d.id}, d.data()));
+      renderEmployeeList(); renderEmployeeRanking();
+    }, (err) => {
+      // Funcionário não tem permissão de listar a equipe — normal
+      employees = [];
+    });
   }
-  async function saveEmployees(){ try{ await db.collection('store').doc('employees').set({list: employees}); showToast("Equipe atualizada ✓"); }catch(e){ alert("Não foi possível salvar."); } }
 
   /* ---------------- PROMOÇÃO / AVISO (Firestore) ---------------- */
   let promoData = {active:false, title:"", message:"", image:""};
@@ -1228,6 +1498,19 @@
   });
 
   /* ---------------- DADOS DA LOJA ---------------- */
+  let selectedStoreOpen = true;
+  document.querySelectorAll('[data-storeopen]').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-storeopen]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedStoreOpen = btn.dataset.storeopen === 'open';
+    renderStoreStatusBanner(selectedStoreOpen);
+  }));
+  function renderStoreStatusBanner(isOpen){
+    document.getElementById('storeStatusBanner').innerHTML = isOpen
+      ? '<div class="low-stock-banner" style="background:rgba(76,175,109,0.12); border-color:var(--green); color:var(--green);">✅ Loja ABERTA — os clientes conseguem fazer pedidos normalmente.</div>'
+      : '<div class="low-stock-banner">🔒 Loja FECHADA — os clientes veem o cardápio, mas não conseguem finalizar pedidos.</div>';
+  }
+
   function watchStoreInfo(){
     db.collection('store').doc('info').onSnapshot((doc) => {
       const info = doc.exists ? doc.data() : {};
@@ -1237,10 +1520,22 @@
       document.getElementById('lojaAddress').value = info.address || "";
       document.getElementById('lojaWhatsapp').value = info.whatsapp || "";
       document.getElementById('lojaInstagram').value = info.instagram || "";
+      document.getElementById('lojaClosedMsg').value = info.closedMsg || "";
+      document.getElementById('lojaDeliveryFee').value = (info.deliveryFee !== undefined && info.deliveryFee !== null) ? info.deliveryFee : "";
+      document.getElementById('lojaFreeFrom').value = (info.freeFrom !== undefined && info.freeFrom !== null) ? info.freeFrom : "";
+      selectedStoreOpen = info.isOpen !== false;
+      document.querySelectorAll('[data-storeopen]').forEach(b => b.classList.remove('active'));
+      const target = document.querySelector(`[data-storeopen="${selectedStoreOpen ? 'open' : 'closed'}"]`);
+      if(target) target.classList.add('active');
+      renderStoreStatusBanner(selectedStoreOpen);
     }, (err) => console.error("Erro info da loja:", err));
   }
   document.getElementById('saveLojaBtn').addEventListener('click', async () => {
     const info = {
+      isOpen: selectedStoreOpen,
+      closedMsg: document.getElementById('lojaClosedMsg').value.trim(),
+      deliveryFee: parseFloat(document.getElementById('lojaDeliveryFee').value) || 0,
+      freeFrom: parseFloat(document.getElementById('lojaFreeFrom').value) || 0,
       hours1: document.getElementById('lojaHours1').value.trim(),
       hours2: document.getElementById('lojaHours2').value.trim(),
       hours3: document.getElementById('lojaHours3').value.trim(),
@@ -1253,6 +1548,53 @@
       showToast("Dados da loja salvos ✓");
       document.getElementById('lojaError').textContent = "";
     }catch(e){ document.getElementById('lojaError').textContent = "Não foi possível salvar. Tente novamente."; }
+  });
+
+  /* ---------------- BACKUP ---------------- */
+  document.getElementById('exportDataBtn').addEventListener('click', async () => {
+    try{
+      const docs = ['menu','orders','cashflow','fixedcosts','inventory','employees','promo','info'];
+      const backup = {exportedAt: new Date().toISOString()};
+      for(const d of docs){
+        const snap = await db.collection('store').doc(d).get();
+        backup[d] = snap.exists ? snap.data() : null;
+      }
+      const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = "omarkin-backup-" + new Date().toISOString().slice(0,10) + ".json";
+      a.click();
+      URL.revokeObjectURL(url);
+      document.getElementById('backupMsg').style.color = "var(--green)";
+      document.getElementById('backupMsg').textContent = "Backup baixado ✓";
+    }catch(e){
+      document.getElementById('backupMsg').style.color = "var(--tomato)";
+      document.getElementById('backupMsg').textContent = "Não foi possível gerar o backup.";
+    }
+  });
+  document.getElementById('importDataBtn').addEventListener('click', () => document.getElementById('importDataInput').click());
+  document.getElementById('importDataInput').addEventListener('change', (e) => {
+    const file = e.target.files[0]; if(!file) return;
+    if(!confirm("Restaurar o backup vai SUBSTITUIR todos os dados atuais (cardápio, pedidos, estoque, financeiro, equipe). Continuar?")) { e.target.value = ""; return; }
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      try{
+        const data = JSON.parse(ev.target.result);
+        const docs = ['menu','orders','cashflow','fixedcosts','inventory','employees','promo','info'];
+        for(const d of docs){
+          if(data[d]) await db.collection('store').doc(d).set(data[d]);
+        }
+        document.getElementById('backupMsg').style.color = "var(--green)";
+        document.getElementById('backupMsg').textContent = "Backup restaurado ✓";
+        showToast("Dados restaurados ✓");
+      }catch(err){
+        document.getElementById('backupMsg').style.color = "var(--tomato)";
+        document.getElementById('backupMsg').textContent = "Arquivo inválido ou corrompido.";
+      }
+      e.target.value = "";
+    };
+    reader.readAsText(file);
   });
 
   function todayStr(){ return new Date().toISOString().slice(0,10); }
@@ -1284,7 +1626,7 @@
       updatedAt: new Date().toISOString()
     };
     orders.unshift(order);
-    await saveOrders();
+    await saveOrder(order);
 
     cart = []; updateCartUI();
     document.getElementById('ckName').value = "";
@@ -1379,15 +1721,17 @@
   function renderAdminOrders(){
     renderDayStats();
     const box = document.getElementById('adminOrderList');
-    const pendingCount = orders.filter(o => o.status !== 'entregue').length;
+    // Mesas com comanda aberta aparecem na aba "Mesas", não aqui (evita duplicar)
+    const list = orders.filter(o => !(o.orderType === 'mesa' && o.tabClosed !== true));
+    const pendingCount = list.filter(o => o.status !== 'entregue').length;
     document.getElementById('pendingBadge').textContent = pendingCount > 0 ? `(${pendingCount})` : '';
-    if(orders.length === 0){ box.innerHTML = '<div class="loading-row">Nenhum pedido ainda.</div>'; return; }
-    box.innerHTML = orders.map(o => `
+    if(list.length === 0){ box.innerHTML = '<div class="loading-row">Nenhum pedido de entrega ou balcão. Confira a aba 🪑 Mesas.</div>'; return; }
+    box.innerHTML = list.map(o => `
       <div class="order-row">
         <div class="order-row-top">
           <div>
             <span class="order-code">#${o.dailyNumber || '–'} · ${o.code}</span>
-            <div class="order-meta">${escapeHtml(o.customerName)} · ${escapeHtml(o.phone)}</div>
+            <div class="order-meta">${escapeHtml(o.customerName)}${o.phone ? ' · ' + escapeHtml(o.phone) : ''}</div>
             <div class="order-meta">${o.orderType === 'mesa' ? '🪑 MESA ' + escapeHtml(o.table || '?') : o.orderType === 'retirada' ? '🏠 Retirada no balcão' : '🛵 ' + escapeHtml(o.address || '')}</div>
             <div class="order-extra">
               <span>💳 ${paymentLabel(o.payment)}</span>
@@ -1396,7 +1740,7 @@
           </div>
           <span class="status-pill" style="background:${STATUS_COLORS[o.status]}22; color:${STATUS_COLORS[o.status]};">${STATUS_FLOW.find(s=>s.key===o.status).label}</span>
         </div>
-        <div class="order-items">${o.items.map(i => i.qty + 'x ' + escapeHtml(i.name)).join(', ')}</div>
+        <div class="order-items">${o.items.map(i => i.qty + 'x ' + escapeHtml(i.name) + (i.forItem ? ' <em style="color:var(--mustard);">(no ' + escapeHtml(i.forItem) + ')</em>' : '')).join(', ')}</div>
         ${o.notes ? `<div class="order-meta" style="color:var(--mustard);">📝 ${escapeHtml(o.notes)}</div>` : ''}
         <div class="order-total">${money(o.total)}</div>
         <div class="status-buttons">
@@ -1424,13 +1768,14 @@
       <div class="p-code">${o.code} · ${new Date(o.createdAt).toLocaleString('pt-BR')}</div>
       <div class="p-line"></div>
       <div class="p-row"><span>Cliente:</span><span>${escapeHtml(o.customerName)}</span></div>
-      <div class="p-row"><span>Telefone:</span><span>${escapeHtml(o.phone)}</span></div>
+      ${o.phone ? `<div class="p-row"><span>Telefone:</span><span>${escapeHtml(o.phone)}</span></div>` : ''}
       <div class="p-row"><span>Tipo:</span><span>${o.orderType === 'mesa' ? 'MESA ' + escapeHtml(o.table || '?') : o.orderType === 'retirada' ? 'RETIRADA' : 'ENTREGA'}</span></div>
       ${o.orderType === 'entrega' ? `<div class="p-row"><span>Endereço:</span><span>${escapeHtml(o.address || '')}</span></div>` : ''}
       <div class="p-row"><span>Pagamento:</span><span>${paymentLabel(o.payment).toUpperCase()}</span></div>
       <div class="p-line"></div>
-      ${o.items.map(i => `<div class="p-item"><span>${i.qty}x ${escapeHtml(i.name)}</span><span>${money(i.price * i.qty)}</span></div>`).join('')}
+      ${o.items.map(i => `<div class="p-item"><span>${i.qty}x ${escapeHtml(i.name)}${i.forItem ? ' (no ' + escapeHtml(i.forItem) + ')' : ''}</span><span>${money(i.price * i.qty)}</span></div>`).join('')}
       <div class="p-line"></div>
+      ${o.deliveryFee > 0 ? `<div class="p-row"><span>Subtotal:</span><span>${money(o.subtotal)}</span></div><div class="p-row"><span>Taxa entrega:</span><span>${money(o.deliveryFee)}</span></div>` : ''}
       <div class="p-total"><span>TOTAL</span><span>${money(o.total)}</span></div>
       ${o.notes ? `<div class="p-notes"><strong>OBSERVAÇÕES:</strong><br>${escapeHtml(o.notes)}</div>` : ''}
       <div class="p-foot">Feito na chapa, na hora 🔥</div>
@@ -1498,6 +1843,33 @@
       <div class="chart-bar-col">
         <div class="chart-bar" style="height:${Math.max((d.value/maxRev)*100,2)}%" title="${money(d.value)}"></div>
         <div class="cb-label">${d.label}</div>
+      </div>
+    `).join('');
+
+    renderProfitRanking(counts);
+  }
+
+  function renderProfitRanking(counts){
+    const box = document.getElementById('profitRanking');
+    const rows = [];
+    Object.entries(counts).forEach(([name, qty]) => {
+      const p = products.find(x => x.name === name);
+      if(!p || !p.cost) return;
+      const unitProfit = p.price - p.cost;
+      rows.push({name, qty, unitProfit, totalProfit: unitProfit * qty, margin: Math.round((unitProfit/p.price)*100)});
+    });
+    if(rows.length === 0){
+      box.innerHTML = '<div class="loading-row">Cadastre o custo dos produtos no Cardápio pra ver o lucro por item.</div>';
+      return;
+    }
+    rows.sort((a,b) => b.totalProfit - a.totalProfit);
+    const top = rows.slice(0,5);
+    const maxProfit = top[0].totalProfit || 1;
+    box.innerHTML = top.map((r,i) => `
+      <div class="bestseller-row">
+        <div class="bs-rank">${i+1}</div>
+        <div class="bs-name">${escapeHtml(r.name)} · margem ${r.margin}%<div class="bs-bar-track"><div class="bs-bar-fill" style="width:${(r.totalProfit/maxProfit)*100}%; background:var(--green);"></div></div></div>
+        <div class="bs-count" style="color:var(--green);">${money(r.totalProfit)}</div>
       </div>
     `).join('');
   }
@@ -1626,44 +1998,625 @@
     document.getElementById('stName').value = ""; document.getElementById('stQty').value = ""; document.getElementById('stMin').value = "";
   });
 
-  async function setOrderStatus(code, status){
-    const order = orders.find(o => o.code === code); if(!order) return;
-    order.status = status; order.updatedAt = new Date().toISOString();
-    if(currentEmployee) order.handledBy = currentEmployee.name;
-    else if(currentRole === 'gerente') order.handledBy = order.handledBy || "Gerente";
-    await saveOrders(); renderAdminOrders(); showToast("Status do pedido " + code + " atualizado ✓");
+  /* ================= CAIXA ================= */
+  let register = {isOpen:false};
+  let currentBill = null;
+  let selectedPayMethod = 'dinheiro';
+  let splitMode = false;
+
+  function watchRegister(){
+    db.collection('store').doc('register').onSnapshot((doc) => {
+      register = doc.exists ? doc.data() : {isOpen:false};
+      renderCaixa();
+    }, (err) => console.error("Erro caixa:", err));
   }
 
-  /* ---------------- EQUIPE (funcionários) ---------------- */
-  function renderEmployeeSelect(){
-    const sel = document.getElementById('empSelect');
-    const active = employees.filter(e => e.active !== false);
-    sel.innerHTML = '<option value="">Selecione seu nome...</option>' +
-      active.map(e => `<option value="${e.id}">${escapeHtml(e.name)}</option>`).join('');
+  // Contas em aberto: mesas com comanda aberta + pedidos de entrega/balcão não pagos
+  function pendingBills(){
+    const bills = [];
+    openTables().forEach(t => {
+      bills.push({
+        id: 'mesa:' + t.table,
+        type: 'mesa',
+        title: 'Mesa ' + t.table,
+        subtitle: t.rounds.length + ' pedido(s) · ' + (t.rounds[0].customerName || ''),
+        icon: '🪑',
+        items: allTabItems(t),
+        subtotal: t.total,
+        deliveryFee: 0,
+        orderCodes: t.rounds.map(r => r.code)
+      });
+    });
+    orders.forEach(o => {
+      if(o.orderType === 'mesa') return;
+      if(o.paid === true) return;
+      if(o.status === 'entregue' && o.paid !== true){ /* ainda a receber */ }
+      bills.push({
+        id: 'pedido:' + o.code,
+        type: o.orderType,
+        title: '#' + (o.dailyNumber || '') + ' · ' + o.customerName,
+        subtitle: (o.orderType === 'entrega' ? '🛵 Entrega' : '🏠 Balcão') + ' · ' + paymentLabel(o.payment),
+        icon: o.orderType === 'entrega' ? '🛵' : '🏠',
+        items: o.items,
+        subtotal: Number(o.subtotal) || (Number(o.total) - (Number(o.deliveryFee)||0)) || 0,
+        deliveryFee: Number(o.deliveryFee) || 0,
+        orderCodes: [o.code]
+      });
+    });
+    return bills;
   }
+
+  function paidToday(){
+    const today = todayStr();
+    return orders.filter(o => o.paid === true && (o.paidAt || '').slice(0,10) === today)
+                 .sort((a,b) => new Date(b.paidAt) - new Date(a.paidAt));
+  }
+
+  function renderCaixa(){
+    const isOpen = register.isOpen === true;
+    document.getElementById('registerClosedView').style.display = isOpen ? 'none' : 'block';
+    document.getElementById('registerOpenView').style.display = isOpen ? 'block' : 'none';
+    document.getElementById('registerStatus').innerHTML = isOpen
+      ? `<div class="register-banner open"><span>🔓 Caixa ABERTO desde ${new Date(register.openedAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span><span>Fundo: ${money(register.openingAmount||0)}</span></div>`
+      : `<div class="register-banner closed"><span>🔒 Caixa FECHADO</span><span>Abra o caixa pra receber pagamentos</span></div>`;
+
+    const bills = pendingBills();
+    document.getElementById('caixaBadge').textContent = bills.length > 0 ? `(${bills.length})` : '';
+    if(!isOpen) return;
+
+    // KPIs do turno
+    const pagos = paidToday().filter(o => new Date(o.paidAt) >= new Date(register.openedAt));
+    const totalRecebido = pagos.reduce((s,o) => s + (Number(o.paidTotal)||0), 0);
+    const emDinheiro = pagos.reduce((s,o) => s + methodAmount(o, 'dinheiro'), 0);
+    document.getElementById('caixaKpis').innerHTML = `
+      <div class="kpi-card"><div class="kv">${money(totalRecebido)}</div><div class="kl">Recebido no turno</div></div>
+      <div class="kpi-card"><div class="kv">${pagos.length}</div><div class="kl">Contas pagas</div></div>
+      <div class="kpi-card"><div class="kv">${money(emDinheiro)}</div><div class="kl">Em dinheiro</div></div>
+      <div class="kpi-card"><div class="kv">${bills.length}</div><div class="kl">A receber</div></div>
+    `;
+
+    // Contas a receber
+    const box = document.getElementById('pendingBillsList');
+    box.innerHTML = bills.length === 0
+      ? '<div class="loading-row">Nenhuma conta em aberto. 🎉</div>'
+      : bills.map(b => `
+        <div class="bill-row">
+          <div class="bill-icon">${b.icon}</div>
+          <div class="bill-info"><strong>${escapeHtml(b.title)}</strong><span>${escapeHtml(b.subtitle)}</span></div>
+          <div class="bill-amount">${money(b.subtotal + b.deliveryFee)}</div>
+          <button class="pay-now-btn" data-paybill="${b.id}">Receber</button>
+        </div>`).join('');
+    box.querySelectorAll('[data-paybill]').forEach(btn => btn.addEventListener('click', () => openPayment(btn.dataset.paybill)));
+
+    // Pagos hoje
+    const paidBox = document.getElementById('paidTodayList');
+    const pg = paidToday();
+    paidBox.innerHTML = pg.length === 0
+      ? '<div class="loading-row">Nenhum pagamento registrado hoje.</div>'
+      : pg.slice(0,20).map(o => `
+        <div class="paid-row">
+          <div class="bill-icon" style="width:34px;height:34px;font-size:15px;">✅</div>
+          <div class="pd-info"><strong>${escapeHtml(o.paidLabel || o.customerName)}</strong><span>${new Date(o.paidAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · ${describeMethods(o)}</span></div>
+          <div class="pd-amount">${money(o.paidTotal||0)}</div>
+        </div>`).join('');
+
+    renderCloseSummary();
+    // fechar caixa é só do gerente
+    document.getElementById('closeRegisterSection').style.display = currentRole === 'gerente' ? 'block' : 'none';
+  }
+
+  function methodAmount(order, method){
+    if(!order.paymentMethods) return 0;
+    const m = order.paymentMethods.find(x => x.method === method);
+    return m ? Number(m.amount) : 0;
+  }
+  function describeMethods(order){
+    if(!order.paymentMethods || order.paymentMethods.length === 0) return '-';
+    return order.paymentMethods.map(m => payMethodLabel(m.method) + ' ' + money(m.amount)).join(' + ');
+  }
+  function payMethodLabel(m){ return {dinheiro:'Dinheiro', pix:'Pix', debito:'Débito', credito:'Crédito'}[m] || m; }
+
+  function renderCloseSummary(){
+    const pagos = paidToday().filter(o => new Date(o.paidAt) >= new Date(register.openedAt));
+    const cash = pagos.reduce((s,o) => s + methodAmount(o,'dinheiro'), 0);
+    const troco = pagos.reduce((s,o) => s + (Number(o.change)||0), 0);
+    const pix = pagos.reduce((s,o) => s + methodAmount(o,'pix'), 0);
+    const deb = pagos.reduce((s,o) => s + methodAmount(o,'debito'), 0);
+    const cred = pagos.reduce((s,o) => s + methodAmount(o,'credito'), 0);
+    const esperado = (Number(register.openingAmount)||0) + cash;
+    document.getElementById('closeSummary').innerHTML = `
+      <div class="close-summary-row"><span>Fundo de troco inicial</span><span>${money(register.openingAmount||0)}</span></div>
+      <div class="close-summary-row"><span>+ Vendas em dinheiro</span><span>${money(cash)}</span></div>
+      <div class="close-summary-row highlight"><span>= Esperado na gaveta</span><span>${money(esperado)}</span></div>
+      <div class="close-summary-row" style="margin-top:14px;"><span>📱 Pix</span><span>${money(pix)}</span></div>
+      <div class="close-summary-row"><span>💳 Débito</span><span>${money(deb)}</span></div>
+      <div class="close-summary-row"><span>💳 Crédito</span><span>${money(cred)}</span></div>
+      <div class="close-summary-row highlight"><span>Total do turno</span><span>${money(cash+pix+deb+cred)}</span></div>
+    `;
+    document.getElementById('closeSummary').dataset.expected = esperado;
+  }
+
+  document.getElementById('openRegisterBtn').addEventListener('click', async () => {
+    const amount = parseFloat(document.getElementById('openingAmount').value);
+    const errEl = document.getElementById('registerError');
+    if(isNaN(amount) || amount < 0){ errEl.textContent = "Informe o valor do fundo de troco."; return; }
+    errEl.textContent = "";
+    try{
+      await db.collection('store').doc('register').set({
+        isOpen: true, openingAmount: amount,
+        openedAt: new Date().toISOString(),
+        openedBy: currentEmployee ? currentEmployee.name : ''
+      });
+      showToast("Caixa aberto ✓");
+      document.getElementById('openingAmount').value = "";
+    }catch(e){ errEl.textContent = "Não foi possível abrir o caixa."; }
+  });
+
+  document.getElementById('closeRegisterBtn').addEventListener('click', async () => {
+    const counted = parseFloat(document.getElementById('closingAmount').value);
+    const errEl = document.getElementById('closeError');
+    if(isNaN(counted) || counted < 0){ errEl.textContent = "Digite o valor contado na gaveta."; return; }
+    const expected = parseFloat(document.getElementById('closeSummary').dataset.expected) || 0;
+    const diff = counted - expected;
+    const diffTxt = diff === 0 ? "bateu certinho ✓"
+      : diff > 0 ? ("SOBRANDO " + money(diff))
+      : ("FALTANDO " + money(Math.abs(diff)));
+    if(!confirm(`Fechar o caixa?\n\nEsperado: ${money(expected)}\nContado: ${money(counted)}\nDiferença: ${diffTxt}`)) return;
+    errEl.textContent = "";
+    try{
+      const bills = pendingBills();
+      if(bills.length > 0 && !confirm(`Atenção: ainda há ${bills.length} conta(s) em aberto. Fechar mesmo assim?`)) return;
+      await db.collection('store').doc('register').set({
+        isOpen: false,
+        openingAmount: register.openingAmount || 0,
+        openedAt: register.openedAt,
+        closedAt: new Date().toISOString(),
+        closedBy: currentEmployee ? currentEmployee.name : '',
+        expected, counted, difference: diff
+      });
+      document.getElementById('closingAmount').value = "";
+      showToast("Caixa fechado — " + diffTxt);
+    }catch(e){ errEl.textContent = "Não foi possível fechar o caixa."; }
+  });
+
+  /* ---------- MODAL DE PAGAMENTO ---------- */
+  function openPayment(billId){
+    if(register.isOpen !== true){ alert("Abra o caixa antes de receber pagamentos."); return; }
+    const bill = pendingBills().find(b => b.id === billId);
+    if(!bill) return;
+    currentBill = bill;
+    document.getElementById('payBillId').value = billId;
+    document.getElementById('payBillTitle').textContent = bill.icon + " " + bill.title;
+    document.getElementById('payBillItems').innerHTML = bill.items.map(i => i.qty + 'x ' + escapeHtml(i.name)).join('<br>');
+    document.getElementById('paySubtotal').textContent = money(bill.subtotal);
+    const feeRow = document.getElementById('payFeeRow');
+    if(bill.deliveryFee > 0){ feeRow.style.display = 'flex'; document.getElementById('payDeliveryFee').textContent = money(bill.deliveryFee); }
+    else feeRow.style.display = 'none';
+    document.getElementById('payServiceChk').checked = (bill.type === 'mesa');
+    document.getElementById('payDiscount').value = "";
+    document.getElementById('payReceived').value = "";
+    ['splitCash','splitPix','splitDebit','splitCredit'].forEach(id => document.getElementById(id).value = "");
+    splitMode = false;
+    document.getElementById('splitFields').style.display = 'none';
+    document.getElementById('toggleSplitBtn').textContent = "➗ Dividir entre formas de pagamento";
+    selectedPayMethod = 'dinheiro';
+    document.querySelectorAll('[data-paymethod]').forEach(b => b.classList.toggle('active', b.dataset.paymethod === 'dinheiro'));
+    document.getElementById('payError').textContent = "";
+    recalcPayment();
+    openOverlay('payOverlay');
+  }
+
+  function billTotal(){
+    if(!currentBill) return 0;
+    const base = currentBill.subtotal + currentBill.deliveryFee;
+    const service = document.getElementById('payServiceChk').checked ? currentBill.subtotal * 0.1 : 0;
+    const discount = parseFloat(document.getElementById('payDiscount').value) || 0;
+    return Math.max(0, base + service - discount);
+  }
+
+  function recalcPayment(){
+    if(!currentBill) return;
+    const service = document.getElementById('payServiceChk').checked ? currentBill.subtotal * 0.1 : 0;
+    document.getElementById('payServiceVal').textContent = money(service);
+    const total = billTotal();
+    document.getElementById('payTotal').textContent = money(total);
+
+    // troco
+    const isCash = selectedPayMethod === 'dinheiro' && !splitMode;
+    document.getElementById('cashFields').style.display = isCash ? 'block' : 'none';
+    if(isCash){
+      const received = parseFloat(document.getElementById('payReceived').value) || 0;
+      const change = received - total;
+      const box = document.getElementById('changeBox');
+      document.getElementById('payChange').textContent = money(Math.max(0, change));
+      box.classList.toggle('insufficient', received > 0 && change < 0);
+      box.firstChild.textContent = (received > 0 && change < 0) ? "Falta: " : "Troco: ";
+      if(received > 0 && change < 0) document.getElementById('payChange').textContent = money(Math.abs(change));
+      renderQuickCash(total);
+    }
+
+    if(splitMode) updateSplitStatus(total);
+  }
+
+  function renderQuickCash(total){
+    const opts = [total, Math.ceil(total/10)*10, Math.ceil(total/20)*20, Math.ceil(total/50)*50, 100, 200];
+    const uniq = [...new Set(opts.map(v => Math.round(v*100)/100))].filter(v => v >= total).slice(0,5);
+    document.getElementById('quickCash').innerHTML = uniq.map(v =>
+      `<button data-quickcash="${v}">${v === total ? 'Exato' : money(v)}</button>`).join('');
+    document.querySelectorAll('[data-quickcash]').forEach(b => b.addEventListener('click', () => {
+      document.getElementById('payReceived').value = b.dataset.quickcash;
+      recalcPayment();
+    }));
+  }
+
+  function splitValues(){
+    return {
+      dinheiro: parseFloat(document.getElementById('splitCash').value) || 0,
+      pix: parseFloat(document.getElementById('splitPix').value) || 0,
+      debito: parseFloat(document.getElementById('splitDebit').value) || 0,
+      credito: parseFloat(document.getElementById('splitCredit').value) || 0
+    };
+  }
+  function updateSplitStatus(total){
+    const v = splitValues();
+    const sum = v.dinheiro + v.pix + v.debito + v.credito;
+    const rest = Math.round((total - sum) * 100) / 100;
+    const el = document.getElementById('splitStatus');
+    if(Math.abs(rest) < 0.01){ el.className = "split-status ok"; el.textContent = "✓ Valores batem com o total"; }
+    else if(rest > 0){ el.className = "split-status pending"; el.textContent = "Falta lançar " + money(rest); }
+    else { el.className = "split-status pending"; el.textContent = "Passou " + money(Math.abs(rest)) + " do total"; }
+  }
+
+  document.querySelectorAll('[data-paymethod]').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-paymethod]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedPayMethod = btn.dataset.paymethod;
+    recalcPayment();
+  }));
+  ['payServiceChk','payDiscount','payReceived'].forEach(id =>
+    document.getElementById(id).addEventListener('input', recalcPayment));
+  document.getElementById('payServiceChk').addEventListener('change', recalcPayment);
+  ['splitCash','splitPix','splitDebit','splitCredit'].forEach(id =>
+    document.getElementById(id).addEventListener('input', () => updateSplitStatus(billTotal())));
+
+  document.getElementById('toggleSplitBtn').addEventListener('click', () => {
+    splitMode = !splitMode;
+    document.getElementById('splitFields').style.display = splitMode ? 'block' : 'none';
+    document.getElementById('toggleSplitBtn').textContent = splitMode ? "✕ Cancelar divisão" : "➗ Dividir entre formas de pagamento";
+    recalcPayment();
+  });
+
+  document.getElementById('confirmPayBtn').addEventListener('click', async () => {
+    if(!currentBill) return;
+    const errEl = document.getElementById('payError');
+    const total = billTotal();
+    let methods = [];
+    let change = 0;
+
+    if(splitMode){
+      const v = splitValues();
+      const sum = v.dinheiro + v.pix + v.debito + v.credito;
+      if(Math.abs(sum - total) > 0.01){ errEl.textContent = "A soma das formas de pagamento precisa bater com o total."; return; }
+      Object.entries(v).forEach(([m, amt]) => { if(amt > 0) methods.push({method:m, amount:amt}); });
+    }else if(selectedPayMethod === 'dinheiro'){
+      const received = parseFloat(document.getElementById('payReceived').value) || 0;
+      if(received < total){ errEl.textContent = "Valor recebido é menor que o total."; return; }
+      change = Math.round((received - total) * 100) / 100;
+      methods = [{method:'dinheiro', amount: total}];
+    }else{
+      methods = [{method: selectedPayMethod, amount: total}];
+    }
+    errEl.textContent = "";
+
+    const btn = document.getElementById('confirmPayBtn');
+    btn.disabled = true; btn.textContent = "Registrando...";
+    try{
+      const service = document.getElementById('payServiceChk').checked ? currentBill.subtotal * 0.1 : 0;
+      const discount = parseFloat(document.getElementById('payDiscount').value) || 0;
+      const now = new Date().toISOString();
+      const payload = {
+        paid: true, paidAt: now, paidTotal: total, paidLabel: currentBill.title,
+        paymentMethods: methods, change, serviceFee: service, discount,
+        paidBy: currentEmployee ? currentEmployee.name : '',
+        tabClosed: true, status: 'entregue'
+      };
+      const batch = db.batch();
+      currentBill.orderCodes.forEach((code, idx) => {
+        // o valor total do pagamento fica no primeiro pedido, os demais entram zerados
+        batch.update(db.collection('orders').doc(code), idx === 0 ? payload
+          : Object.assign({}, payload, {paidTotal: 0, paymentMethods: [], change: 0, serviceFee: 0, discount: 0}));
+      });
+      await batch.commit();
+
+      // lança no financeiro
+      try{
+        const snap = await db.collection('store').doc('cashflow').get();
+        const list = (snap.exists && snap.data().list) ? snap.data().list : [];
+        list.push({
+          id: genId(), type:'entrada', desc: currentBill.title + " (" + describeMethods({paymentMethods:methods}) + ")",
+          amount: total, category:'vendas', date: todayStr()
+        });
+        await db.collection('store').doc('cashflow').set({list});
+      }catch(e){ /* funcionário não escreve no financeiro — o valor já ficou no pedido */ }
+
+      closeOverlay('payOverlay');
+      showToast("Pagamento recebido ✓" + (change > 0 ? " Troco: " + money(change) : ""));
+      if(confirm("Pagamento registrado!\n\nDeseja imprimir o comprovante?")) printReceipt(currentBill, total, methods, change, service, discount);
+      currentBill = null;
+    }catch(e){
+      console.error(e);
+      errEl.textContent = "Não foi possível registrar o pagamento. Tente novamente.";
+    }
+    btn.disabled = false; btn.textContent = "✅ Confirmar pagamento";
+  });
+
+  function printReceipt(bill, total, methods, change, service, discount){
+    const area = document.getElementById('printArea');
+    area.innerHTML = `
+      <div class="p-logo">O MARKIN</div>
+      <div class="p-sub">CHEF'S BURGUER — COMPROVANTE</div>
+      <div class="p-line"></div>
+      <div class="p-code">${escapeHtml(bill.title)} · ${new Date().toLocaleString('pt-BR')}</div>
+      <div class="p-line"></div>
+      ${bill.items.map(i => `<div class="p-item"><span>${i.qty}x ${escapeHtml(i.name)}</span><span>${money(i.price*i.qty)}</span></div>`).join('')}
+      <div class="p-line"></div>
+      <div class="p-row"><span>Subtotal:</span><span>${money(bill.subtotal)}</span></div>
+      ${bill.deliveryFee > 0 ? `<div class="p-row"><span>Entrega:</span><span>${money(bill.deliveryFee)}</span></div>` : ''}
+      ${service > 0 ? `<div class="p-row"><span>Serviço 10%:</span><span>${money(service)}</span></div>` : ''}
+      ${discount > 0 ? `<div class="p-row"><span>Desconto:</span><span>- ${money(discount)}</span></div>` : ''}
+      <div class="p-total"><span>TOTAL</span><span>${money(total)}</span></div>
+      <div class="p-line"></div>
+      ${methods.map(m => `<div class="p-row"><span>${payMethodLabel(m.method)}:</span><span>${money(m.amount)}</span></div>`).join('')}
+      ${change > 0 ? `<div class="p-row"><span>Troco:</span><span>${money(change)}</span></div>` : ''}
+      <div class="p-foot">Obrigado pela preferência! 🔥</div>
+    `;
+    setTimeout(() => window.print(), 100);
+  }
+
+  /* ---------------- COMANDAS DE MESA ---------------- */
+  // Agrupa todos os pedidos de mesa ainda em aberto, por número de mesa
+  function openTables(){
+    const map = {};
+    orders.forEach(o => {
+      if(o.orderType !== 'mesa') return;
+      if(o.tabClosed === true) return;
+      const t = String(o.table || '?');
+      if(!map[t]) map[t] = {table: t, rounds: [], total: 0, openedAt: o.createdAt};
+      map[t].rounds.push(o);
+      map[t].total += Number(o.total) || 0;
+      if(new Date(o.createdAt) < new Date(map[t].openedAt)) map[t].openedAt = o.createdAt;
+    });
+    // rodadas em ordem cronológica
+    Object.values(map).forEach(t => t.rounds.sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt)));
+    return Object.values(map).sort((a,b) => Number(a.table) - Number(b.table));
+  }
+
+  function allTabItems(tab){
+    // junta itens iguais de todas as rodadas
+    const merged = {};
+    tab.rounds.forEach(r => r.items.forEach(i => {
+      const key = i.name + "|" + (i.forItem || "");
+      if(!merged[key]) merged[key] = {name:i.name, forItem:i.forItem||"", price:i.price, qty:0};
+      merged[key].qty += i.qty;
+    }));
+    return Object.values(merged);
+  }
+
+  function renderTables(){
+    const box = document.getElementById('tablesList');
+    const tables = openTables();
+    document.getElementById('openTablesBadge').textContent = tables.length > 0 ? `(${tables.length})` : '';
+    if(tables.length === 0){
+      box.innerHTML = '<div class="loading-row">Nenhuma mesa com comanda aberta.</div>';
+      return;
+    }
+    box.innerHTML = tables.map(t => `
+      <div class="order-row">
+        <div class="order-row-top">
+          <div>
+            <span class="order-code" style="font-size:20px;">🪑 MESA ${escapeHtml(t.table)}</span>
+            <div class="order-meta">${t.rounds.length} pedido${t.rounds.length !== 1 ? 's' : ''} · aberta desde ${new Date(t.openedAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
+            <div class="order-meta">${escapeHtml(t.rounds[0].customerName || '')}</div>
+          </div>
+          <span class="order-total" style="font-size:22px; color:var(--mustard);">${money(t.total)}</span>
+        </div>
+
+        ${t.rounds.map((r, idx) => `
+          <div class="tab-round">
+            <div class="tab-round-head">
+              <span>Pedido ${idx+1} · ${new Date(r.createdAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
+              <span class="status-pill" style="background:${STATUS_COLORS[r.status]}22; color:${STATUS_COLORS[r.status]};">${STATUS_FLOW.find(s=>s.key===r.status).label}</span>
+            </div>
+            <div class="order-items">${r.items.map(i => i.qty + 'x ' + escapeHtml(i.name) + (i.forItem ? ' (no ' + escapeHtml(i.forItem) + ')' : '')).join(', ')}</div>
+            ${r.notes ? `<div class="order-meta" style="color:var(--mustard);">📝 ${escapeHtml(r.notes)}</div>` : ''}
+            <div class="tab-round-foot">
+              <span>${money(r.total)}</span>
+              <div class="status-buttons" style="margin-top:0;">
+                ${STATUS_FLOW.map(s => `<button class="status-btn ${s.key===r.status ? 'current':''}" data-setstatus="${r.code}" data-status="${s.key}">${s.icon}</button>`).join('')}
+                <button class="print-btn" data-print="${r.code}" style="padding:6px 12px;">🖨️</button>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+
+        <div class="order-actions-row" style="border-top:1px solid var(--line); padding-top:14px; margin-top:14px;">
+          <button class="print-btn" data-printtab="${t.table}">🖨️ Imprimir conta da mesa</button>
+          <button class="btn-primary" data-closetab="${t.table}" style="padding:10px 20px; font-size:13px;">✅ Fechar conta</button>
+        </div>
+      </div>
+    `).join('');
+
+    box.querySelectorAll('[data-setstatus]').forEach(btn => btn.addEventListener('click', () => setOrderStatus(btn.dataset.setstatus, btn.dataset.status)));
+    box.querySelectorAll('[data-print]').forEach(btn => btn.addEventListener('click', () => printComanda(btn.dataset.print)));
+    box.querySelectorAll('[data-printtab]').forEach(btn => btn.addEventListener('click', () => printTableBill(btn.dataset.printtab)));
+    box.querySelectorAll('[data-closetab]').forEach(btn => btn.addEventListener('click', () => closeTableTab(btn.dataset.closetab)));
+  }
+
+  function printTableBill(tableNum){
+    const tab = openTables().find(t => t.table === String(tableNum));
+    if(!tab) return;
+    const items = allTabItems(tab);
+    const area = document.getElementById('printArea');
+    area.innerHTML = `
+      <div class="p-logo">O MARKIN</div>
+      <div class="p-sub">CHEF'S BURGUER — CONTA DA MESA</div>
+      <div class="p-line"></div>
+      <div class="p-table">MESA ${escapeHtml(tab.table)}</div>
+      <div class="p-code">${tab.rounds.length} pedido(s) · ${new Date().toLocaleString('pt-BR')}</div>
+      <div class="p-line"></div>
+      ${items.map(i => `<div class="p-item"><span>${i.qty}x ${escapeHtml(i.name)}${i.forItem ? ' (no ' + escapeHtml(i.forItem) + ')' : ''}</span><span>${money(i.price * i.qty)}</span></div>`).join('')}
+      <div class="p-line"></div>
+      <div class="p-total"><span>TOTAL</span><span>${money(tab.total)}</span></div>
+      <div class="p-row" style="margin-top:8px;"><span>Serviço 10% (opcional):</span><span>${money(tab.total * 0.1)}</span></div>
+      <div class="p-row"><span>Com serviço:</span><span>${money(tab.total * 1.1)}</span></div>
+      <div class="p-foot">Obrigado pela preferência! 🔥</div>
+    `;
+    setTimeout(() => window.print(), 100);
+  }
+
+  async function closeTableTab(tableNum){
+    const tab = openTables().find(t => t.table === String(tableNum));
+    if(!tab) return;
+    if(!confirm(`Fechar a conta da MESA ${tableNum}?\n\n${tab.rounds.length} pedido(s) · Total ${money(tab.total)}\n\nA mesa fica livre para novos clientes.`)) return;
+    try{
+      const batch = db.batch();
+      tab.rounds.forEach(r => {
+        batch.update(db.collection('orders').doc(r.code), {
+          tabClosed: true,
+          status: 'entregue',
+          closedAt: new Date().toISOString()
+        });
+      });
+      await batch.commit();
+      showToast("Conta da mesa " + tableNum + " fechada ✓");
+    }catch(e){
+      console.error(e);
+      alert("Não foi possível fechar a conta. Tente novamente.");
+    }
+  }
+
+  /* ---------------- FICHA TÉCNICA (RECEITA) ---------------- */
+  function openRecipeEditor(productId){
+    const p = products.find(x => x.id === productId); if(!p) return;
+    document.getElementById('recipeProductId').value = p.id;
+    document.getElementById('recipeProductName').textContent = (p.icon || '🍔') + " " + p.name;
+    document.getElementById('recipeError').textContent = "";
+    document.getElementById('recipeQty').value = "";
+    renderRecipeItemSelect();
+    renderRecipeList();
+    openOverlay('recipeOverlay');
+  }
+  function renderRecipeItemSelect(){
+    const sel = document.getElementById('recipeItemSelect');
+    if(inventory.length === 0){
+      sel.innerHTML = '<option value="">Cadastre itens no Estoque primeiro</option>';
+      return;
+    }
+    sel.innerHTML = inventory.map(i => `<option value="${i.id}">${escapeHtml(i.name)} (${i.unit})</option>`).join('');
+  }
+  function renderRecipeList(){
+    const pid = document.getElementById('recipeProductId').value;
+    const p = products.find(x => x.id === pid);
+    const box = document.getElementById('recipeList');
+    const recipe = (p && p.recipe) || [];
+    if(recipe.length === 0){ box.innerHTML = '<div class="loading-row">Nenhum ingrediente vinculado.</div>'; return; }
+    box.innerHTML = recipe.map(r => {
+      const item = inventory.find(i => i.id === r.itemId);
+      return `
+      <div class="prod-row">
+        <div class="pi">📦</div>
+        <div class="pn"><strong>${item ? escapeHtml(item.name) : 'Item removido'}</strong><span>Consome ${r.qty} ${item ? item.unit : ''} por unidade</span></div>
+        <div class="row-actions"><button class="icon-btn danger" data-delrecipe="${r.itemId}" title="Remover">🗑</button></div>
+      </div>`;
+    }).join('');
+    box.querySelectorAll('[data-delrecipe]').forEach(btn => btn.addEventListener('click', async () => {
+      const prod = products.find(x => x.id === pid); if(!prod) return;
+      prod.recipe = (prod.recipe || []).filter(r => r.itemId !== btn.dataset.delrecipe);
+      await saveProducts(); renderRecipeList();
+    }));
+  }
+  document.getElementById('addRecipeItemBtn').addEventListener('click', async () => {
+    const pid = document.getElementById('recipeProductId').value;
+    const itemId = document.getElementById('recipeItemSelect').value;
+    const qty = parseFloat(document.getElementById('recipeQty').value);
+    const errEl = document.getElementById('recipeError');
+    if(!itemId){ errEl.textContent = "Cadastre itens no Estoque primeiro."; return; }
+    if(isNaN(qty) || qty <= 0){ errEl.textContent = "Informe uma quantidade válida."; return; }
+    errEl.textContent = "";
+    const p = products.find(x => x.id === pid); if(!p) return;
+    p.recipe = p.recipe || [];
+    const existing = p.recipe.find(r => r.itemId === itemId);
+    if(existing) existing.qty = qty;
+    else p.recipe.push({itemId, qty});
+    await saveProducts();
+    document.getElementById('recipeQty').value = "";
+    renderRecipeList();
+  });
+
+  async function deductStockForOrder(order){
+    let changed = false;
+    order.items.forEach(item => {
+      const p = products.find(x => x.name === item.name);
+      if(!p || !p.recipe || p.recipe.length === 0) return;
+      p.recipe.forEach(r => {
+        const invItem = inventory.find(i => i.id === r.itemId);
+        if(!invItem) return;
+        invItem.qty = Math.max(0, Number(invItem.qty) - (Number(r.qty) * item.qty));
+        changed = true;
+      });
+    });
+    if(changed){
+      await saveInventory();
+      const low = inventory.filter(i => Number(i.qty) <= Number(i.min));
+      if(low.length > 0) showToast("⚠️ Estoque baixo: " + low.map(i => i.name).join(', '));
+    }
+  }
+
+  async function setOrderStatus(code, status){
+    const order = orders.find(o => o.code === code); if(!order) return;
+    const wasDelivered = order.status === 'entregue';
+    order.status = status; order.updatedAt = new Date().toISOString();
+    if(status === 'entregue' && !wasDelivered && !order.stockDeducted){
+      order.stockDeducted = true;
+      await deductStockForOrder(order);
+    }
+    if(currentEmployee) order.handledBy = currentEmployee.name;
+    else if(currentRole === 'gerente') order.handledBy = order.handledBy || "Gerente";
+    await saveOrder(order); renderAdminOrders(); showToast("Status do pedido " + code + " atualizado ✓");
+  }
+
+  /* ---------------- EQUIPE (contas reais no Firebase Auth) ---------------- */
+  function renderEmployeeSelect(){ /* não é mais usado: login agora é por e-mail */ }
 
   function renderEmployeeList(){
     const box = document.getElementById('employeeList');
-    if(employees.length === 0){ box.innerHTML = '<div class="loading-row">Nenhum funcionário cadastrado ainda.</div>'; return; }
+    if(employees.length === 0){ box.innerHTML = '<div class="loading-row">Nenhum acesso criado ainda.</div>'; return; }
     box.innerHTML = employees.map(e => `
       <div class="prod-row">
-        <div class="pi">🧑‍🍳</div>
-        <div class="pn"><strong>${escapeHtml(e.name)}${e.active===false?' <span class="stock-badge-low">INATIVO</span>':''}</strong><span>Usuário: ${escapeHtml(e.username)}</span></div>
+        <div class="pi">${e.role === 'gerente' ? '👔' : '🧑‍🍳'}</div>
+        <div class="pn"><strong>${escapeHtml(e.name)}${e.active===false?' <span class="stock-badge-low">INATIVO</span>':''}</strong><span>${escapeHtml(e.email || '')} · ${e.role === 'gerente' ? 'Gerente' : 'Funcionário'}</span></div>
         <div class="row-actions">
-          <button class="icon-btn" data-toggleemp="${e.id}" title="${e.active===false?'Reativar':'Desativar'}">${e.active===false?'▶️':'⏸️'}</button>
-          <button class="icon-btn danger" data-delemp="${e.id}" title="Excluir">🗑</button>
+          <button class="icon-btn" data-toggleemp="${e.id}" title="${e.active===false?'Reativar acesso':'Bloquear acesso'}">${e.active===false?'▶️':'⏸️'}</button>
+          <button class="icon-btn" data-resetemp="${e.id}" title="Enviar redefinição de senha">🔑</button>
         </div>
       </div>
     `).join('');
     box.querySelectorAll('[data-toggleemp]').forEach(btn => btn.addEventListener('click', async () => {
       const emp = employees.find(x => x.id === btn.dataset.toggleemp); if(!emp) return;
-      emp.active = emp.active === false ? true : false;
-      await saveEmployees();
+      if(emp.id === (currentEmployee && currentEmployee.id)){ alert("Você não pode bloquear seu próprio acesso."); return; }
+      const nowActive = emp.active === false;
+      try{
+        await db.collection('users').doc(emp.id).update({active: nowActive});
+        showToast(nowActive ? "Acesso reativado ✓" : "Acesso bloqueado ✓");
+      }catch(e){ alert("Não foi possível alterar. Verifique se você é gerente."); }
     }));
-    box.querySelectorAll('[data-delemp]').forEach(btn => btn.addEventListener('click', async () => {
-      if(!confirm("Excluir este funcionário?")) return;
-      employees = employees.filter(e => e.id !== btn.dataset.delemp);
-      await saveEmployees();
+    box.querySelectorAll('[data-resetemp]').forEach(btn => btn.addEventListener('click', async () => {
+      const emp = employees.find(x => x.id === btn.dataset.resetemp); if(!emp || !emp.email) return;
+      if(!confirm("Enviar link de redefinição de senha para " + emp.email + "?")) return;
+      try{
+        await auth.sendPasswordResetEmail(emp.email);
+        showToast("Link enviado para " + emp.email);
+      }catch(e){ alert("Não foi possível enviar o e-mail."); }
     }));
   }
 
@@ -1690,18 +2643,38 @@
 
   document.getElementById('addEmployeeBtn').addEventListener('click', async () => {
     const name = document.getElementById('empName').value.trim();
-    const username = document.getElementById('empUser').value.trim().toLowerCase();
+    const email = document.getElementById('empEmail').value.trim().toLowerCase();
     const pass = document.getElementById('empPassNew').value.trim();
+    const role = document.getElementById('empRole').value;
     const errEl = document.getElementById('empError');
-    if(!name || !username || !pass){ errEl.textContent = "Preencha nome, usuário e senha."; return; }
-    if(employees.some(e => e.username === username)){ errEl.textContent = "Já existe um funcionário com esse usuário."; return; }
-    errEl.textContent = "";
-    employees.push({id: genId(), name, username, password: pass, active: true});
-    await saveEmployees();
-    document.getElementById('empName').value = ""; document.getElementById('empUser').value = ""; document.getElementById('empPassNew').value = "";
+    errEl.style.color = "";
+    if(!name || !email || !pass){ errEl.textContent = "Preencha nome, e-mail e senha."; return; }
+    if(pass.length < 6){ errEl.textContent = "A senha precisa ter pelo menos 6 caracteres."; return; }
+    errEl.textContent = "Criando acesso...";
+    try{
+      // cria no app secundário pra não deslogar o gerente
+      const cred = await secondaryApp.auth().createUserWithEmailAndPassword(email, pass);
+      await db.collection('users').doc(cred.user.uid).set({
+        name, email, role, active: true, createdAt: new Date().toISOString()
+      });
+      await secondaryApp.auth().signOut();
+      errEl.style.color = "var(--green)";
+      errEl.textContent = "Acesso criado ✓ Passe o e-mail e a senha para " + name + ".";
+      document.getElementById('empName').value = "";
+      document.getElementById('empEmail').value = "";
+      document.getElementById('empPassNew').value = "";
+      setTimeout(() => { errEl.textContent = ""; errEl.style.color = ""; }, 8000);
+    }catch(e){
+      const map = {
+        'auth/email-already-in-use': "Esse e-mail já tem uma conta.",
+        'auth/invalid-email': "E-mail inválido.",
+        'auth/weak-password': "Senha muito fraca (mínimo 6 caracteres)."
+      };
+      errEl.textContent = map[e.code] || "Não foi possível criar o acesso.";
+    }
   });
 
-  const EMPLOYEE_TABS = ['pedidos', 'estoque'];
+  const EMPLOYEE_TABS = ['pedidos', 'mesas', 'caixa', 'estoque'];
 
   document.querySelectorAll('.admin-tab-btn').forEach(btn => btn.addEventListener('click', () => {
     const tab = btn.dataset.atab;
@@ -1711,12 +2684,16 @@
     document.getElementById('atabDashboard').style.display = tab === 'dashboard' ? 'block' : 'none';
     document.getElementById('atabCardapio').style.display = tab === 'cardapio' ? 'block' : 'none';
     document.getElementById('atabPedidos').style.display = tab === 'pedidos' ? 'block' : 'none';
+    document.getElementById('atabMesas').style.display = tab === 'mesas' ? 'block' : 'none';
+    document.getElementById('atabCaixa').style.display = tab === 'caixa' ? 'block' : 'none';
     document.getElementById('atabFinanceiro').style.display = tab === 'financeiro' ? 'block' : 'none';
     document.getElementById('atabEstoque').style.display = tab === 'estoque' ? 'block' : 'none';
     document.getElementById('atabEquipe').style.display = tab === 'equipe' ? 'block' : 'none';
     document.getElementById('atabPromocao').style.display = tab === 'promocao' ? 'block' : 'none';
     document.getElementById('atabLoja').style.display = tab === 'loja' ? 'block' : 'none';
     if(tab === 'pedidos') renderAdminOrders();
+    if(tab === 'mesas') renderTables();
+    if(tab === 'caixa') renderCaixa();
     if(tab === 'dashboard') renderDashboard();
     if(tab === 'financeiro') { renderFinKpis(); renderCashflowList(); renderFixedCostList(); }
     if(tab === 'estoque') renderStockList();
@@ -1741,60 +2718,107 @@
     else if(currentRole === 'funcionario'){ who.textContent = "🧑‍🍳 " + (currentEmployee ? currentEmployee.name : ""); }
     who.style.display = 'inline';
     logoutBtn.style.display = 'inline-block';
+    document.getElementById('soundToggleBtn').style.display = 'inline-block';
+    initAudio();
   }
 
-  /* ---------------- LOGIN / LOGOUT ---------------- */
+  document.getElementById('soundToggleBtn').addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    const btn = document.getElementById('soundToggleBtn');
+    btn.textContent = soundEnabled ? '🔔' : '🔕';
+    btn.style.opacity = soundEnabled ? '1' : '0.45';
+    if(soundEnabled){ initAudio(); playNewOrderSound(); showToast("Som de pedido ligado ✓"); }
+    else showToast("Som de pedido desligado");
+  });
+
+  /* ---------------- LOGIN / LOGOUT (Firebase Auth) ---------------- */
   document.getElementById('openAdmin').addEventListener('click', () => openOverlay('adminOverlay'));
 
-  let selectedLoginType = "gerente";
-  document.querySelectorAll('[data-logintype]').forEach(btn => btn.addEventListener('click', () => {
-    document.querySelectorAll('[data-logintype]').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    selectedLoginType = btn.dataset.logintype;
-    document.getElementById('loginGerente').style.display = selectedLoginType === 'gerente' ? 'block' : 'none';
-    document.getElementById('loginFuncionario').style.display = selectedLoginType === 'funcionario' ? 'block' : 'none';
-    document.getElementById('loginError').textContent = "";
-  }));
+  let listenersStarted = false;
+
+  function showView(which){
+    document.getElementById('loadingView').style.display = which === 'loading' ? 'block' : 'none';
+    document.getElementById('loginView').style.display = which === 'login' ? 'block' : 'none';
+    document.getElementById('managerView').style.display = which === 'manager' ? 'block' : 'none';
+  }
 
   document.getElementById('loginBtn').addEventListener('click', doLogin);
-  document.getElementById('adminPass').addEventListener('keydown', (e) => { if(e.key === 'Enter') doLogin(); });
-  document.getElementById('empPass').addEventListener('keydown', (e) => { if(e.key === 'Enter') doLogin(); });
+  document.getElementById('authPass').addEventListener('keydown', (e) => { if(e.key === 'Enter') doLogin(); });
+  document.getElementById('authEmail').addEventListener('keydown', (e) => { if(e.key === 'Enter') doLogin(); });
 
-  function doLogin(){
+  async function doLogin(){
+    const email = document.getElementById('authEmail').value.trim();
+    const pass = document.getElementById('authPass').value;
     const errEl = document.getElementById('loginError');
-    if(selectedLoginType === 'gerente'){
-      const val = document.getElementById('adminPass').value;
-      if(val === ADMIN_PASSWORD){
-        currentRole = 'gerente'; currentEmployee = null;
-        enterManagerView(); errEl.textContent = "";
-      }else{
-        errEl.textContent = "Senha incorreta. Tente novamente.";
-      }
-    }else{
-      const empId = document.getElementById('empSelect').value;
-      const pass = document.getElementById('empPass').value;
-      const emp = employees.find(e => e.id === empId && e.active !== false);
-      if(!empId){ errEl.textContent = "Selecione seu nome."; return; }
-      if(!emp || emp.password !== pass){ errEl.textContent = "Senha incorreta. Tente novamente."; return; }
-      currentRole = 'funcionario'; currentEmployee = {id: emp.id, name: emp.name};
-      enterManagerView(); errEl.textContent = "";
+    if(!email || !pass){ errEl.textContent = "Preencha e-mail e senha."; return; }
+    errEl.textContent = "Entrando...";
+    try{
+      await auth.signInWithEmailAndPassword(email, pass);
+      errEl.textContent = "";
+    }catch(e){
+      const map = {
+        'auth/invalid-credential': "E-mail ou senha incorretos.",
+        'auth/wrong-password': "E-mail ou senha incorretos.",
+        'auth/user-not-found': "E-mail ou senha incorretos.",
+        'auth/invalid-email': "E-mail inválido.",
+        'auth/too-many-requests': "Muitas tentativas. Aguarde alguns minutos.",
+        'auth/user-disabled': "Esta conta foi desativada."
+      };
+      errEl.textContent = map[e.code] || "Não foi possível entrar. Tente de novo.";
     }
   }
 
-  function enterManagerView(){
-    document.getElementById('loginView').style.display = 'none';
-    document.getElementById('managerView').style.display = 'block';
-    document.getElementById('adminPass').value = "";
-    document.getElementById('empPass').value = "";
-    applyRolePermissions();
-  }
+  document.getElementById('forgotPassBtn').addEventListener('click', async () => {
+    const email = document.getElementById('authEmail').value.trim();
+    const errEl = document.getElementById('loginError');
+    if(!email){ errEl.textContent = "Digite seu e-mail acima primeiro."; return; }
+    try{
+      await auth.sendPasswordResetEmail(email);
+      errEl.style.color = "var(--green)";
+      errEl.textContent = "Enviamos um link de redefinição pro seu e-mail.";
+      setTimeout(() => { errEl.style.color = ""; errEl.textContent = ""; }, 6000);
+    }catch(e){ errEl.textContent = "Não foi possível enviar. Confira o e-mail."; }
+  });
 
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    currentRole = null; currentEmployee = null;
-    document.getElementById('managerView').style.display = 'none';
-    document.getElementById('loginView').style.display = 'block';
-    document.getElementById('whoAmI').style.display = 'none';
-    document.getElementById('logoutBtn').style.display = 'none';
+  // Estado de autenticação: única porta de entrada do painel
+  auth.onAuthStateChanged(async (user) => {
+    if(!user){
+      currentRole = null; currentEmployee = null;
+      document.getElementById('whoAmI').style.display = 'none';
+      document.getElementById('logoutBtn').style.display = 'none';
+      document.getElementById('soundToggleBtn').style.display = 'none';
+      document.getElementById('authPass').value = "";
+      showView('login');
+      return;
+    }
+    showView('loading');
+    try{
+      const snap = await db.collection('users').doc(user.uid).get();
+      if(!snap.exists){
+        await auth.signOut();
+        document.getElementById('loginError').textContent = "Sua conta não tem permissão de acesso. Peça ao gerente pra liberar.";
+        return;
+      }
+      const profile = snap.data();
+      if(profile.active === false){
+        await auth.signOut();
+        document.getElementById('loginError').textContent = "Sua conta está desativada.";
+        return;
+      }
+      currentRole = profile.role === 'gerente' ? 'gerente' : 'funcionario';
+      currentEmployee = {id: user.uid, name: profile.name || user.email};
+      if(!listenersStarted){ startDataListeners(); listenersStarted = true; }
+      showView('manager');
+      applyRolePermissions();
+    }catch(e){
+      console.error(e);
+      await auth.signOut();
+      document.getElementById('loginError').textContent = "Erro ao verificar seu acesso. Tente de novo.";
+    }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await auth.signOut();
   });
 
   const toggle = document.querySelector('.menu-toggle');
@@ -1804,15 +2828,21 @@
     navList.style.cssText += 'flex-direction:column; position:absolute; top:64px; right:20px; background:#1c1613; padding:20px 26px; border-radius:12px; gap:16px; border:1px solid rgba(242,233,218,0.14); z-index:60;';
   });
 
-  watchProducts();
-  watchOrders();
-  watchCashflow();
-  watchFixedCosts();
-  watchInventory();
-  watchEmployees();
-  watchPromo();
-  watchStoreInfo();
-  updateCartUI();
+  function startDataListeners(){
+    watchProducts();
+    watchOrders();
+    watchInventory();
+    watchPromo();
+    watchStoreInfo();
+    watchEmployees();
+    watchRegister();
+    // Financeiro é restrito ao gerente — nem tenta ler se for funcionário
+    if(currentRole === 'gerente'){
+      watchCashflow();
+      watchFixedCosts();
+    }
+    updateCartUI();
+  }
 })();
 
 if('serviceWorker' in navigator){

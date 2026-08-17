@@ -1,5 +1,5 @@
-const CACHE = "omarkin-cliente-v2";
-const ASSETS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./mascot.jpg"];
+const CACHE = "omarkin-cliente-v7";
+const ASSETS = ["/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png", "/mascot.jpg"];
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
@@ -11,7 +11,7 @@ self.addEventListener('activate', (e) => {
 });
 self.addEventListener('fetch', (e) => {
   if(e.request.method !== 'GET') return;
-  e.respondWith(
-    fetch(e.request).catch(() => caches.match(e.request))
-  );
+  // o painel gerencial tem cache próprio — não interceptar
+  if(new URL(e.request.url).pathname.startsWith('/gerencial')) return;
+  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
 });

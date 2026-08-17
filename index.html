@@ -3,39 +3,1362 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>O Markin Chef's Burguer</title>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
+<title>O Markin — Peça já</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="/icon-192.png">
+<meta name="theme-color" content="#120e0b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="O Markin">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 <style>
-  :root{ --pitch:#120e0b; --char:#1c1613; --cream:#f2e9da; --ember:#e5762e; --mustard:#f0b429; --line:rgba(242,233,218,0.14); }
+  :root{
+    --pitch:#120e0b; --char:#1c1613; --cream:#f2e9da;
+    --ember:#e5762e; --ember-deep:#c1521c; --tomato:#b6382c; --mustard:#f0b429; --green:#4caf6d;
+    --line: rgba(242,233,218,0.14);
+  }
   *{margin:0;padding:0;box-sizing:border-box;}
-  body{background:var(--pitch); color:var(--cream); font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;}
-  .wrap{max-width:420px; width:100%; text-align:center;}
-  .badge{width:100px; height:100px; border-radius:50%; object-fit:cover; box-shadow:0 0 0 4px var(--pitch), 0 0 0 6px var(--ember); margin:0 auto 18px; display:block;}
-  h1{font-family:'Anton',sans-serif; font-size:30px; letter-spacing:0.5px; margin-bottom:6px;}
-  p{color:rgba(242,233,218,0.6); font-size:14px; margin-bottom:36px;}
-  .card{display:block; background:var(--char); border:1px solid var(--line); border-radius:18px; padding:24px; margin-bottom:16px; text-decoration:none; color:var(--cream); transition:all .2s;}
-  .card:hover{border-color:var(--ember); transform:translateY(-3px);}
-  .card .ci{font-size:30px; margin-bottom:10px;}
-  .card strong{display:block; font-family:'Anton',sans-serif; font-size:17px; margin-bottom:4px;}
-  .card span{font-size:13px; color:rgba(242,233,218,0.55);}
-  .card.gerencial strong{color:var(--mustard);}
+  html{scroll-behavior:smooth;}
+  body{background:var(--pitch); color:var(--cream); font-family:'DM Sans', sans-serif; overflow-x:hidden;}
+  ::selection{background:var(--ember);color:var(--pitch);}
+  .display{font-family:'Anton', sans-serif; letter-spacing:0.5px; text-transform:uppercase;}
+  .script{font-family:'Caveat', cursive;}
+  a{color:inherit; text-decoration:none;}
+  img{max-width:100%; display:block;}
+  button{font-family:inherit;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+
+  .grain{position:fixed; inset:0; pointer-events:none; z-index:50; opacity:0.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+  header{position:sticky; top:0; z-index:40; background:rgba(18,14,11,0.88); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);}
+  .nav{display:flex; align-items:center; justify-content:space-between; padding:16px 0; gap:14px;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand-badge{width:42px; height:42px; border-radius:50%; object-fit:cover; box-shadow:0 0 0 3px var(--pitch), 0 0 0 4px var(--ember); flex-shrink:0;}
+  .brand-text{line-height:1.05;}
+  .brand-text .l1{font-size:11px; letter-spacing:2px; color:var(--mustard); font-weight:700;}
+  .brand-text .l2{font-family:'Anton',sans-serif; font-size:19px; letter-spacing:0.5px;}
+  nav ul{list-style:none; display:flex; gap:34px;}
+  nav ul a{font-size:14px; font-weight:700; letter-spacing:0.3px; opacity:0.85; transition:opacity .2s, color .2s; cursor:pointer;}
+  nav ul a:hover{opacity:1; color:var(--ember);}
+  .header-actions{display:flex; align-items:center; gap:10px;}
+  .cta-btn{background:var(--ember); color:var(--pitch); font-weight:700; font-size:14px; padding:12px 22px; border-radius:999px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:8px; transition:transform .15s ease, background .2s ease;}
+  .cta-btn:hover{background:var(--mustard); transform:translateY(-2px);}
+  .icon-link{position:relative; font-size:13px; font-weight:700; color:rgba(242,233,218,0.75); border:1px solid var(--line); padding:10px 16px; border-radius:999px; background:transparent; cursor:pointer; transition:all .2s; display:inline-flex; align-items:center; gap:6px;}
+  .icon-link:hover{color:var(--cream); border-color:var(--ember);}
+  .cart-count{background:var(--tomato); color:var(--cream); font-size:11px; font-weight:700; padding:1px 7px; border-radius:999px; min-width:18px; text-align:center;}
+  .gear-link{
+    color:rgba(242,233,218,0.22); font-size:17px; line-height:1; padding:8px;
+    text-decoration:none; transition:color .2s, transform .3s; flex-shrink:0;
+  }
+  .gear-link:hover{ color:var(--ember); transform:rotate(90deg); }
+  .menu-toggle{display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer;}
+  .menu-toggle span{width:24px; height:2px; background:var(--cream);}
+
+  .hero{position:relative; padding:90px 0 70px; overflow:hidden;}
+  .hero::before{content:""; position:absolute; inset:0; background:radial-gradient(circle at 82% 18%, rgba(229,118,46,0.20), transparent 45%), radial-gradient(circle at 10% 85%, rgba(182,56,44,0.16), transparent 40%); pointer-events:none;}
+  .hero-grid{display:grid; grid-template-columns:1.05fr 0.95fr; gap:40px; align-items:center; position:relative; z-index:2;}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:700; letter-spacing:2px; color:var(--mustard); margin-bottom:18px;}
+  .eyebrow .star{color:var(--ember);}
+  h1.hero-title{font-size:clamp(46px, 6.2vw, 78px); line-height:0.95; color:var(--cream);}
+  h1.hero-title span{color:var(--ember); -webkit-text-stroke:1px var(--cream); display:block;}
+  .hero-sub{margin-top:20px; max-width:440px; font-size:17px; line-height:1.65; color:rgba(242,233,218,0.78);}
+  .hero-actions{display:flex; gap:16px; margin-top:34px; flex-wrap:wrap;}
+  .btn-outline{padding:12px 24px; border-radius:999px; border:1.5px solid var(--cream); font-weight:700; font-size:14px; transition:background .2s, color .2s; cursor:pointer; background:none; color:var(--cream);}
+  .btn-outline:hover{background:var(--cream); color:var(--pitch);}
+  .hero-stats{display:flex; gap:34px; margin-top:46px;}
+  .hero-stats div{border-left:2px solid var(--ember); padding-left:14px;}
+  .hero-stats .num{font-family:'Anton',sans-serif; font-size:28px; color:var(--cream);}
+  .hero-stats .lbl{font-size:12px; letter-spacing:1px; color:rgba(242,233,218,0.6); text-transform:uppercase;}
+
+  .hero-art{position:relative; display:flex; justify-content:center; align-items:center; min-height:420px;}
+  .plate-glow{position:absolute; width:380px; height:380px; border-radius:50%; background:radial-gradient(circle, rgba(229,118,46,0.35), transparent 70%); filter:blur(10px);}
+  .sunburst-bg{
+    position:absolute; width:460px; height:460px; border-radius:50%;
+    background:repeating-conic-gradient(from 0deg, rgba(229,118,46,0.32) 0deg 9deg, rgba(240,180,41,0.18) 9deg 18deg);
+    animation:spin 60s linear infinite;
+  }
+  @keyframes spin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
+  .mascot-hero{
+    position:relative; z-index:2; width:320px; height:320px; border-radius:50%; object-fit:cover;
+    box-shadow:0 0 0 6px var(--pitch), 0 0 0 9px var(--ember), 0 20px 50px rgba(0,0,0,0.5);
+    animation:float 5s ease-in-out infinite;
+  }
+  .burger-stack{position:relative; width:300px; z-index:2; animation:float 5s ease-in-out infinite;}
+  @keyframes float{0%,100%{transform:translateY(0px) rotate(-2deg);} 50%{transform:translateY(-14px) rotate(2deg);}}
+  .layer{position:relative; width:100%; height:46px; margin-top:-14px; border-radius:50%/60%;}
+  .bun-top{height:110px; margin-top:0; background:linear-gradient(180deg,#e8a34e,#c97a2b); border-radius:150px 150px 40px 40px; box-shadow:inset 0 -8px 0 rgba(0,0,0,0.12);}
+  .bun-top::after{content:""; position:absolute; top:22px; left:50%; transform:translateX(-50%); width:70%; height:14px; background-image:radial-gradient(circle,#f4d9a8 3px, transparent 3px); background-size:16px 14px;}
+  .lettuce{background:#5a8c3a; clip-path:polygon(0% 40%,8% 10%,16% 45%,24% 5%,33% 42%,42% 8%,50% 46%,58% 8%,67% 42%,76% 5%,84% 45%,92% 10%,100% 40%,100% 100%,0% 100%); height:40px;}
+  .cheese{background:#f2b21e; height:34px; clip-path:polygon(0 0,100% 0,94% 100%,6% 100%); box-shadow:inset 0 6px 0 rgba(255,255,255,0.15);}
+  .patty{background:#5c3420; height:34px; border-radius:20px;}
+  .tomato{background:#c1432f; height:16px; border-radius:20px;}
+  .bun-bottom{background:#c97a2b; height:40px; border-radius:20px 20px 60px 60px; margin-top:-10px;}
+  .fries-cup{position:absolute; bottom:-18px; right:-38px; width:130px; z-index:3; transform:rotate(8deg);}
+  .fries-box{background:linear-gradient(180deg,#c1432f,#9c2f21); height:90px; clip-path:polygon(8% 0,92% 0,100% 100%,0 100%); position:relative;}
+  .fry{position:absolute; bottom:78px; width:9px; height:70px; background:#f0c25a; border-radius:3px;}
+  .fry:nth-child(1){left:10px; transform:rotate(-14deg);}
+  .fry:nth-child(2){left:26px; transform:rotate(-4deg); height:80px; bottom:80px;}
+  .fry:nth-child(3){left:44px; transform:rotate(6deg); height:76px; bottom:80px;}
+  .fry:nth-child(4){left:62px; transform:rotate(-6deg); height:66px;}
+  .fry:nth-child(5){left:80px; transform:rotate(12deg); height:74px; bottom:80px;}
+  .fry:nth-child(6){left:98px; transform:rotate(18deg);}
+  .badge-stamp{position:absolute; top:-6px; left:-24px; width:104px; height:104px; z-index:4; background:transparent;}
+
+  .section{padding:100px 0;}
+  .section-head{text-align:center; max-width:600px; margin:0 auto 56px;}
+  .section-eyebrow{font-size:13px; font-weight:700; letter-spacing:2px; color:var(--ember); margin-bottom:12px;}
+  .section-title{font-size:clamp(32px,4vw,46px); line-height:1.05;}
+  .section-title em{font-style:normal; color:var(--ember);}
+  .section-desc{margin-top:16px; color:rgba(242,233,218,0.68); font-size:16px; line-height:1.6;}
+  .divider{height:14px; width:100%; background-repeat:repeat-x; background-size:28px 14px; background-image:linear-gradient(135deg, var(--ember) 25%, transparent 25%), linear-gradient(225deg, var(--ember) 25%, transparent 25%); opacity:0.5;}
+
+  .menu-tabs{display:flex; justify-content:center; gap:12px; margin-bottom:48px; flex-wrap:wrap;}
+  .tab{padding:9px 20px; border-radius:999px; border:1px solid var(--line); font-size:13px; font-weight:700; letter-spacing:0.4px; cursor:pointer; background:transparent; color:var(--cream); opacity:0.7; transition:all .2s;}
+  .tab.active, .tab:hover{opacity:1; border-color:var(--ember); background:rgba(229,118,46,0.12); color:var(--ember);}
+  .menu-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:26px;}
+  .menu-card{background:var(--char); border:1px solid var(--line); border-radius:18px; padding:26px; display:flex; flex-direction:column; gap:14px; position:relative; overflow:hidden; transition:transform .25s ease, border-color .25s ease;}
+  .menu-card:hover{transform:translateY(-6px); border-color:var(--ember);}
+  .menu-card .tag{position:absolute; top:16px; right:16px; background:var(--tomato); color:var(--cream); font-size:10px; font-weight:700; letter-spacing:1px; padding:4px 10px; border-radius:999px;}
+  .menu-icon{width:56px; height:56px; border-radius:14px; background:rgba(229,118,46,0.15); display:flex; align-items:center; justify-content:center; font-size:26px;}
+  .menu-card h3{font-family:'Anton',sans-serif; font-size:19px; letter-spacing:0.3px;}
+  .menu-card p{font-size:14px; color:rgba(242,233,218,0.62); line-height:1.55; flex-grow:1;}
+  .menu-foot{display:flex; align-items:center; justify-content:space-between; margin-top:auto;}
+  .price{font-family:'Anton',sans-serif; font-size:22px; color:var(--mustard);}
+  .add{width:38px; height:38px; border-radius:50%; background:var(--ember); color:var(--pitch); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; cursor:pointer; border:none; transition:background .2s;}
+  .add:hover{background:var(--mustard);}
+  .menu-qty{display:flex; align-items:center; gap:10px; background:var(--ember); border-radius:999px; padding:4px; animation:popIn .2s ease;}
+  .menu-qty button{width:30px; height:30px; border-radius:50%; background:var(--pitch); color:var(--cream); border:none; font-size:16px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .2s;}
+  .menu-qty button:hover{background:var(--char);}
+  .menu-qty span{min-width:18px; text-align:center; font-family:'Anton',sans-serif; font-size:15px; color:var(--pitch);}
+  @keyframes popIn{ from{ transform:scale(0.85); opacity:0.6; } to{ transform:scale(1); opacity:1; } }
+  .empty-state{grid-column:1/-1; text-align:center; padding:50px 20px; color:rgba(242,233,218,0.5); font-size:15px;}
+
+  .about{background:var(--char); padding:100px 0; position:relative;}
+  .about-grid{display:grid; grid-template-columns:0.9fr 1.1fr; gap:60px; align-items:center;}
+  .about-visual{aspect-ratio:4/5; border-radius:24px; background:radial-gradient(circle at 30% 20%, rgba(229,118,46,0.35), transparent 55%), linear-gradient(160deg,#221812,#120e0b); border:1px solid var(--line); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; position:relative; overflow:hidden; padding:30px;}
+  .about-mascot{width:78%; max-width:280px; border-radius:50%; object-fit:cover; box-shadow:0 0 0 5px var(--pitch), 0 0 0 7px var(--ember); position:relative; z-index:2;}
+  .about-visual .script{font-size:44px; color:var(--mustard); transform:rotate(-3deg); text-align:center; position:relative; z-index:2;}
+  .about-visual .flame{position:absolute; bottom:-30px; right:-30px; width:220px; height:220px; background:radial-gradient(circle, rgba(193,82,28,0.5), transparent 70%);}
+  .about-copy .section-eyebrow{text-align:left;}
+  .about-copy h2{font-size:clamp(30px,3.6vw,42px); line-height:1.1; margin-bottom:20px;}
+  .about-copy p{color:rgba(242,233,218,0.7); font-size:16px; line-height:1.7; margin-bottom:16px;}
+  .about-list{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:28px;}
+  .about-list li{list-style:none; display:flex; gap:10px; align-items:flex-start; font-size:14px; color:rgba(242,233,218,0.85);}
+  .about-list li::before{content:"★"; color:var(--ember); flex-shrink:0;}
+
+  .strip{display:flex; gap:0; overflow:hidden; border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .strip-item{flex:1; min-width:0; aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; font-size:44px; border-right:1px solid var(--line); background:var(--char);}
+  .strip-item:nth-child(even){background:var(--pitch);}
+
+  .location{padding:100px 0;}
+  .loc-grid{display:grid; grid-template-columns:1fr 1fr; gap:40px;}
+  .loc-card{background:var(--char); border:1px solid var(--line); border-radius:20px; padding:36px;}
+  .loc-card h3{font-family:'Anton',sans-serif; font-size:22px; margin-bottom:22px; color:var(--ember);}
+  .hours-row{display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px dashed var(--line); font-size:15px;}
+  .hours-row span:last-child{color:var(--mustard); font-weight:700;}
+  .hours-row:last-child{border-bottom:none;}
+  .contact-row{display:flex; align-items:center; gap:14px; margin-bottom:20px;}
+  .contact-icon{width:42px; height:42px; border-radius:12px; background:rgba(229,118,46,0.15); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;}
+  .contact-row .lbl{font-size:12px; letter-spacing:1px; color:rgba(242,233,218,0.5); text-transform:uppercase;}
+  .contact-row .val{font-size:15px; font-weight:700;}
+
+  .band{background:linear-gradient(120deg, var(--ember-deep), var(--tomato)); padding:64px 0; text-align:center; position:relative; overflow:hidden;}
+  .band::before, .band::after{content:"★"; position:absolute; font-size:120px; color:rgba(255,255,255,0.08);}
+  .band::before{top:-30px; left:-20px;}
+  .band::after{bottom:-50px; right:-10px;}
+  .band h2{font-size:clamp(28px,4vw,42px); color:var(--pitch); margin-bottom:18px; position:relative;}
+  .band p{color:rgba(18,14,11,0.75); font-size:16px; margin-bottom:28px; position:relative;}
+  .band .cta-btn{background:var(--pitch); color:var(--cream); position:relative;}
+  .band .cta-btn:hover{background:#000;}
+
+  footer{padding:60px 0 30px;}
+  .foot-grid{display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:40px; padding-bottom:40px; border-bottom:1px solid var(--line);}
+  .foot-brand p{margin-top:16px; color:rgba(242,233,218,0.6); font-size:14px; line-height:1.6; max-width:280px;}
+  .foot-col h4{font-size:13px; letter-spacing:1.5px; color:var(--mustard); margin-bottom:16px; text-transform:uppercase;}
+  .foot-col li{list-style:none; margin-bottom:10px;}
+  .foot-col a{font-size:14px; color:rgba(242,233,218,0.7); transition:color .2s;}
+  .foot-col a:hover{color:var(--ember);}
+  .foot-bottom{display:flex; justify-content:space-between; align-items:center; padding-top:26px; font-size:13px; color:rgba(242,233,218,0.45); flex-wrap:wrap; gap:10px;}
+
+  .whatsapp-fab{position:fixed; bottom:26px; right:26px; z-index:45; width:58px; height:58px; border-radius:50%; background:#25D366; display:flex; align-items:center; justify-content:center; font-size:26px; box-shadow:0 8px 24px rgba(0,0,0,0.4); animation:pulse 2.4s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(37,211,102,0.5);}70%{box-shadow:0 0 0 14px rgba(37,211,102,0);}100%{box-shadow:0 0 0 0 rgba(37,211,102,0);}}
+
+  /* ---------- OVERLAYS (shared) ---------- */
+  .overlay{position:fixed; inset:0; background:rgba(8,6,4,0.82); backdrop-filter:blur(4px); z-index:100; display:none; align-items:center; justify-content:center; padding:20px;}
+  .overlay.open{display:flex;}
+  .panel{background:var(--char); border:1px solid var(--line); border-radius:20px; width:100%; max-width:920px; max-height:88vh; overflow-y:auto;}
+  .panel.narrow{max-width:480px;}
+  .panel-head{display:flex; align-items:center; justify-content:space-between; padding:24px 30px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--char); z-index:2;}
+  .panel-head h2{font-family:'Anton',sans-serif; font-size:20px; color:var(--ember);}
+  .close-btn{background:none; border:none; color:var(--cream); font-size:22px; cursor:pointer; opacity:0.6;}
+  .close-btn:hover{opacity:1;}
+  .panel-body{padding:30px;}
+
+  .login-box{max-width:320px; margin:20px auto; text-align:center;}
+  .login-box p{color:rgba(242,233,218,0.6); font-size:14px; margin-bottom:18px;}
+  .field{margin-bottom:16px; text-align:left;}
+  .field label{display:block; font-size:12px; letter-spacing:0.8px; color:rgba(242,233,218,0.55); margin-bottom:6px; text-transform:uppercase;}
+  .field input, .field select, .field textarea{width:100%; background:var(--pitch); border:1px solid var(--line); border-radius:10px; padding:11px 14px; color:var(--cream); font-size:14px; font-family:inherit;}
+  .field input:focus, .field select:focus, .field textarea:focus{outline:none; border-color:var(--ember);}
+  .field textarea{resize:vertical; min-height:60px;}
+  .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  .form-actions{display:flex; gap:12px; margin-top:6px; flex-wrap:wrap;}
+  .btn-primary{background:var(--ember); color:var(--pitch); border:none; padding:12px 22px; border-radius:999px; font-weight:700; font-size:14px; cursor:pointer;}
+  .btn-primary:hover{background:var(--mustard);}
+  .btn-ghost{background:transparent; border:1px solid var(--line); color:var(--cream); padding:12px 22px; border-radius:999px; font-weight:700; font-size:14px; cursor:pointer;}
+  .btn-ghost:hover{border-color:var(--ember);}
+  .error-msg{color:var(--tomato); font-size:13px; margin-top:8px; min-height:16px;}
+  .loading-row{text-align:center; padding:30px; color:rgba(242,233,218,0.5); font-size:14px;}
+  .save-toast{position:fixed; bottom:100px; right:26px; background:var(--green); color:var(--pitch); padding:12px 20px; border-radius:10px; font-weight:700; font-size:13px; z-index:101; opacity:0; transform:translateY(10px); transition:all .3s;}
+  .save-toast.show{opacity:1; transform:translateY(0);}
+
+  .admin-tabs{display:flex; gap:10px; margin-bottom:26px; overflow-x:auto; padding-bottom:4px;}
+  .admin-tab-btn{padding:9px 18px; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--cream); font-size:13px; font-weight:700; cursor:pointer; opacity:0.65; white-space:nowrap; flex-shrink:0;}
+  .admin-tab-btn.active{opacity:1; border-color:var(--ember); background:rgba(229,118,46,0.12); color:var(--ember);}
+
+  .admin-list{margin-top:34px; border-top:1px solid var(--line); padding-top:26px;}
+  .admin-list h3{font-size:14px; letter-spacing:1px; color:rgba(242,233,218,0.55); text-transform:uppercase; margin-bottom:16px;}
+  .prod-row{display:flex; align-items:center; gap:14px; padding:12px; border:1px solid var(--line); border-radius:12px; margin-bottom:10px;}
+  .prod-row .pi{width:40px; height:40px; border-radius:10px; background:rgba(229,118,46,0.15); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;}
+  .prod-row .pn{flex-grow:1; min-width:0;}
+  .prod-row .pn strong{display:block; font-size:14px;}
+  .prod-row .pn span{font-size:12px; color:rgba(242,233,218,0.5);}
+  .prod-row .pp{color:var(--mustard); font-family:'Anton',sans-serif; font-size:15px; flex-shrink:0;}
+  .row-actions{display:flex; gap:8px; flex-shrink:0;}
+  .icon-btn{width:32px; height:32px; border-radius:8px; border:1px solid var(--line); background:transparent; color:var(--cream); cursor:pointer; font-size:14px;}
+  .icon-btn:hover{border-color:var(--ember); color:var(--ember);}
+  .icon-btn.danger:hover{border-color:var(--tomato); color:var(--tomato);}
+
+  /* order rows in admin */
+  .order-row{border:1px solid var(--line); border-radius:14px; padding:18px; margin-bottom:14px;}
+  .order-row-top{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:10px;}
+  .order-code{font-family:'Anton',sans-serif; color:var(--mustard); font-size:16px;}
+  .order-meta{font-size:12px; color:rgba(242,233,218,0.5); margin-top:2px;}
+  .order-items{font-size:13px; color:rgba(242,233,218,0.75); line-height:1.6; margin:10px 0;}
+  .order-total{font-family:'Anton',sans-serif; color:var(--cream); font-size:15px;}
+  .status-pill{font-size:11px; font-weight:700; padding:5px 12px; border-radius:999px; letter-spacing:0.5px; text-transform:uppercase;}
+  .status-buttons{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;}
+  .status-btn{padding:8px 14px; border-radius:999px; border:1px solid var(--line); background:transparent; color:rgba(242,233,218,0.7); font-size:12px; font-weight:700; cursor:pointer; transition:all .2s;}
+  .status-btn:hover{border-color:var(--ember);}
+  .status-btn.current{background:var(--ember); border-color:var(--ember); color:var(--pitch);}
+
+  /* cart drawer */
+  .cart-items{display:flex; flex-direction:column; gap:12px; margin-bottom:20px;}
+  .cart-item{display:flex; align-items:center; gap:12px; padding:12px; border:1px solid var(--line); border-radius:12px;}
+  .cart-item .ci{width:38px; height:38px; border-radius:10px; background:rgba(229,118,46,0.15); display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0;}
+  .cart-item .cn{flex-grow:1; min-width:0;}
+  .cart-item .cn strong{display:block; font-size:14px;}
+  .cart-item .cn span{font-size:12px; color:rgba(242,233,218,0.5);}
+  .qty-ctrl{display:flex; align-items:center; gap:8px;}
+  .qty-ctrl button{width:26px; height:26px; border-radius:8px; border:1px solid var(--line); background:transparent; color:var(--cream); cursor:pointer;}
+  .qty-ctrl button:hover{border-color:var(--ember);}
+  .cart-total-row{display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-top:1px solid var(--line); font-size:16px; font-weight:700;}
+  .cart-total-row span:last-child{color:var(--mustard); font-family:'Anton',sans-serif; font-size:22px;}
+
+  /* tracking stepper */
+  .track-search{display:flex; gap:10px; margin-bottom:26px;}
+  .track-search input{flex-grow:1;}
+  .order-summary-box{background:var(--pitch); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin-bottom:26px;}
+  .stepper{display:flex; flex-direction:column; gap:0;}
+  .step{display:flex; gap:16px; position:relative; padding-bottom:34px;}
+  .step:last-child{padding-bottom:0;}
+  .step-dot{width:34px; height:34px; border-radius:50%; background:var(--char); border:2px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; z-index:2; transition:all .3s;}
+  .step-line{position:absolute; left:16px; top:34px; bottom:-6px; width:2px; background:var(--line); z-index:1;}
+  .step:last-child .step-line{display:none;}
+  .step.done .step-dot{background:var(--ember); border-color:var(--ember); color:var(--pitch);}
+  .step.done .step-line{background:var(--ember);}
+  .step.current .step-dot{background:var(--mustard); border-color:var(--mustard); color:var(--pitch); box-shadow:0 0 0 5px rgba(240,180,41,0.2);}
+  .step-text strong{display:block; font-size:15px; margin-bottom:2px;}
+  .step-text span{font-size:12px; color:rgba(242,233,218,0.5);}
+  .step.pending .step-text strong{color:rgba(242,233,218,0.4);}
+
+  @media(max-width:900px){
+    nav ul{display:none;}
+    .menu-toggle{display:flex;}
+    .hero-grid{grid-template-columns:1fr;}
+    .hero-art{order:-1; min-height:320px;}
+    .about-grid{grid-template-columns:1fr;}
+    .about-visual{aspect-ratio:16/9;}
+    .menu-grid{grid-template-columns:1fr 1fr;}
+    .loc-grid{grid-template-columns:1fr;}
+    .foot-grid{grid-template-columns:1fr 1fr;}
+    .strip-item{font-size:28px;}
+    .form-grid{grid-template-columns:1fr;}
+    .icon-link span.lbl{display:none;}
+  }
+  @media(max-width:560px){
+    .menu-grid{grid-template-columns:1fr;}
+    .hero-stats{gap:20px; flex-wrap:wrap;}
+    .foot-grid{grid-template-columns:1fr;}
+    .about-list{grid-template-columns:1fr;}
+    .prod-row{flex-wrap:wrap;}
+  }
+  @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important;} }
+
+  /* ---------- DAY STATS ---------- */
+  .day-stats{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:26px;}
+  .day-stat{background:var(--pitch); border:1px solid var(--line); border-radius:14px; padding:16px; text-align:center;}
+  .day-stat .dv{font-family:'Anton',sans-serif; font-size:22px; color:var(--mustard);}
+  .day-stat .dl{font-size:11px; letter-spacing:0.5px; color:rgba(242,233,218,0.55); text-transform:uppercase; margin-top:4px;}
+  @media(max-width:560px){ .day-stats{grid-template-columns:1fr 1fr;} .day-stats .day-stat:last-child{grid-column:1/-1;} }
+
+  /* ---------- DASHBOARD ---------- */
+  .kpi-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:28px;}
+  .kpi-card{background:var(--pitch); border:1px solid var(--line); border-radius:14px; padding:18px;}
+  .kpi-card .kv{font-family:'Anton',sans-serif; font-size:24px; color:var(--mustard); line-height:1;}
+  .kpi-card .kl{font-size:11px; letter-spacing:0.5px; color:rgba(242,233,218,0.55); text-transform:uppercase; margin-top:6px;}
+  .kpi-card.profit .kv{color:var(--green);}
+  .kpi-card.profit.negative .kv{color:var(--tomato);}
+  .dash-cols{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  .dash-card{background:var(--pitch); border:1px solid var(--line); border-radius:16px; padding:22px;}
+  .dash-card h3{font-size:14px; margin-bottom:16px; color:var(--cream);}
+  .bestseller-row{display:flex; align-items:center; gap:12px; margin-bottom:12px;}
+  .bestseller-row .bs-rank{width:24px; height:24px; border-radius:50%; background:var(--ember); color:var(--pitch); font-family:'Anton',sans-serif; font-size:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .bestseller-row .bs-name{flex-grow:1; font-size:13px; min-width:0;}
+  .bestseller-row .bs-bar-track{background:var(--char); border-radius:999px; height:6px; margin-top:4px; overflow:hidden;}
+  .bestseller-row .bs-bar-fill{background:var(--ember); height:100%; border-radius:999px;}
+  .bestseller-row .bs-count{font-family:'Anton',sans-serif; font-size:13px; color:var(--mustard); flex-shrink:0;}
+  .chart-bars{display:flex; align-items:flex-end; gap:8px; height:140px;}
+  .chart-bar-col{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:6px;}
+  .chart-bar{width:100%; background:linear-gradient(180deg,var(--ember),var(--ember-deep)); border-radius:6px 6px 0 0; min-height:3px;}
+  .chart-bar-col .cb-label{font-size:10px; color:rgba(242,233,218,0.5);}
+  .low-stock-banner{background:rgba(182,56,44,0.15); border:1px solid var(--tomato); color:var(--tomato); border-radius:12px; padding:14px 18px; font-size:13px; font-weight:700; margin-bottom:24px;}
+
+  /* ---------- FINANCEIRO ---------- */
+  .cf-row{display:flex; align-items:center; gap:12px; padding:12px; border:1px solid var(--line); border-radius:12px; margin-bottom:10px;}
+  .cf-row .cf-icon{width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0;}
+  .cf-row.entrada .cf-icon{background:rgba(76,175,109,0.18); color:var(--green);}
+  .cf-row.saida .cf-icon{background:rgba(182,56,44,0.18); color:var(--tomato);}
+  .cf-row .cf-info{flex-grow:1; min-width:0;}
+  .cf-row .cf-info strong{display:block; font-size:14px;}
+  .cf-row .cf-info span{font-size:12px; color:rgba(242,233,218,0.5);}
+  .cf-row .cf-amount{font-family:'Anton',sans-serif; font-size:15px; flex-shrink:0;}
+  .cf-row.entrada .cf-amount{color:var(--green);}
+  .cf-row.saida .cf-amount{color:var(--tomato);}
+  .fc-total{margin-top:16px; text-align:right; font-size:15px; font-weight:700;}
+  .fc-total span{color:var(--mustard); font-family:'Anton',sans-serif; font-size:19px;}
+
+  /* ---------- ESTOQUE ---------- */
+  .stock-row.low{border-color:var(--tomato); background:rgba(182,56,44,0.08);}
+  .stock-qty-ctrl{display:flex; align-items:center; gap:6px;}
+  .stock-qty-ctrl button{width:26px; height:26px; border-radius:8px; border:1px solid var(--line); background:transparent; color:var(--cream); cursor:pointer;}
+  .stock-qty-ctrl button:hover{border-color:var(--ember);}
+  .stock-badge-low{background:var(--tomato); color:var(--cream); font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; margin-left:8px;}
+
+  @media(max-width:900px){
+    .kpi-grid{grid-template-columns:1fr 1fr;}
+    .dash-cols{grid-template-columns:1fr;}
+  }
+
+  /* ---------- BARRA RÁPIDA DE PEDIDO ---------- */
+  .quick-bar{
+    position:fixed; left:0; right:0; bottom:0; z-index:44;
+    background:rgba(28,22,19,0.97); backdrop-filter:blur(10px);
+    border-top:1px solid var(--line);
+    padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+    display:flex; align-items:center; gap:12px;
+    transform:translateY(120%); transition:transform .28s cubic-bezier(.2,.8,.3,1);
+    box-shadow:0 -8px 28px rgba(0,0,0,0.45);
+  }
+  .quick-bar.show{ transform:translateY(0); }
+  .qb-review{
+    display:flex; align-items:center; gap:10px; background:none; border:none;
+    color:var(--cream); cursor:pointer; padding:4px; flex-shrink:0;
+  }
+  .qb-count{
+    background:var(--ember); color:var(--pitch); font-family:'Anton',sans-serif;
+    min-width:30px; height:30px; border-radius:50%; display:flex; align-items:center;
+    justify-content:center; font-size:14px; padding:0 8px;
+  }
+  .qb-info{display:flex; flex-direction:column; align-items:flex-start; line-height:1.15;}
+  .qb-info strong{font-family:'Anton',sans-serif; font-size:17px; color:var(--mustard);}
+  .qb-info small{font-size:11px; color:rgba(242,233,218,0.5);}
+  .qb-checkout{
+    flex-grow:1; background:var(--ember); color:var(--pitch); border:none;
+    border-radius:999px; padding:15px 20px; font-size:15px; font-weight:700;
+    cursor:pointer; transition:background .2s;
+  }
+  .qb-checkout:hover{ background:var(--mustard); }
+  .qb-checkout:disabled{ background:rgba(242,233,218,0.2); color:rgba(242,233,218,0.5); cursor:not-allowed; }
+  /* quando a barra aparece, sobe o botão do WhatsApp e libera espaço no rodapé */
+  body.has-quickbar .whatsapp-fab{ bottom:96px; }
+  body.has-quickbar{ padding-bottom:80px; }
+
+  /* ---------- ESCOLHER LANCHE DO ADICIONAL ---------- */
+  .addon-choice{
+    width:100%; display:flex; align-items:center; gap:14px; padding:16px; margin-bottom:10px;
+    background:var(--pitch); border:1px solid var(--line); border-radius:12px; color:var(--cream);
+    font-size:15px; font-weight:700; cursor:pointer; text-align:left; transition:all .2s;
+  }
+  .addon-choice:hover{ border-color:var(--ember); background:rgba(229,118,46,0.1); }
+  .addon-choice span:first-child{ font-size:22px; }
+
+  /* ---------- LOJA FECHADA ---------- */
+  .closed-banner{
+    background:var(--tomato); color:var(--cream); text-align:center; padding:14px 20px;
+    font-size:14px; font-weight:700; position:sticky; top:74px; z-index:35;
+  }
+  .cart-sub-row{display:flex; justify-content:space-between; align-items:center; padding:8px 0; font-size:14px; color:rgba(242,233,218,0.7);}
+  .cart-sub-row span:last-child{color:var(--cream); font-weight:700;}
+  .free-shipping-hint{font-size:12px; color:var(--green); margin-top:6px; text-align:right;}
+
+  /* ---------- BOTÃO ENVIAR PEDIDO WHATSAPP ---------- */
+  .wa-send-btn{
+    width:100%; background:#25D366; color:#0b2e18; border:none; border-radius:999px;
+    padding:14px 20px; font-size:15px; font-weight:700; cursor:pointer; margin-bottom:24px;
+    display:flex; align-items:center; justify-content:center; gap:8px; transition:filter .2s;
+  }
+  .wa-send-btn:hover{ filter:brightness(1.08); }
+
+  /* ---------- PROMOÇÃO / AVISO ---------- */
+  .promo-panel{ padding:0; overflow:hidden; position:relative; max-width:400px; }
+  .promo-close{ position:absolute; top:12px; right:12px; z-index:3; background:rgba(18,14,11,0.6); border-radius:50%; width:32px; height:32px; backdrop-filter:blur(4px); }
+  .promo-image{ width:100%; max-height:280px; object-fit:cover; display:block; }
+  .promo-body{ padding:26px; }
+  .promo-title{ font-family:'Anton',sans-serif; font-size:22px; color:var(--ember); margin-bottom:10px; line-height:1.1; }
+  .promo-message{ font-size:14px; color:rgba(242,233,218,0.8); line-height:1.6; margin-bottom:20px; white-space:pre-line; }
+
+  /* ---------- ORDER TYPE TOGGLE ---------- */
+  .type-toggle{display:flex; gap:10px;}
+  .type-btn{flex:1; padding:12px 10px; border-radius:10px; border:1px solid var(--line); background:var(--pitch); color:rgba(242,233,218,0.7); font-size:13px; font-weight:700; cursor:pointer; transition:all .2s;}
+  .type-btn.active{border-color:var(--ember); background:rgba(229,118,46,0.15); color:var(--ember);}
+
+  /* ---------- PRINT COMANDA BUTTON ---------- */
+  .print-btn{background:var(--char); border:1px solid var(--mustard); color:var(--mustard); padding:8px 14px; border-radius:999px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;}
+  .print-btn:hover{background:var(--mustard); color:var(--pitch);}
+  .order-actions-row{display:flex; justify-content:space-between; align-items:center; margin-top:12px; flex-wrap:wrap; gap:10px;}
+  .order-extra{font-size:12px; color:rgba(242,233,218,0.55); display:flex; gap:14px; flex-wrap:wrap; margin-top:4px;}
+
+  /* ---------- PRINT AREA (comanda térmica) ---------- */
+  .print-area{display:none;}
+  @media print{
+    body > *:not(.print-area){display:none !important;}
+    .print-area{
+      display:block !important; width:78mm; margin:0 auto; padding:6px;
+      font-family:'DM Sans', monospace; color:#000; background:#fff;
+    }
+    .print-area .p-logo{font-family:'Anton',sans-serif; font-size:20px; text-align:center; margin-bottom:2px;}
+    .print-area .p-sub{text-align:center; font-size:10px; margin-bottom:10px;}
+    .print-area .p-line{border-top:1px dashed #000; margin:8px 0;}
+    .print-area .p-num{text-align:center; font-family:'Anton',sans-serif; font-size:30px; margin:6px 0;}
+    .print-area .p-code{text-align:center; font-size:12px; margin-bottom:8px;}
+    .print-area .p-row{display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;}
+    .print-area .p-item{display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; font-weight:700;}
+    .print-area .p-total{display:flex; justify-content:space-between; font-size:15px; font-weight:700; margin-top:8px;}
+    .print-area .p-notes{font-size:12px; margin-top:10px; border:1px solid #000; padding:8px; border-radius:4px;}
+    .print-area .p-foot{text-align:center; font-size:10px; margin-top:14px;}
+  }
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <img src="mascot.jpg" alt="Mascote O Markin" class="badge">
-    <h1>O MARKIN CHEF'S BURGUER</h1>
-    <p>Escolha como você quer entrar</p>
-    <a class="card" href="./cliente/">
-      <div class="ci">🍔</div>
-      <strong>Sou Cliente</strong>
-      <span>Ver cardápio, pedir e acompanhar meu pedido</span>
-    </a>
-    <a class="card gerencial" href="./gerencial/">
-      <div class="ci">⚙️</div>
-      <strong>Área Gerencial</strong>
-      <span>Pedidos, cardápio, financeiro e estoque</span>
-    </a>
+<div class="grain"></div>
+
+<header>
+  <div class="wrap nav">
+    <div class="brand">
+      <img src="mascot.jpg" alt="Mascote O Markin" class="brand-badge">
+      <div class="brand-text"><div class="l1">O MARKIN</div><div class="l2">Chef's Burguer</div></div>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="#cardapio">Cardápio</a></li>
+        <li><a href="#sobre">Sobre</a></li>
+        <li><a href="#local">Localização</a></li>
+        <li><a id="navTrack">Acompanhar pedido</a></li>
+      </ul>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-link" id="openTrack">📦 <span class="lbl">Meu pedido</span></button>
+      <button class="icon-link" id="openCart">🛒 <span class="lbl">Carrinho</span> <span class="cart-count" id="cartCount">0</span></button>
+      <a href="gerencial/" class="gear-link" title="Área da equipe" aria-label="Área da equipe">⚙</a>
+    </div>
+    <button class="menu-toggle" aria-label="Abrir menu"><span></span><span></span><span></span></button>
   </div>
+</header>
+
+<div id="closedBanner" class="closed-banner" style="display:none;"></div>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow"><span class="star">★</span> FEITO NA CHAPA, NA HORA <span class="star">★</span></div>
+      <h1 class="hero-title">O MARKIN<span>CHEF'S BURGUER</span></h1>
+      <p class="hero-sub">Pão brioche tostado, blend artesanal suculento e o toque de chef em cada camada. Sem pressa, sem atalho — só burguer de verdade.</p>
+      <div class="hero-actions">
+        <a href="#cardapio" class="cta-btn">Ver cardápio →</a>
+        <button class="btn-outline" id="heroTrackBtn">Acompanhar meu pedido</button>
+      </div>
+      <div class="hero-stats">
+        <div><div class="num" id="statCount">–</div><div class="lbl">Lanches no cardápio</div></div>
+        <div><div class="num">4.9★</div><div class="lbl">Avaliação dos clientes</div></div>
+        <div><div class="num">20min</div><div class="lbl">Tempo médio de preparo</div></div>
+      </div>
+    </div>
+
+    <div class="hero-art">
+      <div class="sunburst-bg"></div>
+      <div class="plate-glow"></div>
+      <img src="mascot.jpg" alt="Mascote Chef O Markin" class="mascot-hero">
+    </div>
+  </div>
+</section>
+
+<div class="wrap"><div class="divider"></div></div>
+
+<section class="section" id="cardapio">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-eyebrow">CARDÁPIO</div>
+      <h2 class="section-title">Nossos <em>mais pedidos</em></h2>
+      <p class="section-desc">Cada burguer leva blend 100% bovino moído na casa, pão brioche selado na manteiga e molhos autorais. Escolha e adicione ao carrinho.</p>
+    </div>
+
+    <div class="menu-tabs" id="menuTabs">
+      <div class="tab active" data-cat="todos">Todos</div>
+      <div class="tab" data-cat="burguers">Hambúrgueres</div>
+      <div class="tab" data-cat="entradas">Entradas</div>
+      <div class="tab" data-cat="bebidas">Bebidas</div>
+      <div class="tab" data-cat="adicionais">Adicionais</div>
+      <div class="tab" data-cat="combo">Combo</div>
+    </div>
+
+    <div class="menu-grid" id="menuGrid">
+      <div class="empty-state">Carregando cardápio...</div>
+    </div>
+  </div>
+</section>
+
+<section class="about" id="sobre">
+  <div class="wrap about-grid">
+    <div class="about-visual">
+      <div class="flame"></div>
+      <img src="mascot.jpg" alt="Mascote Chef O Markin" class="about-mascot">
+      <div class="script">"na chapa,<br>na hora."</div>
+    </div>
+    <div class="about-copy">
+      <div class="section-eyebrow">NOSSA HISTÓRIA</div>
+      <h2>Burguer de bairro com<br>alma de chef.</h2>
+      <p>O Markin nasceu da vontade de fazer o hambúrguer que a gente mesmo queria comer: pão quentinho, carne suculenta e ingredientes de verdade — sem fórmula pronta.</p>
+      <p>Cada receita passa pela bancada do chef antes de entrar no cardápio. É assim que garantimos o mesmo sabor em todo pedido, seja no salão ou na entrega.</p>
+      <ul class="about-list">
+        <li>Blend moído diariamente</li>
+        <li>Pão brioche artesanal</li>
+        <li>Molhos feitos na casa</li>
+        <li>Chapa sempre quente</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="strip">
+  <div class="strip-item">🍔</div>
+  <div class="strip-item">🧀</div>
+  <div class="strip-item">🥓</div>
+  <div class="strip-item">🍟</div>
+  <div class="strip-item">🌶️</div>
+  <div class="strip-item">🥤</div>
+</div>
+
+<section class="location" id="local">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-eyebrow">VISITE A GENTE</div>
+      <h2 class="section-title">Horário e <em>localização</em></h2>
+    </div>
+    <div class="loc-grid">
+      <div class="loc-card">
+        <h3>Funcionamento</h3>
+        <div class="hours-row"><span>Segunda a Quinta</span><span id="infoHours1">18h – 23h</span></div>
+        <div class="hours-row"><span>Sexta e Sábado</span><span id="infoHours2">18h – 00h30</span></div>
+        <div class="hours-row"><span>Domingo</span><span id="infoHours3">18h – 22h30</span></div>
+      </div>
+      <div class="loc-card">
+        <h3>Contato & Endereço</h3>
+        <div class="contact-row"><div class="contact-icon">📍</div><div><div class="lbl">Endereço</div><div class="val" id="infoAddress">Preencha seu endereço aqui</div></div></div>
+        <div class="contact-row"><div class="contact-icon">📱</div><div><div class="lbl">WhatsApp</div><div class="val" id="infoWhatsapp">(00) 00000-0000</div></div></div>
+        <div class="contact-row"><div class="contact-icon">📷</div><div><div class="lbl">Instagram</div><div class="val" id="infoInstagram">@omarkinchefsburguer</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <h2>Bateu a fome? Monta teu pedido.</h2>
+    <p>Escolha no cardápio, finalize o pedido e acompanhe tudo em tempo real por aqui.</p>
+    <a href="#cardapio" class="cta-btn">Ver cardápio →</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <div class="brand"><img src="mascot.jpg" alt="Mascote O Markin" class="brand-badge"><div class="brand-text"><div class="l1">O MARKIN</div><div class="l2">Chef's Burguer</div></div></div>
+        <p>Hambúrgueres artesanais feitos na chapa, com ingredientes selecionados e muito sabor em cada mordida.</p>
+      </div>
+      <div class="foot-col"><h4>Navegação</h4><ul><li><a href="#cardapio">Cardápio</a></li><li><a href="#sobre">Sobre nós</a></li><li><a href="#local">Localização</a></li></ul></div>
+      <div class="foot-col"><h4>Cardápio</h4><ul><li><a href="#cardapio">Burguers</a></li><li><a href="#cardapio">Acompanhamentos</a></li><li><a href="#cardapio">Bebidas</a></li></ul></div>
+      <div class="foot-col"><h4>Redes sociais</h4><ul><li><a href="#" id="footInstagramLink" target="_blank" rel="noopener">Instagram</a></li><li><a href="#" id="footWhatsappLink" target="_blank" rel="noopener">WhatsApp</a></li><li><a href="#">iFood</a></li></ul></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 O Markin Chef's Burguer. Todos os direitos reservados.</span>
+      <span>Feito com 🔥 e queijo derretido.</span>
+    </div>
+  </div>
+</footer>
+
+<a href="#" class="whatsapp-fab" id="whatsappFab" target="_blank" rel="noopener">💬</a>
+
+<!-- ============ BARRA RÁPIDA DE PEDIDO ============ -->
+<div class="quick-bar" id="quickBar">
+  <button class="qb-review" id="qbReview">
+    <span class="qb-count" id="qbCount">0</span>
+    <span class="qb-info">
+      <strong id="qbTotal">R$ 0,00</strong>
+      <small>ver carrinho</small>
+    </span>
+  </button>
+  <button class="qb-checkout" id="qbCheckout">Finalizar pedido →</button>
+</div>
+
+<!-- ================= CART DRAWER ================= -->
+<div class="overlay" id="cartOverlay">
+  <div class="panel narrow">
+    <div class="panel-head"><h2>🛒 Seu carrinho</h2><button class="close-btn" data-close="cartOverlay">✕</button></div>
+    <div class="panel-body">
+      <div class="cart-items" id="cartItems"></div>
+      <div class="cart-sub-row" id="cartSubRow" style="display:none;"><span>Subtotal</span><span id="cartSubtotal">R$ 0,00</span></div>
+      <div class="cart-sub-row" id="cartFeeRow" style="display:none;"><span>Taxa de entrega</span><span id="cartFee">R$ 0,00</span></div>
+      <div class="cart-total-row"><span>Total</span><span id="cartTotal">R$ 0,00</span></div>
+      <div class="form-actions">
+        <button class="btn-primary" id="goCheckout" style="width:100%;">Finalizar pedido</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= CHECKOUT ================= -->
+<div class="overlay" id="checkoutOverlay">
+  <div class="panel narrow">
+    <div class="panel-head"><h2>Finalizar pedido</h2><button class="close-btn" data-close="checkoutOverlay">✕</button></div>
+    <div class="panel-body">
+      <div id="welcomeBackHint" style="display:none; background:rgba(76,175,109,0.12); border:1px solid var(--green); color:var(--green); border-radius:10px; padding:10px 14px; font-size:13px; margin-bottom:16px;"></div>
+      <div class="field"><label>Seu nome</label><input type="text" id="ckName" placeholder="Nome completo"></div>
+      <div class="field" id="ckPhoneField"><label>WhatsApp</label><input type="text" id="ckPhone" placeholder="(00) 00000-0000"></div>
+      <div class="field">
+        <label>Tipo de pedido</label>
+        <div class="type-toggle">
+          <button type="button" class="type-btn active" data-ordertype="entrega">🛵 Entrega</button>
+          <button type="button" class="type-btn" data-ordertype="retirada">🏠 Balcão</button>
+          <button type="button" class="type-btn" data-ordertype="mesa">🪑 Mesa</button>
+        </div>
+      </div>
+      <div class="field" id="ckAddressField"><label>Endereço de entrega</label><textarea id="ckAddress" placeholder="Rua, número, bairro, ponto de referência"></textarea></div>
+      <div class="field" id="ckTableField" style="display:none;">
+        <label>Número da mesa</label>
+        <input type="number" id="ckTable" placeholder="Ex: 7" min="1">
+        <div style="font-size:12px; color:var(--green); margin-top:8px;">💡 Pediu mais alguma coisa? É só usar o mesmo número da mesa — tudo vai pra mesma conta.</div>
+      </div>
+      <div class="field"><label>Forma de pagamento</label>
+        <select id="ckPayment">
+          <option value="dinheiro">Dinheiro</option>
+          <option value="cartao">Cartão (na entrega/retirada)</option>
+          <option value="pix">Pix</option>
+        </select>
+      </div>
+      <div class="field"><label>Observações (opcional)</label><textarea id="ckNotes" placeholder="Ex: sem cebola, ponto da carne, troco para R$ 50..."></textarea></div>
+      <div class="error-msg" id="checkoutError"></div>
+      <button class="btn-primary" id="confirmOrderBtn" style="width:100%;">Confirmar pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= TRACKING ================= -->
+<div class="overlay" id="trackOverlay">
+  <div class="panel narrow">
+    <div class="panel-head"><h2>📦 Acompanhar pedido</h2><button class="close-btn" data-close="trackOverlay">✕</button></div>
+    <div class="panel-body">
+      <div class="track-search">
+        <input type="text" id="trackCodeInput" placeholder="Digite o código do pedido (ex: MK-1234)">
+        <button class="btn-primary" id="trackSearchBtn">Buscar</button>
+      </div>
+      <div id="trackResult"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= ESCOLHER LANCHE DO ADICIONAL ================= -->
+<div class="overlay" id="addonOverlay">
+  <div class="panel narrow">
+    <div class="panel-head"><h2>Adicionar em qual lanche?</h2><button class="close-btn" data-close="addonOverlay">✕</button></div>
+    <div class="panel-body">
+      <p style="font-size:14px; color:rgba(242,233,218,0.7); margin-bottom:18px;">Você está adicionando <strong id="addonPickerTitle" style="color:var(--ember);"></strong>. Escolha o lanche:</p>
+      <div id="addonPickerList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PROMOÇÃO / AVISO ================= -->
+<div class="overlay promo-overlay" id="promoOverlay">
+  <div class="panel narrow promo-panel">
+    <button class="close-btn promo-close" data-close="promoOverlay">✕</button>
+    <img id="promoImage" class="promo-image" style="display:none;">
+    <div class="promo-body">
+      <h2 id="promoTitle" class="promo-title"></h2>
+      <p id="promoMessage" class="promo-message"></p>
+      <button class="cta-btn" style="width:100%; justify-content:center;" data-close="promoOverlay">Entendi 👍</button>
+    </div>
+  </div>
+</div>
+
+<div class="save-toast" id="saveToast">Alterações salvas ✓</div>
+
+<div class="print-area" id="printArea"></div>
+
+<!-- ============ FIREBASE ============ -->
+<!-- Projeto conectado: omarkin-burguer-39bda -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyA-7sy4ox0ErDZAw7prhXYJ3MaSA7G_scY",
+    authDomain: "omarkin-burguer-39bda.firebaseapp.com",
+    projectId: "omarkin-burguer-39bda",
+    storageBucket: "omarkin-burguer-39bda.firebasestorage.app",
+    messagingSenderId: "476114578010",
+    appId: "1:476114578010:web:fb22f3159e86edf0a5c663"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+
+<script>
+(function(){
+  const ADMIN_PASSWORD = "markin123";
+
+  let products = [];
+  let orders = [];
+  let cashflow = [];
+  let fixedCosts = [];
+  let inventory = [];
+  let activeCategory = "todos";
+  let cart = []; // {productId, name, price, icon, qty}
+  let lastOrderCode = null;
+  let currentTrackedCode = null;
+
+  const STATUS_FLOW = [
+    {key:"recebido", label:"Pedido recebido", icon:"📝"},
+    {key:"aceito", label:"Aceito", icon:"✅"},
+    {key:"preparo", label:"Em preparo", icon:"👨‍🍳"},
+    {key:"caminho", label:"Indo até você", icon:"🛵"},
+    {key:"entregue", label:"Entregue", icon:"🎉"}
+  ];
+  const STATUS_COLORS = {recebido:"#8a8a8a", aceito:"#4c9aef", preparo:"#f0b429", caminho:"#e5762e", entregue:"#4caf6d"};
+
+  const defaultProducts = [
+    {id:"p1", name:"Bugue do Papai", cat:"burguers", price:31.00, icon:"🍔", tag:"", desc:"Pão brioche tostado, hambúrguer bovino 180g, queijo cheddar, tarê de melaço de cana, fatias de bacon artesanal, picles e molho defumado."},
+    {id:"p2", name:"Prime Chicken", cat:"burguers", price:24.00, icon:"🍗", tag:"", desc:"Pão brioche tostado, hambúrguer de frango 180g, queijo provolone, alface fresco, tomate e molho especial do chef."},
+    {id:"p3", name:"Big Chef", cat:"burguers", price:30.00, icon:"🍔", tag:"", desc:"Hambúrguer, alface, queijo, molho especial, cebola e picles, no pão de briochin."},
+    {id:"p4", name:"Classic Onion", cat:"burguers", price:24.00, icon:"🧅", tag:"", desc:"Pão brioche tostado, hambúrguer bovino 180g, cebola caramelizada e queijo cheddar."},
+    {id:"p5", name:"Chef's Burguer", cat:"burguers", price:35.00, icon:"🌶️", tag:"MAIS PEDIDO", desc:"Pão brioche tostado, hambúrguer bovino 180g, queijo cheddar, geleia de bacon com pimenta de cheiro, cebola crispy e molho picante jalapeño."},
+    {id:"p6", name:"Retro Burguer", cat:"burguers", price:26.00, icon:"🍔", tag:"", desc:"Pão brioche, hambúrguer bovino 180g, queijo cheddar, picles, cebola, ketchup, maionese e mostarda."},
+    {id:"p7", name:"Salad Bacon", cat:"burguers", price:29.00, icon:"🥓", tag:"", desc:"Pão brioche tostado, hambúrguer bovino 180g, queijo cheddar, fatias de bacon artesanal, alface fresco, tomate e molho especial do chef."},
+    {id:"p8", name:"Classic Bacon", cat:"burguers", price:27.00, icon:"🥓", tag:"", desc:"Pão brioche tostado, hambúrguer bovino 180g, queijo cheddar, fatias de bacon artesanal e molho especial do chef."},
+    {id:"p9", name:"Classic Salad", cat:"burguers", price:27.00, icon:"🥬", tag:"", desc:"Pão brioche tostado, hambúrguer bovino 180g, queijo cheddar, alface fresco, tomate e molho especial do chef."},
+    {id:"p10", name:"Classic Burguer", cat:"burguers", price:20.00, icon:"🍔", tag:"", desc:"Pão brioche tostado, hambúrguer bovino 180g e queijo cheddar. (Neste não é possível colocar adicionais.)"},
+    {id:"p11", name:"Porção de Batata", cat:"entradas", price:26.00, icon:"🍟", tag:"", desc:"Porção de batata frita — 400g."},
+    {id:"p12", name:"Croqueta de Cupim Desfiada com Queijo", cat:"entradas", price:39.00, icon:"🧀", tag:"", desc:"Croqueta recheada de cupim desfiado com queijo — 350g."},
+    {id:"p13", name:"Dadinho de Mussarela Crocante", cat:"entradas", price:37.00, icon:"🧀", tag:"", desc:"Dadinhos de mussarela empanados e crocantes — 400g."},
+    {id:"p14", name:"Refrigerante Lata", cat:"bebidas", price:6.00, icon:"🥤", tag:"", desc:"Lata gelada."},
+    {id:"p15", name:"Suco Lata", cat:"bebidas", price:7.00, icon:"🧃", tag:"", desc:"Lata gelada."},
+    {id:"p16", name:"Água com Gás", cat:"bebidas", price:4.00, icon:"💧", tag:"", desc:"Garrafa gelada."},
+    {id:"p17", name:"Adicional Hambúrguer", cat:"adicionais", price:10.00, icon:"🍔", tag:"", desc:"Carne extra para adicionar ao seu lanche."},
+    {id:"p18", name:"Adicional Bacon", cat:"adicionais", price:4.00, icon:"🥓", tag:"", desc:"Fatias de bacon artesanal extra."},
+    {id:"p19", name:"Adicional Picles", cat:"adicionais", price:2.00, icon:"🥒", tag:"", desc:"Picles extra."},
+    {id:"p20", name:"Adicional Cheddar", cat:"adicionais", price:4.00, icon:"🧀", tag:"", desc:"2 fatias de queijo cheddar."},
+    {id:"p21", name:"Adicional Molhos", cat:"adicionais", price:3.00, icon:"🥫", tag:"", desc:"Molho extra à sua escolha."},
+    {id:"p22", name:"Combo Batata + Refri", cat:"combo", price:15.00, icon:"🎁", tag:"NOVO", desc:"Batata (100g) + refrigerante."}
+  ];
+
+  function genId(){ return "p" + Date.now() + Math.floor(Math.random()*1000); }
+  function genOrderCode(){ return "MK-" + Math.floor(1000 + Math.random()*9000); }
+  function escapeHtml(str){ return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function money(n){ return "R$ " + Number(n).toFixed(2).replace('.',','); }
+
+  function openOverlay(id){
+    document.getElementById(id).classList.add('open');
+    const bar = document.getElementById('quickBar');
+    if(bar) bar.style.visibility = 'hidden';
+  }
+  function closeOverlay(id){
+    document.getElementById(id).classList.remove('open');
+    const anyOpen = document.querySelector('.overlay.open');
+    const bar = document.getElementById('quickBar');
+    if(bar && !anyOpen) bar.style.visibility = 'visible';
+  }
+  document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => closeOverlay(btn.dataset.close)));
+  document.querySelectorAll('.overlay').forEach(ov => ov.addEventListener('click', (e) => { if(e.target === ov) closeOverlay(ov.id); }));
+
+  function showToast(msg){
+    const t = document.getElementById('saveToast');
+    t.textContent = msg || "Alterações salvas ✓";
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 2200);
+  }
+
+  /* ---------------- PRODUCTS (Firestore) ---------------- */
+  function watchProducts(){
+    db.collection('store').doc('menu').onSnapshot(async (doc) => {
+      if(doc.exists && doc.data().items){
+        products = doc.data().items;
+      }else{
+        products = defaultProducts;
+        try{ await db.collection('store').doc('menu').set({items: defaultProducts}); }catch(e){}
+      }
+      renderMenu();
+    }, (err) => {
+      console.error("Erro ao ler cardápio:", err);
+      products = defaultProducts;
+      renderMenu();
+    });
+  }
+  async function saveProducts(){
+    try{ await db.collection('store').doc('menu').set({items: products}); showToast("Cardápio atualizado ✓"); }
+    catch(e){ alert("Não foi possível salvar. Tente novamente."); }
+  }
+  function catLabel(cat){ return {burguers:"Hambúrgueres", entradas:"Entradas", bebidas:"Bebidas", adicionais:"Adicionais", combo:"Combo"}[cat] || cat; }
+
+  function renderMenu(){
+    const grid = document.getElementById('menuGrid');
+    document.getElementById('statCount').textContent = products.length + "+";
+    const list = activeCategory === "todos" ? products : products.filter(p => p.cat === activeCategory);
+    if(list.length === 0){ grid.innerHTML = '<div class="empty-state">Nenhum produto nessa categoria ainda. Volte em breve! 👨‍🍳</div>'; return; }
+    grid.innerHTML = list.map(p => {
+      const qty = cart.filter(c => c.productId === p.id).reduce((s,c) => s + c.qty, 0);
+      const footControl = qty > 0
+        ? `<div class="menu-qty">
+             <button data-menudec="${p.id}">−</button>
+             <span>${qty}</span>
+             <button data-menuinc="${p.id}">+</button>
+           </div>`
+        : `<button class="add" data-add="${p.id}">+</button>`;
+      return `
+      <div class="menu-card">
+        ${p.tag ? `<span class="tag">${escapeHtml(p.tag)}</span>` : ''}
+        <div class="menu-icon">${p.icon || '🍔'}</div>
+        <h3>${escapeHtml(p.name)}</h3>
+        <p>${escapeHtml(p.desc || '')}</p>
+        <div class="menu-foot"><span class="price">${money(p.price)}</span>${footControl}</div>
+      </div>
+    `;}).join('');
+    grid.querySelectorAll('[data-add]').forEach(btn => btn.addEventListener('click', () => addToCart(btn.dataset.add)));
+    grid.querySelectorAll('[data-menuinc]').forEach(btn => btn.addEventListener('click', () => addToCart(btn.dataset.menuinc)));
+    grid.querySelectorAll('[data-menudec]').forEach(btn => btn.addEventListener('click', () => {
+      const entries = cart.filter(c => c.productId === btn.dataset.menudec);
+      if(entries.length > 0) changeQty(entries[entries.length - 1].key, -1);
+    }));
+  }
+
+
+  document.getElementById('menuTabs').addEventListener('click', (e) => {
+    const tab = e.target.closest('.tab'); if(!tab) return;
+    document.querySelectorAll('#menuTabs .tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active'); activeCategory = tab.dataset.cat; renderMenu();
+  });
+
+  /* ---------------- CART ---------------- */
+  function addToCart(productId){
+    const p = products.find(x => x.id === productId); if(!p) return;
+
+    // Adicionais: pergunta pra qual lanche vai (se houver mais de um)
+    if(p.cat === 'adicionais'){
+      const burgers = cart.filter(c => c.cat === 'burguers');
+      if(burgers.length === 1){
+        pushToCart(p, burgers[0].name);
+        return;
+      }
+      if(burgers.length > 1){
+        openAddonPicker(p, burgers);
+        return;
+      }
+    }
+    pushToCart(p, "");
+  }
+
+  function pushToCart(p, forItem){
+    const key = p.id + "|" + (forItem || "");
+    const existing = cart.find(c => c.key === key);
+    if(existing) existing.qty += 1;
+    else cart.push({key, productId: p.id, cat: p.cat, name: p.name, price: p.price, icon: p.icon, qty: 1, forItem: forItem || ""});
+    updateCartUI(); renderMenu();
+    if(!existing) showToast(p.name + (forItem ? " → " + forItem : "") + " adicionado ✓");
+  }
+
+  function openAddonPicker(product, burgers){
+    const box = document.getElementById('addonPickerList');
+    document.getElementById('addonPickerTitle').textContent = product.name;
+    box.innerHTML = burgers.map(b => `
+      <button class="addon-choice" data-addonfor="${escapeHtml(b.name)}">
+        <span>${b.icon || '🍔'}</span>
+        <span>${escapeHtml(b.name)}</span>
+      </button>
+    `).join('') + `<button class="addon-choice" data-addonfor=""><span>➕</span><span>Sem vincular (item avulso)</span></button>`;
+    box.querySelectorAll('[data-addonfor]').forEach(btn => btn.addEventListener('click', () => {
+      pushToCart(product, btn.dataset.addonfor);
+      closeOverlay('addonOverlay');
+    }));
+    openOverlay('addonOverlay');
+  }
+
+  function changeQty(cartKey, delta){
+    const item = cart.find(c => c.key === cartKey); if(!item) return;
+    item.qty += delta;
+    if(item.qty <= 0) cart = cart.filter(c => c.key !== cartKey);
+    updateCartUI(); renderMenu();
+  }
+  function cartTotal(){ return cartSubtotal() + currentDeliveryFee(); }
+  function updateCartUI(){
+    document.getElementById('cartCount').textContent = cart.reduce((s,c)=>s+c.qty,0);
+    const box = document.getElementById('cartItems');
+    if(cart.length === 0){ box.innerHTML = '<div class="loading-row">Seu carrinho está vazio. Adicione algo gostoso! 🍔</div>'; }
+    else{
+      box.innerHTML = cart.map(c => `
+        <div class="cart-item">
+          <div class="ci">${c.icon || '🍔'}</div>
+          <div class="cn"><strong>${escapeHtml(c.name)}</strong><span>${money(c.price)} un.${c.forItem ? ' · para: ' + escapeHtml(c.forItem) : ''}</span></div>
+          <div class="qty-ctrl">
+            <button data-qty="${c.key}" data-delta="-1">−</button>
+            <span>${c.qty}</span>
+            <button data-qty="${c.key}" data-delta="1">+</button>
+          </div>
+        </div>
+      `).join('');
+      box.querySelectorAll('[data-qty]').forEach(btn => btn.addEventListener('click', () => changeQty(btn.dataset.qty, parseInt(btn.dataset.delta))));
+    }
+    const sub = cartSubtotal();
+    const fee = currentDeliveryFee();
+    const subRow = document.getElementById('cartSubRow');
+    const feeRow = document.getElementById('cartFeeRow');
+    if(cart.length > 0 && selectedOrderType === 'entrega' && (deliveryFee > 0)){
+      subRow.style.display = 'flex';
+      feeRow.style.display = 'flex';
+      document.getElementById('cartSubtotal').textContent = money(sub);
+      document.getElementById('cartFee').textContent = fee === 0 ? "Grátis 🎉" : money(fee);
+    }else{
+      subRow.style.display = 'none';
+      feeRow.style.display = 'none';
+    }
+    document.getElementById('cartTotal').textContent = money(cartTotal());
+    updateQuickBar();
+  }
+
+  function updateQuickBar(){
+    const bar = document.getElementById('quickBar');
+    const count = cart.reduce((s,c) => s + c.qty, 0);
+    if(count > 0){
+      document.getElementById('qbCount').textContent = count;
+      document.getElementById('qbTotal').textContent = money(cartTotal());
+      const btn = document.getElementById('qbCheckout');
+      btn.disabled = !storeIsOpen;
+      btn.textContent = storeIsOpen ? "Finalizar pedido →" : "🔒 Loja fechada";
+      bar.classList.add('show');
+      document.body.classList.add('has-quickbar');
+    }else{
+      bar.classList.remove('show');
+      document.body.classList.remove('has-quickbar');
+    }
+  }
+  let selectedOrderType = "entrega";
+  document.querySelectorAll('[data-ordertype]').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-ordertype]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedOrderType = btn.dataset.ordertype;
+    document.getElementById('ckAddressField').style.display = selectedOrderType === 'entrega' ? 'block' : 'none';
+    document.getElementById('ckTableField').style.display = selectedOrderType === 'mesa' ? 'block' : 'none';
+    document.getElementById('ckPhoneField').style.display = selectedOrderType === 'mesa' ? 'none' : 'block';
+    updateCartUI();
+  }));
+
+  document.getElementById('openCart').addEventListener('click', () => { updateCartUI(); openOverlay('cartOverlay'); });
+  document.getElementById('qbReview').addEventListener('click', () => { updateCartUI(); openOverlay('cartOverlay'); });
+  document.getElementById('qbCheckout').addEventListener('click', () => {
+    if(!storeIsOpen){ alert("A loja está fechada no momento. " + storeClosedMsg); return; }
+    if(cart.length === 0) return;
+    openOverlay('checkoutOverlay');
+    autofillCustomer();
+  });
+  document.getElementById('goCheckout').addEventListener('click', () => {
+    if(!storeIsOpen){ alert("A loja está fechada no momento. " + storeClosedMsg); return; }
+    if(cart.length === 0){ alert("Seu carrinho está vazio."); return; }
+    closeOverlay('cartOverlay'); openOverlay('checkoutOverlay');
+    autofillCustomer();
+  });
+
+  function autofillCustomer(){
+    try{
+      const saved = JSON.parse(localStorage.getItem('omarkin_customer') || 'null');
+      if(!saved) return;
+      const nameEl = document.getElementById('ckName');
+      const phoneEl = document.getElementById('ckPhone');
+      const addrEl = document.getElementById('ckAddress');
+      if(!nameEl.value && saved.name) nameEl.value = saved.name;
+      if(!phoneEl.value && saved.phone) phoneEl.value = saved.phone;
+      if(!addrEl.value && saved.address) addrEl.value = saved.address;
+      const mesa = sessionStorage.getItem('omarkin_mesa');
+      const tableEl = document.getElementById('ckTable');
+      if(mesa && !tableEl.value) tableEl.value = mesa;
+      const hint = document.getElementById('welcomeBackHint');
+      if(hint && saved.name){
+        hint.textContent = "👋 Bem-vindo de volta, " + saved.name.split(' ')[0] + "! Confira se os dados estão certos.";
+        hint.style.display = 'block';
+      }
+    }catch(e){}
+  }
+
+  /* ---------------- ORDERS (Firestore) ---------------- */
+  // O cliente NÃO lê a lista de pedidos (isso é privado da loja).
+  // Ele só acompanha o próprio pedido, buscando pelo código.
+  let trackUnsubscribe = null;
+
+  async function saveOrder(order){
+    await db.collection('orders').doc(order.code).set(order);
+  }
+
+  async function generateDailyNumber(){
+    const today = todayStr();
+    const ref = db.collection('counters').doc('daily');
+    try{
+      return await db.runTransaction(async (tx) => {
+        const snap = await tx.get(ref);
+        const data = snap.exists ? snap.data() : {};
+        const count = (data.date === today ? (data.count || 0) : 0) + 1;
+        tx.set(ref, {date: today, count});
+        return count;
+      });
+    }catch(e){
+      return Math.floor(Date.now() / 1000) % 1000; // fallback
+    }
+  }
+
+  async function generateUniqueOrderCode(){
+    for(let i = 0; i < 6; i++){
+      const code = genOrderCode();
+      const snap = await db.collection('orders').doc(code).get();
+      if(!snap.exists) return code;
+    }
+    return "MK-" + Date.now().toString().slice(-7);
+  }
+
+  /* ---------------- PROMOÇÃO / AVISO (App Cliente) ---------------- */
+  function watchPromo(){
+    db.collection('store').doc('promo').onSnapshot((doc) => {
+      if(!doc.exists) return;
+      const promo = doc.data();
+      if(!promo.active) return;
+      const seenKey = "omarkin_promo_seen_" + (promo.updatedAt || "");
+      if(sessionStorage.getItem(seenKey)) return;
+      document.getElementById('promoTitle').textContent = promo.title || "";
+      document.getElementById('promoMessage').textContent = promo.message || "";
+      const img = document.getElementById('promoImage');
+      img.src = promo.image || "mascot.jpg";
+      img.style.display = 'block';
+      openOverlay('promoOverlay');
+      sessionStorage.setItem(seenKey, "1");
+    }, (err) => console.error("Erro promo:", err));
+  }
+
+  /* ---------------- DADOS DA LOJA (horário, endereço, whatsapp, instagram) ---------------- */
+  function onlyDigits(str){ return (str || "").replace(/\D/g, ""); }
+  function waLink(rawNumber, message){
+    const digits = onlyDigits(rawNumber);
+    if(!digits) return null;
+    const withCountry = digits.startsWith("55") ? digits : "55" + digits;
+    return "https://wa.me/" + withCountry + (message ? "?text=" + encodeURIComponent(message) : "");
+  }
+  let storeWhatsappNumber = "";
+  let storeIsOpen = true;
+  let storeClosedMsg = "";
+  let deliveryFee = 0;
+  let freeShippingFrom = 0;
+
+  function applyStoreStatus(){
+    const banner = document.getElementById('closedBanner');
+    if(storeIsOpen){
+      banner.style.display = 'none';
+    }else{
+      banner.textContent = "🔒 " + storeClosedMsg;
+      banner.style.display = 'block';
+    }
+    const checkoutBtn = document.getElementById('goCheckout');
+    if(checkoutBtn){
+      checkoutBtn.disabled = !storeIsOpen;
+      checkoutBtn.textContent = storeIsOpen ? "Finalizar pedido" : "🔒 Loja fechada no momento";
+      checkoutBtn.style.opacity = storeIsOpen ? "1" : "0.5";
+      checkoutBtn.style.cursor = storeIsOpen ? "pointer" : "not-allowed";
+    }
+  }
+
+  function currentDeliveryFee(){
+    if(selectedOrderType !== 'entrega') return 0;
+    if(freeShippingFrom > 0 && cartSubtotal() >= freeShippingFrom) return 0;
+    return deliveryFee;
+  }
+  function cartSubtotal(){ return cart.reduce((sum, c) => sum + c.price * c.qty, 0); }
+  function watchStoreInfo(){
+    db.collection('store').doc('info').onSnapshot((doc) => {
+      const info = doc.exists ? doc.data() : {};
+      if(info.hours1) document.getElementById('infoHours1').textContent = info.hours1;
+      if(info.hours2) document.getElementById('infoHours2').textContent = info.hours2;
+      if(info.hours3) document.getElementById('infoHours3').textContent = info.hours3;
+      if(info.address) document.getElementById('infoAddress').textContent = info.address;
+      if(info.instagram) document.getElementById('infoInstagram').textContent = info.instagram;
+
+      storeWhatsappNumber = info.whatsapp || "";
+      storeIsOpen = info.isOpen !== false;
+      storeClosedMsg = info.closedMsg || "No momento estamos fechados. Confira nossos horários abaixo.";
+      deliveryFee = Number(info.deliveryFee) || 0;
+      freeShippingFrom = Number(info.freeFrom) || 0;
+      applyStoreStatus();
+      updateCartUI();
+      const link = waLink(info.whatsapp, "Olá! Vim pelo site da O Markin Chef's Burguer 🍔");
+      if(info.whatsapp) document.getElementById('infoWhatsapp').textContent = info.whatsapp;
+      if(link){
+        document.getElementById('whatsappFab').href = link;
+        document.getElementById('footWhatsappLink').href = link;
+      }
+      if(info.instagram){
+        const igHandle = info.instagram.replace('@','').trim();
+        document.getElementById('footInstagramLink').href = "https://instagram.com/" + igHandle;
+      }
+    }, (err) => console.error("Erro info da loja:", err));
+  }
+
+  function todayStr(){ return new Date().toISOString().slice(0,10); }
+
+  document.getElementById('confirmOrderBtn').addEventListener('click', async () => {
+    const name = document.getElementById('ckName').value.trim();
+    const phone = document.getElementById('ckPhone').value.trim();
+    const address = document.getElementById('ckAddress').value.trim();
+    const payment = document.getElementById('ckPayment').value;
+    const notes = document.getElementById('ckNotes').value.trim();
+    const table = document.getElementById('ckTable').value.trim();
+    const errEl = document.getElementById('checkoutError');
+    if(!name){ errEl.textContent = "Preencha seu nome."; return; }
+    if(selectedOrderType !== 'mesa' && !phone){ errEl.textContent = "Informe seu WhatsApp."; return; }
+    if(selectedOrderType === 'entrega' && !address){ errEl.textContent = "Informe o endereço de entrega."; return; }
+    if(selectedOrderType === 'mesa' && !table){ errEl.textContent = "Informe o número da mesa."; return; }
+    if(!storeIsOpen){ errEl.textContent = "A loja está fechada no momento."; return; }
+    errEl.textContent = "";
+
+    const btn = document.getElementById('confirmOrderBtn');
+    btn.disabled = true; btn.textContent = "Enviando pedido...";
+
+    let order;
+    try{
+      const code = await generateUniqueOrderCode();
+      const dailyNumber = await generateDailyNumber();
+      order = {
+        code, dailyNumber,
+        customerName: name, phone, address, table, orderType: selectedOrderType, payment, notes,
+        items: cart.map(c => ({name:c.name, price:c.price, qty:c.qty, forItem:c.forItem || ""})),
+        subtotal: cartSubtotal(),
+        deliveryFee: currentDeliveryFee(),
+        total: cartTotal(),
+        status: "recebido",
+        tabClosed: selectedOrderType === 'mesa' ? false : true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      await saveOrder(order);
+    }catch(e){
+      console.error(e);
+      btn.disabled = false; btn.textContent = "Confirmar pedido";
+      errEl.textContent = "Não foi possível enviar o pedido. Verifique sua conexão e tente de novo.";
+      return;
+    }
+    btn.disabled = false; btn.textContent = "Confirmar pedido";
+    const code = order.code;
+
+    cart = []; updateCartUI(); renderMenu();
+    document.getElementById('ckName').value = "";
+    document.getElementById('ckPhone').value = "";
+    document.getElementById('ckAddress').value = "";
+    document.getElementById('ckTable').value = "";
+    document.getElementById('ckNotes').value = "";
+    closeOverlay('checkoutOverlay');
+
+    lastOrderCode = code;
+    document.getElementById('trackCodeInput').value = code;
+    openOverlay('trackOverlay');
+    doTrack(code);
+
+    // Guarda os dados do cliente pra facilitar o próximo pedido
+    try{
+      localStorage.setItem('omarkin_customer', JSON.stringify({name, phone, address}));
+      if(selectedOrderType === 'mesa' && table) sessionStorage.setItem('omarkin_mesa', table);
+    }catch(e){}
+
+    // Abre o WhatsApp da loja com o pedido completo
+    sendOrderToWhatsapp(order);
+  });
+
+  function orderTypeLabel(o){
+    if(o.orderType === 'mesa') return "🪑 MESA " + (o.table || "?");
+    if(o.orderType === 'retirada') return "🏠 RETIRADA NO BALCÃO";
+    return "🛵 ENTREGA";
+  }
+
+  function buildOrderMessage(o){
+    const lines = [];
+    lines.push("*NOVO PEDIDO — O MARKIN CHEF'S BURGUER* 🍔");
+    lines.push("");
+    lines.push("*Pedido:* #" + (o.dailyNumber || "-") + " · " + o.code);
+    lines.push("*Tipo:* " + orderTypeLabel(o));
+    if(o.orderType === 'mesa') lines.push("_(lançar na comanda da mesa " + (o.table || "?") + ")_");
+    lines.push("");
+    lines.push("*Cliente:* " + o.customerName);
+    if(o.phone) lines.push("*Telefone:* " + o.phone);
+    if(o.orderType === 'entrega' && o.address) lines.push("*Endereço:* " + o.address);
+    if(o.orderType === 'mesa' && o.table) lines.push("*Mesa:* " + o.table);
+    lines.push("");
+    lines.push("*ITENS:*");
+    o.items.forEach(i => lines.push("• " + i.qty + "x " + i.name + (i.forItem ? " (no " + i.forItem + ")" : "") + " — " + money(i.price * i.qty)));
+    lines.push("");
+    if(o.deliveryFee > 0){
+      lines.push("Subtotal: " + money(o.subtotal));
+      lines.push("Taxa de entrega: " + money(o.deliveryFee));
+    }
+    lines.push("*TOTAL: " + money(o.total) + "*");
+    lines.push("*Pagamento:* " + paymentLabelCliente(o.payment));
+    if(o.notes) { lines.push(""); lines.push("*Observações:* " + o.notes); }
+    return lines.join("\n");
+  }
+  function paymentLabelCliente(p){ return {dinheiro:"Dinheiro", cartao:"Cartão", pix:"Pix"}[p] || p || "-"; }
+
+  function sendOrderToWhatsapp(order){
+    const link = waLink(storeWhatsappNumber, buildOrderMessage(order));
+    if(!link){ return; }
+    window.open(link, '_blank');
+  }
+
+  /* ---------------- TRACKING ---------------- */
+  function stepIndex(status){ return STATUS_FLOW.findIndex(s => s.key === status); }
+
+  function renderStepper(order){
+    const curIdx = stepIndex(order.status);
+    return `
+      <div class="order-summary-box">
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span class="order-code">#${order.dailyNumber || '–'} · ${order.code}</span>
+          <span style="color:rgba(242,233,218,0.5); font-size:12px;">${new Date(order.createdAt).toLocaleString('pt-BR')}</span>
+        </div>
+        <div style="font-size:12px; color:var(--ember); font-weight:700; margin-bottom:6px;">${orderTypeLabel(order)}</div>
+        <div style="font-size:13px; color:rgba(242,233,218,0.7); margin-bottom:4px;">${order.items.map(i => i.qty + 'x ' + escapeHtml(i.name)).join(', ')}</div>
+        <div style="font-family:'Anton',sans-serif; color:var(--mustard); font-size:16px;">${money(order.total)}</div>
+      </div>
+      <button class="wa-send-btn" id="waSendBtn" data-wacode="${order.code}">📲 Enviar pedido pelo WhatsApp</button>
+      <div class="stepper">
+        ${STATUS_FLOW.map((s, i) => `
+          <div class="step ${i < curIdx ? 'done' : i === curIdx ? 'current' : 'pending'}">
+            <div style="position:relative;">
+              <div class="step-dot">${i <= curIdx ? s.icon : i+1}</div>
+              ${i < STATUS_FLOW.length - 1 ? '<div class="step-line"></div>' : ''}
+            </div>
+            <div class="step-text">
+              <strong>${s.label}</strong>
+              <span>${i === curIdx ? 'Status atual' : i < curIdx ? 'Concluído' : 'Aguardando'}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  let trackedOrder = null;
+
+  function doTrack(code){
+    currentTrackedCode = (code || "").trim().toUpperCase();
+    const resultBox = document.getElementById('trackResult');
+    if(!currentTrackedCode){ return; }
+    resultBox.innerHTML = '<div class="loading-row">Buscando seu pedido...</div>';
+
+    // encerra a escuta anterior, se houver
+    if(trackUnsubscribe){ trackUnsubscribe(); trackUnsubscribe = null; }
+
+    // escuta APENAS o documento deste pedido (o cliente não vê os outros)
+    trackUnsubscribe = db.collection('orders').doc(currentTrackedCode).onSnapshot((doc) => {
+      if(!doc.exists){
+        trackedOrder = null;
+        resultBox.innerHTML = '<div class="loading-row">Pedido não encontrado. Confira o código e tente novamente.</div>';
+        return;
+      }
+      trackedOrder = doc.data();
+      renderTrackView();
+    }, (err) => {
+      console.error("Erro ao acompanhar pedido:", err);
+      resultBox.innerHTML = '<div class="loading-row">Não foi possível carregar o pedido. Tente novamente.</div>';
+    });
+  }
+
+  function renderTrackView(){
+    const resultBox = document.getElementById('trackResult');
+    if(!trackedOrder) return;
+    resultBox.innerHTML = renderStepper(trackedOrder);
+    const waBtn = document.getElementById('waSendBtn');
+    if(waBtn) waBtn.addEventListener('click', () => {
+      if(!storeWhatsappNumber){ alert("O WhatsApp da loja ainda não foi cadastrado no painel."); return; }
+      sendOrderToWhatsapp(trackedOrder);
+    });
+  }
+
+  // mantida para compatibilidade com chamadas existentes
+  function refreshTrackView(){ renderTrackView(); }
+
+  document.getElementById('trackSearchBtn').addEventListener('click', () => {
+    const code = document.getElementById('trackCodeInput').value.trim();
+    if(!code){ document.getElementById('trackResult').innerHTML = '<div class="loading-row">Digite o código do seu pedido.</div>'; return; }
+    doTrack(code);
+  });
+  document.getElementById('trackCodeInput').addEventListener('keydown', (e) => { if(e.key === 'Enter') document.getElementById('trackSearchBtn').click(); });
+  function openTrackFlow(){
+    document.getElementById('trackCodeInput').value = lastOrderCode || "";
+    openOverlay('trackOverlay');
+    if(lastOrderCode) doTrack(lastOrderCode);
+    else document.getElementById('trackResult').innerHTML = '<div class="loading-row">Digite o código do seu pedido para ver o status.</div>';
+  }
+  document.getElementById('openTrack').addEventListener('click', openTrackFlow);
+  document.getElementById('heroTrackBtn').addEventListener('click', openTrackFlow);
+  document.getElementById('navTrack').addEventListener('click', openTrackFlow);
+  document.getElementById('trackOverlay').querySelector('[data-close]').addEventListener('click', () => {
+    currentTrackedCode = null; trackedOrder = null;
+    if(trackUnsubscribe){ trackUnsubscribe(); trackUnsubscribe = null; }
+  });
+
+
+  const toggle = document.querySelector('.menu-toggle');
+  const navList = document.querySelector('nav ul');
+  toggle.addEventListener('click', () => {
+    navList.style.display = navList.style.display === 'flex' ? 'none' : 'flex';
+    navList.style.cssText += 'flex-direction:column; position:absolute; top:64px; right:20px; background:#1c1613; padding:20px 26px; border-radius:12px; gap:16px; border:1px solid rgba(242,233,218,0.14); z-index:60;';
+  });
+
+  // O app do cliente só lê o que é público: cardápio, avisos e dados da loja.
+  // Pedidos, financeiro, estoque e equipe ficam bloqueados pelas regras do Firestore.
+  watchProducts();
+  watchPromo();
+  watchStoreInfo();
+  updateCartUI();
+})();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js', {scope:'/'}).catch(()=>{}));
+}
+</script>
+
 </body>
 </html>
