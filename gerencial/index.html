@@ -3724,7 +3724,24 @@
 })();
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      // detecta quando uma versão nova do SW instala e recarrega automaticamente
+      reg.addEventListener('updatefound', () => {
+        const newSW = reg.installing;
+        newSW.addEventListener('statechange', () => {
+          if(newSW.state === 'installed' && navigator.serviceWorker.controller){
+            // nova versão pronta — recarrega em 1s
+            setTimeout(() => window.location.reload(), 1000);
+          }
+        });
+      });
+    }).catch(()=>{});
+    // se o SW assumiu o controle agora (primeira ativação), recarrega pra garantir
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    });
+  });
 }
 </script>
 
