@@ -323,6 +323,52 @@
   .fc-total{margin-top:16px; text-align:right; font-size:15px; font-weight:700;}
   .fc-total span{color:var(--mustard); font-family:'Anton',sans-serif; font-size:19px;}
 
+  /* ---------- QR CODES ---------- */
+  .qr-actions{margin-bottom:16px;}
+  .qr-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); gap:16px;}
+  .qr-card{background:#fff; border-radius:14px; padding:16px; text-align:center;}
+  .qr-mesa{font-family:'Anton',sans-serif; font-size:20px; color:#120e0b; margin-bottom:10px;}
+  .qr-img{display:flex; justify-content:center;}
+  .qr-img img, .qr-img canvas{display:block;}
+  .qr-hint{font-size:11px; color:#555; margin-top:10px;}
+
+  .prod-thumb{width:44px; height:44px; border-radius:10px; object-fit:cover; flex-shrink:0;}
+
+  /* ---------- MODO COZINHA ---------- */
+  .kitchen-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:16px;}
+  .kitchen-card{background:var(--pitch); border:2px solid var(--line); border-radius:16px; padding:18px; display:flex; flex-direction:column;}
+  .kitchen-card.warn{border-color:var(--mustard);}
+  .kitchen-card.late{border-color:var(--tomato); animation:pulseLate 2s infinite;}
+  @keyframes pulseLate{0%,100%{box-shadow:0 0 0 0 rgba(182,56,44,0.4);}50%{box-shadow:0 0 0 8px rgba(182,56,44,0);}}
+  .kc-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+  .kc-num{font-family:'Anton',sans-serif; font-size:32px; color:var(--ember);}
+  .kc-time{font-family:'Anton',sans-serif; font-size:17px; color:rgba(242,233,218,0.6);}
+  .kitchen-card.warn .kc-time{color:var(--mustard);}
+  .kitchen-card.late .kc-time{color:var(--tomato);}
+  .kc-type{font-size:12px; font-weight:700; letter-spacing:1px; color:var(--mustard); margin-bottom:12px;}
+  .kc-items{list-style:none; margin:0 0 12px; padding:0; flex-grow:1;}
+  .kc-items li{font-size:17px; line-height:1.5; padding:5px 0; border-bottom:1px dashed var(--line);}
+  .kc-items li b{color:var(--ember); font-family:'Anton',sans-serif; margin-right:6px;}
+  .kc-items li em{color:var(--mustard); font-size:14px; font-style:normal;}
+  .kc-notes{background:rgba(240,180,41,0.12); border-radius:10px; padding:10px; font-size:14px; color:var(--mustard); margin-bottom:12px;}
+  .kc-btn{background:var(--ember); color:var(--pitch); border:none; border-radius:12px; padding:16px; font-size:16px; font-weight:700; cursor:pointer; letter-spacing:0.5px;}
+  .kc-btn:hover{background:var(--mustard);}
+
+  .cancel-btn{background:transparent; border:1px solid var(--tomato); color:var(--tomato); padding:8px 14px; border-radius:999px; font-size:12px; font-weight:700; cursor:pointer;}
+  .cancel-btn:hover{background:var(--tomato); color:var(--cream);}
+
+  /* ---------- PERMISSÕES ---------- */
+  .perm-preview{background:var(--pitch); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:16px; font-size:13px; line-height:1.7;}
+  .perm-preview .pp-title{font-size:11px; letter-spacing:1px; color:rgba(242,233,218,0.5); text-transform:uppercase; margin-bottom:8px;}
+  .perm-tag{display:inline-block; background:rgba(76,175,109,0.15); color:var(--green); border-radius:999px; padding:3px 10px; font-size:12px; font-weight:700; margin:3px 4px 3px 0;}
+  .perm-tag.no{background:rgba(182,56,44,0.12); color:rgba(182,56,44,0.85);}
+  .perm-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .perm-chk{display:flex; align-items:center; gap:9px; background:var(--pitch); border:1px solid var(--line); border-radius:10px; padding:11px 13px; font-size:13px; cursor:pointer; transition:border-color .2s;}
+  .perm-chk:hover{border-color:var(--ember);}
+  .perm-chk input{width:auto; margin:0; accent-color:var(--ember);}
+  .role-badge{display:inline-block; background:rgba(229,118,46,0.15); color:var(--ember); border-radius:999px; padding:2px 9px; font-size:11px; font-weight:700; margin-left:6px;}
+  @media(max-width:560px){ .perm-grid{grid-template-columns:1fr;} }
+
   /* ---------- CAIXA ---------- */
   .register-banner{border-radius:12px; padding:14px 18px; font-size:14px; font-weight:700; margin-bottom:22px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
   .register-banner.open{background:rgba(76,175,109,0.12); border:1px solid var(--green); color:var(--green);}
@@ -425,6 +471,12 @@
     .print-area .p-total{display:flex; justify-content:space-between; font-size:15px; font-weight:700; margin-top:8px;}
     .print-area .p-notes{font-size:12px; margin-top:10px; border:1px solid #000; padding:8px; border-radius:4px;}
     .print-area .p-foot{text-align:center; font-size:10px; margin-top:14px;}
+    .print-area:has(.qr-print-wrap){width:100% !important; padding:10mm;}
+    .print-area .qr-print-wrap{width:100%;}
+    .print-area .qr-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+    .print-area .qr-card{border:2px dashed #000; border-radius:10px; padding:14px; text-align:center; page-break-inside:avoid; background:#fff;}
+    .print-area .qr-mesa{font-family:'Anton',sans-serif; font-size:20px; margin-bottom:8px; color:#000;}
+    .print-area .qr-hint{font-size:10px; color:#333; margin-top:8px;}
   }
 </style>
 </head>
@@ -690,6 +742,7 @@
           <button class="admin-tab-btn active" data-atab="dashboard">📊 Dashboard</button>
           <button class="admin-tab-btn" data-atab="cardapio">Cardápio</button>
           <button class="admin-tab-btn" data-atab="pedidos">Pedidos <span id="pendingBadge"></span></button>
+          <button class="admin-tab-btn" data-atab="cozinha">👨‍🍳 Cozinha <span id="kitchenBadge"></span></button>
           <button class="admin-tab-btn" data-atab="mesas">🪑 Mesas <span id="openTablesBadge"></span></button>
           <button class="admin-tab-btn" data-atab="caixa">💳 Caixa <span id="caixaBadge"></span></button>
           <button class="admin-tab-btn" data-atab="financeiro">Financeiro</button>
@@ -743,6 +796,14 @@
             <div class="field"><label>Etiqueta (opcional)</label><input type="text" id="fTag" placeholder="Ex: NOVO, PICANTE, MAIS PEDIDO"></div>
           </div>
           <div class="field"><label>Descrição</label><textarea id="fDesc" placeholder="Descrição curta do produto"></textarea></div>
+          <div class="field">
+            <label>Foto do produto (opcional)</label>
+            <input type="file" id="fPhoto" accept="image/*">
+            <div id="fPhotoWrap" style="margin-top:12px; display:none;">
+              <img id="fPhotoPreview" style="max-width:180px; border-radius:12px; border:1px solid var(--line); display:block;">
+              <button class="btn-ghost" id="fPhotoRemove" style="margin-top:10px; padding:8px 16px; font-size:12px;">Remover foto</button>
+            </div>
+          </div>
           <div class="form-actions">
             <button class="btn-primary" id="saveBtn">Adicionar produto</button>
             <button class="btn-ghost" id="cancelEditBtn" style="display:none;">Cancelar edição</button>
@@ -757,11 +818,17 @@
 
         <!-- PEDIDOS TAB -->
         <div id="atabPedidos" style="display:none;">
+          <button class="btn-primary" id="newManualOrderBtn" style="width:100%; margin-bottom:20px; padding:15px;">📞 Novo pedido (telefone / balcão)</button>
           <div id="dayStats" class="day-stats"></div>
           <div class="admin-list" style="margin-top:0; border-top:none; padding-top:0;">
             <h3>Pedidos recebidos</h3>
             <div id="adminOrderList"><div class="loading-row">Carregando...</div></div>
           </div>
+        </div>
+
+        <!-- COZINHA TAB -->
+        <div id="atabCozinha" style="display:none;">
+          <div class="kitchen-grid" id="kitchenGrid"><div class="loading-row">Carregando...</div></div>
         </div>
 
         <!-- MESAS TAB -->
@@ -886,10 +953,38 @@
             <div class="field"><label>Senha inicial (mín. 6 caracteres)</label><input type="text" id="empPassNew" placeholder="Ex: markin2026"></div>
             <div class="field"><label>Função</label>
               <select id="empRole">
-                <option value="funcionario">Funcionário (não vê financeiro)</option>
-                <option value="gerente">Gerente (acesso total)</option>
+                <option value="gerente">👔 Gerente — acesso total</option>
+                <option value="subgerente">🧑‍💼 Subgerente — tudo, menos criar acessos</option>
+                <option value="caixa" selected>💳 Caixa — recebe pagamentos e fecha contas</option>
+                <option value="balconista">🧑‍🍳 Balconista — pedidos, mesas e caixa</option>
+                <option value="garcom">🍽️ Garçom — mesas e pedidos</option>
+                <option value="cozinha">👨‍🍳 Cozinha — pedidos e estoque</option>
+                <option value="entregador">🛵 Entregador — só os pedidos</option>
+                <option value="custom">⚙️ Personalizado — eu escolho</option>
               </select>
             </div>
+          </div>
+
+          <div class="perm-preview" id="permPreview"></div>
+
+          <div id="customPerms" style="display:none; margin-bottom:18px;">
+            <label style="display:block; font-size:12px; letter-spacing:0.8px; color:rgba(242,233,218,0.55); margin-bottom:10px; text-transform:uppercase;">Marque o que essa pessoa pode acessar</label>
+            <div class="perm-grid">
+              <label class="perm-chk"><input type="checkbox" data-perm="dashboard"> 📊 Dashboard</label>
+              <label class="perm-chk"><input type="checkbox" data-perm="cardapio"> 🍔 Cardápio</label>
+              <label class="perm-chk"><input type="checkbox" data-perm="pedidos"> 📋 Pedidos</label>
+              <label class="perm-chk"><input type="checkbox" data-perm="cozinha"> 👨‍🍳 Cozinha</label>
+              <label class="perm-chk"><input type="checkbox" data-perm="mesas"> 🪑 Mesas</label>
+              <label class="perm-chk"><input type="checkbox" data-perm="caixa"> 💳 Caixa</label>
+              <label class="perm-chk"><input type="checkbox" data-perm="financeiro"> 💰 Financeiro</label>
+              <label class="perm-chk"><input type="checkbox" data-perm="estoque"> 📦 Estoque</label>
+              <label class="perm-chk"><input type="checkbox" data-perm="equipe"> 👥 Equipe</label>
+              <label class="perm-chk"><input type="checkbox" data-perm="promocao"> 📣 Promoção</label>
+              <label class="perm-chk"><input type="checkbox" data-perm="loja"> 🏪 Loja</label>
+            </div>
+          </div>
+
+          <div style="display:none;">
           </div>
           <button class="btn-primary" id="addEmployeeBtn">Criar acesso</button>
           <div class="error-msg" id="empError"></div>
@@ -935,6 +1030,23 @@
             <div class="field"><label>Mensagem quando fechada</label><input type="text" id="lojaClosedMsg" placeholder="Ex: Abrimos hoje às 18h!"></div>
           </div>
           <div class="admin-list">
+            <h3>⏱️ Tempo estimado (mostrado ao cliente)</h3>
+            <div class="form-grid">
+              <div class="field"><label>Preparo (minutos)</label><input type="number" id="lojaPrepTime" placeholder="Ex: 25"></div>
+              <div class="field"><label>Entrega (minutos)</label><input type="number" id="lojaDeliveryTime" placeholder="Ex: 20"></div>
+            </div>
+          </div>
+          <div class="admin-list">
+            <h3>🪑 QR Code das mesas</h3>
+            <p style="font-size:13px; color:rgba(242,233,218,0.6); margin-bottom:14px;">Gera um QR pra cada mesa. O cliente escaneia e o número da mesa já vem preenchido — acaba o risco de pedido ir pra mesa errada.</p>
+            <div class="form-grid">
+              <div class="field"><label>Quantidade de mesas</label><input type="number" id="qrCount" value="10" min="1" max="60"></div>
+              <div class="field"><label>Endereço do site</label><input type="text" id="qrBaseUrl" placeholder="https://seusite.vercel.app"></div>
+            </div>
+            <button class="btn-primary" id="genQrBtn">Gerar QR Codes</button>
+            <div id="qrArea" style="margin-top:20px;"></div>
+          </div>
+          <div class="admin-list">
             <h3>🛵 Taxa de entrega</h3>
             <div class="form-grid">
               <div class="field"><label>Valor da taxa (R$)</label><input type="number" step="0.01" id="lojaDeliveryFee" placeholder="Ex: 8.00"></div>
@@ -973,6 +1085,78 @@
     </div>
   </div>
 </div>
+<!-- ================= PEDIDO MANUAL ================= -->
+<div class="overlay" id="manualOverlay">
+  <div class="panel">
+    <div class="panel-head"><h2>📞 Novo pedido</h2><button class="close-btn" data-close="manualOverlay">✕</button></div>
+    <div class="panel-body">
+      <div class="form-grid">
+        <div class="field"><label>Nome do cliente</label><input type="text" id="moName" placeholder="Nome"></div>
+        <div class="field"><label>Telefone</label><input type="text" id="moPhone" placeholder="(00) 00000-0000"></div>
+      </div>
+      <div class="field">
+        <label>Tipo</label>
+        <div class="type-toggle">
+          <button type="button" class="type-btn active" data-motype="entrega">🛵 Entrega</button>
+          <button type="button" class="type-btn" data-motype="retirada">🏠 Balcão</button>
+          <button type="button" class="type-btn" data-motype="mesa">🪑 Mesa</button>
+        </div>
+      </div>
+      <div class="field" id="moAddressField"><label>Endereço</label><textarea id="moAddress" placeholder="Rua, número, bairro"></textarea></div>
+      <div class="field" id="moTableField" style="display:none;"><label>Número da mesa</label><input type="number" id="moTable" min="1"></div>
+      <div class="field"><label>Forma de pagamento</label>
+        <select id="moPayment">
+          <option value="dinheiro">Dinheiro</option>
+          <option value="cartao">Cartão</option>
+          <option value="pix">Pix</option>
+        </select>
+      </div>
+      <div class="field"><label>Observações</label><textarea id="moNotes" placeholder="Ex: sem cebola, troco pra 100"></textarea></div>
+
+      <div class="admin-list" style="margin-top:0; padding-top:20px;">
+        <h3>Itens do pedido</h3>
+        <div class="form-grid">
+          <div class="field"><label>Produto</label><select id="moProduct"></select></div>
+          <div class="field"><label>Quantidade</label><input type="number" id="moQty" value="1" min="1"></div>
+        </div>
+        <button class="btn-ghost" id="moAddItemBtn">+ Adicionar item</button>
+        <div id="moItemsList" style="margin-top:16px;"></div>
+        <div class="cart-total-row" style="margin-top:10px;"><span>Total</span><span id="moTotal">R$ 0,00</span></div>
+      </div>
+
+      <button class="btn-primary" id="moConfirmBtn" style="width:100%; padding:16px; font-size:16px;">✅ Lançar pedido</button>
+      <div class="error-msg" id="moError"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= EDITAR PERMISSÕES ================= -->
+<div class="overlay" id="permOverlay">
+  <div class="panel narrow">
+    <div class="panel-head"><h2>🔧 Permissões</h2><button class="close-btn" data-close="permOverlay">✕</button></div>
+    <div class="panel-body">
+      <input type="hidden" id="permUserId">
+      <h3 id="permUserName" style="font-family:'Anton',sans-serif; color:var(--ember); font-size:18px; margin-bottom:18px;"></h3>
+      <div class="field">
+        <label>Função</label>
+        <select id="permRole">
+          <option value="gerente">👔 Gerente — acesso total</option>
+          <option value="subgerente">🧑‍💼 Subgerente — tudo, menos criar acessos</option>
+          <option value="caixa">💳 Caixa — recebe pagamentos e fecha contas</option>
+          <option value="balconista">🧑‍🍳 Balconista — pedidos, mesas e caixa</option>
+          <option value="garcom">🍽️ Garçom — mesas e pedidos</option>
+          <option value="cozinha">👨‍🍳 Cozinha — pedidos e estoque</option>
+          <option value="entregador">🛵 Entregador — só os pedidos</option>
+          <option value="custom">⚙️ Personalizado — eu escolho</option>
+        </select>
+      </div>
+      <div id="permEditGrid" class="perm-grid" style="margin-bottom:18px;"></div>
+      <button class="btn-primary" id="savePermBtn" style="width:100%;">Salvar permissões</button>
+      <div class="error-msg" id="permEditError"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ================= PAGAMENTO (CAIXA) ================= -->
 <div class="overlay" id="payOverlay">
   <div class="panel narrow">
@@ -1063,6 +1247,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyA-7sy4ox0ErDZAw7prhXYJ3MaSA7G_scY",
@@ -1074,6 +1259,10 @@
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
+  // Modo offline: guarda no aparelho e sincroniza quando a internet voltar
+  db.enablePersistence({synchronizeTabs:true}).catch((err) => {
+    console.warn("Persistência offline indisponível:", err.code);
+  });
   const auth = firebase.auth();
   // app secundário: usado só pra criar contas de funcionário sem deslogar o gerente
   const secondaryApp = firebase.initializeApp(firebaseConfig, "secondary");
@@ -1190,7 +1379,7 @@
     if(products.length === 0){ list.innerHTML = '<div class="loading-row">Nenhum produto cadastrado ainda.</div>'; return; }
     list.innerHTML = products.map(p => `
       <div class="prod-row">
-        <div class="pi">${p.icon || '🍔'}</div>
+        ${p.photo ? `<img src="${p.photo}" class="prod-thumb" alt="">` : `<div class="pi">${p.icon || '🍔'}</div>`}
         <div class="pn"><strong>${escapeHtml(p.name)}</strong><span>${catLabel(p.cat)}${p.tag ? ' · ' + escapeHtml(p.tag) : ''}${p.cost ? ' · custo ' + money(p.cost) + ' · margem ' + Math.round(((p.price - p.cost)/p.price)*100) + '%' : ''}</span></div>
         <div class="pp">${money(p.price)}</div>
         <div class="row-actions">
@@ -1214,6 +1403,9 @@
     document.getElementById('fIcon').value = "";
     document.getElementById('fTag').value = "";
     document.getElementById('fDesc').value = "";
+    pendingPhoto = null;
+    document.getElementById('fPhoto').value = "";
+    document.getElementById('fPhotoWrap').style.display = 'none';
     document.getElementById('saveBtn').textContent = "Adicionar produto";
     document.getElementById('cancelEditBtn').style.display = "none";
     document.getElementById('formError').textContent = "";
@@ -1229,6 +1421,10 @@
     document.getElementById('fIcon').value = p.icon || "";
     document.getElementById('fTag').value = p.tag || "";
     document.getElementById('fDesc').value = p.desc || "";
+    pendingPhoto = null;
+    document.getElementById('fPhoto').value = "";
+    if(p.photo){ document.getElementById('fPhotoPreview').src = p.photo; document.getElementById('fPhotoWrap').style.display = 'block'; }
+    else document.getElementById('fPhotoWrap').style.display = 'none';
     document.getElementById('saveBtn').textContent = "Salvar alterações";
     document.getElementById('cancelEditBtn').style.display = "inline-block";
     document.getElementById('formError').textContent = "";
@@ -1254,13 +1450,54 @@
     const price = parseFloat(priceRaw);
     if(editingId){
       const idx = products.findIndex(p => p.id === editingId);
-      if(idx > -1) products[idx] = {id: editingId, name, cat, price, cost, icon, tag, desc, recipe: (products[idx] && products[idx].recipe) || []};
+      if(idx > -1){
+        const prev = products[idx] || {};
+        const photo = pendingPhoto !== null ? pendingPhoto : (prev.photo || "");
+        products[idx] = {id: editingId, name, cat, price, cost, icon, tag, desc, photo, recipe: prev.recipe || []};
+      }
     }else{
-      products.push({id: genId(), name, cat, price, cost, icon, tag, desc, recipe: []});
+      products.push({id: genId(), name, cat, price, cost, icon, tag, desc, photo: pendingPhoto || "", recipe: []});
     }
     await saveProducts(); renderMenu(); renderAdminList(); clearForm();
   });
   document.getElementById('cancelEditBtn').addEventListener('click', clearForm);
+
+  /* ---------------- FOTO DO PRODUTO ---------------- */
+  let pendingPhoto = null; // null = não mexeu | "" = remover | base64 = nova
+  function compressImage(file, maxW, quality){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const img = new Image();
+        img.onload = () => {
+          const scale = Math.min(1, maxW / img.width);
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+        img.src = ev.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+  document.getElementById('fPhoto').addEventListener('change', async (e) => {
+    const file = e.target.files[0]; if(!file) return;
+    // 600px / qualidade 0.65 mantém a foto bem abaixo do limite do banco
+    let data = await compressImage(file, 600, 0.65);
+    if(data.length > 700000) data = await compressImage(file, 420, 0.55);
+    pendingPhoto = data;
+    document.getElementById('fPhotoPreview').src = data;
+    document.getElementById('fPhotoWrap').style.display = 'block';
+  });
+  document.getElementById('fPhotoRemove').addEventListener('click', () => {
+    pendingPhoto = "";
+    document.getElementById('fPhotoWrap').style.display = 'none';
+    document.getElementById('fPhoto').value = "";
+  });
 
   document.getElementById('importMenuBtn').addEventListener('click', async () => {
     if(!confirm("Isso vai SUBSTITUIR todo o cardápio atual pelos 22 itens do cardápio novo. Continuar?")) return;
@@ -1373,18 +1610,38 @@
     }
   }
 
+  // Com ~200 pedidos/dia, a tela ao vivo carrega só o turno atual.
+  // O histórico vem das estatísticas diárias (rápido) ou por busca de data.
+  function shiftStartISO(){
+    // turno começa às 15h; antes disso, considera o dia anterior (fecha 23h+)
+    const now = new Date();
+    const start = new Date(now);
+    start.setHours(15, 0, 0, 0);
+    if(now < start) start.setDate(start.getDate() - 1);
+    return start.toISOString();
+  }
+
   function watchOrders(){
-    // coleção 'orders': 1 documento por pedido (ID = código do pedido)
-    db.collection('orders').orderBy('createdAt', 'desc').limit(300).onSnapshot((snap) => {
-      orders = snap.docs.map(d => d.data());
-      checkForNewOrders();
-      renderAdminOrders();
-      renderTables();
-      renderCaixa();
-      renderDashboard();
-      renderEmployeeRanking();
-      if(currentTrackedCode) refreshTrackView();
-    }, (err) => { console.error("Erro ao ler pedidos:", err); });
+    db.collection('orders')
+      .where('createdAt', '>=', shiftStartISO())
+      .orderBy('createdAt', 'desc')
+      .onSnapshot((snap) => {
+        orders = snap.docs.map(d => d.data());
+        checkForNewOrders();
+        renderAdminOrders();
+        renderTables();
+        renderCaixa();
+        renderDashboard();
+        renderEmployeeRanking();
+        if(currentTrackedCode) refreshTrackView();
+      }, (err) => {
+        console.error("Erro ao ler pedidos:", err);
+        // se faltar índice composto, cai pro modo simples
+        db.collection('orders').orderBy('createdAt','desc').limit(200).onSnapshot((snap) => {
+          orders = snap.docs.map(d => d.data());
+          checkForNewOrders(); renderAdminOrders(); renderTables(); renderCaixa(); renderDashboard();
+        });
+      });
   }
   async function saveOrder(order){
     try{ await db.collection('orders').doc(order.code).set(order); }
@@ -1521,6 +1778,10 @@
       document.getElementById('lojaWhatsapp').value = info.whatsapp || "";
       document.getElementById('lojaInstagram').value = info.instagram || "";
       document.getElementById('lojaClosedMsg').value = info.closedMsg || "";
+      document.getElementById('lojaPrepTime').value = info.prepTime || 25;
+      document.getElementById('lojaDeliveryTime').value = info.deliveryTime || 20;
+      if(!document.getElementById('qrBaseUrl').value) document.getElementById('qrBaseUrl').value = window.location.origin;
+      storeDeliveryFee = Number(info.deliveryFee) || 0;
       document.getElementById('lojaDeliveryFee').value = (info.deliveryFee !== undefined && info.deliveryFee !== null) ? info.deliveryFee : "";
       document.getElementById('lojaFreeFrom').value = (info.freeFrom !== undefined && info.freeFrom !== null) ? info.freeFrom : "";
       selectedStoreOpen = info.isOpen !== false;
@@ -1534,6 +1795,8 @@
     const info = {
       isOpen: selectedStoreOpen,
       closedMsg: document.getElementById('lojaClosedMsg').value.trim(),
+      prepTime: parseInt(document.getElementById('lojaPrepTime').value) || 25,
+      deliveryTime: parseInt(document.getElementById('lojaDeliveryTime').value) || 20,
       deliveryFee: parseFloat(document.getElementById('lojaDeliveryFee').value) || 0,
       freeFrom: parseFloat(document.getElementById('lojaFreeFrom').value) || 0,
       hours1: document.getElementById('lojaHours1').value.trim(),
@@ -1549,6 +1812,37 @@
       document.getElementById('lojaError').textContent = "";
     }catch(e){ document.getElementById('lojaError').textContent = "Não foi possível salvar. Tente novamente."; }
   });
+
+  /* ---------------- QR CODE DAS MESAS ---------------- */
+  document.getElementById('genQrBtn').addEventListener('click', () => {
+    const count = parseInt(document.getElementById('qrCount').value) || 10;
+    let base = document.getElementById('qrBaseUrl').value.trim() || window.location.origin;
+    base = base.replace(/\/+$/, '').replace(/\/gerencial$/, '');
+    const area = document.getElementById('qrArea');
+    if(typeof QRCode === 'undefined'){ area.innerHTML = '<div class="error-msg">Biblioteca de QR não carregou. Verifique a internet.</div>'; return; }
+    area.innerHTML = '<div class="qr-actions"><button class="btn-primary" id="printQrBtn">🖨️ Imprimir todos</button></div><div class="qr-grid" id="qrGrid"></div>';
+    const grid = document.getElementById('qrGrid');
+    for(let i = 1; i <= count; i++){
+      const card = document.createElement('div');
+      card.className = 'qr-card';
+      card.innerHTML = `<div class="qr-mesa">MESA ${i}</div><div class="qr-img" id="qr-${i}"></div><div class="qr-hint">Aponte a câmera e faça seu pedido</div>`;
+      grid.appendChild(card);
+      new QRCode(document.getElementById('qr-' + i), {
+        text: base + "/?mesa=" + i,
+        width: 150, height: 150,
+        colorDark: "#000000", colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+    document.getElementById('printQrBtn').addEventListener('click', () => printQrCodes(count));
+  });
+
+  function printQrCodes(count){
+    const grid = document.getElementById('qrGrid');
+    const area = document.getElementById('printArea');
+    area.innerHTML = '<div class="qr-print-wrap">' + grid.innerHTML + '</div>';
+    setTimeout(() => window.print(), 200);
+  }
 
   /* ---------------- BACKUP ---------------- */
   document.getElementById('exportDataBtn').addEventListener('click', async () => {
@@ -1748,11 +2042,13 @@
         </div>
         <div class="order-actions-row">
           <button class="print-btn" data-print="${o.code}">🖨️ Imprimir comanda</button>
+          ${o.status !== 'cancelado' ? `<button class="cancel-btn" data-cancel="${o.code}">❌ Cancelar</button>` : '<span style="color:var(--tomato); font-weight:700; font-size:13px;">❌ CANCELADO</span>'}
         </div>
       </div>
     `).join('');
     box.querySelectorAll('[data-setstatus]').forEach(btn => btn.addEventListener('click', () => setOrderStatus(btn.dataset.setstatus, btn.dataset.status)));
     box.querySelectorAll('[data-print]').forEach(btn => btn.addEventListener('click', () => printComanda(btn.dataset.print)));
+    box.querySelectorAll('[data-cancel]').forEach(btn => btn.addEventListener('click', () => cancelOrder(btn.dataset.cancel)));
   }
   function paymentLabel(p){ return {dinheiro:"Dinheiro", cartao:"Cartão", pix:"Pix"}[p] || p || "–"; }
 
@@ -1783,6 +2079,35 @@
     setTimeout(() => window.print(), 100);
   }
 
+  /* ---------------- ESTATÍSTICAS HISTÓRICAS ---------------- */
+  let dailyStats = {};   // {'2026-08-17': {revenue, orderCount, products:{}}}
+
+  function watchStats(){
+    // últimos 60 dias — 60 documentos, independente do volume de pedidos
+    const from = new Date(Date.now() - 60*24*60*60*1000).toISOString().slice(0,10);
+    db.collection('stats').where('date','>=',from).onSnapshot((snap) => {
+      dailyStats = {};
+      snap.docs.forEach(d => dailyStats[d.id] = d.data());
+      renderDashboard();
+    }, (err) => console.warn("stats:", err));
+  }
+
+  function statsRange(days){
+    const cutoff = new Date(Date.now() - days*24*60*60*1000).toISOString().slice(0,10);
+    return Object.values(dailyStats).filter(s => s.date >= cutoff);
+  }
+  function revenueRange(days){ return statsRange(days).reduce((s,d) => s + (Number(d.revenue)||0), 0); }
+  function countRange(days){ return statsRange(days).reduce((s,d) => s + (Number(d.orderCount)||0), 0); }
+  function productsRange(days){
+    const acc = {};
+    statsRange(days).forEach(d => {
+      Object.entries(d.products || {}).forEach(([name, qty]) => {
+        acc[name] = (acc[name] || 0) + Number(qty);
+      });
+    });
+    return acc;
+  }
+
   /* ---------------- DASHBOARD ---------------- */
   function ordersInRange(days){
     const cutoff = Date.now() - days*24*60*60*1000;
@@ -1798,9 +2123,14 @@
       : '';
     document.getElementById('lowStockBadge').textContent = low.length > 0 ? `(${low.length})` : '';
 
-    const today = ordersInRange(1), week = ordersInRange(7), month = ordersInRange(30);
-    const revToday = sumRevenue(today), revWeek = sumRevenue(week), revMonth = sumRevenue(month);
-    const ticketMedio = orders.length ? sumRevenue(orders)/orders.length : 0;
+    // números históricos vêm das estatísticas agregadas (rápido em qualquer volume)
+    const todayKey = todayStr();
+    const st = dailyStats[todayKey] || {};
+    const revToday = Number(st.revenue) || 0;
+    const countToday = Number(st.orderCount) || 0;
+    const revWeek = revenueRange(7), revMonth = revenueRange(30);
+    const countMonth = countRange(30);
+    const ticketMedio = countMonth ? revMonth / countMonth : 0;
     const fixedTotal = fixedCosts.reduce((s,c) => s + Number(c.amount), 0);
     const saidasMonth = cashflow.filter(c => c.type==='saida' && new Date(c.date).getTime() >= Date.now()-30*24*60*60*1000).reduce((s,c)=>s+Number(c.amount),0);
     const entradasManualMonth = cashflow.filter(c => c.type==='entrada' && new Date(c.date).getTime() >= Date.now()-30*24*60*60*1000).reduce((s,c)=>s+Number(c.amount),0);
@@ -1812,14 +2142,13 @@
       <div class="kpi-card"><div class="kv">${money(revMonth)}</div><div class="kl">Últimos 30 dias</div></div>
       <div class="kpi-card"><div class="kv">${money(ticketMedio)}</div><div class="kl">Ticket médio</div></div>
       <div class="kpi-card profit ${lucroEstimado<0?'negative':''}"><div class="kv">${money(lucroEstimado)}</div><div class="kl">Lucro estimado (30d)</div></div>
-      <div class="kpi-card"><div class="kv">${today.length}</div><div class="kl">Pedidos hoje</div></div>
+      <div class="kpi-card"><div class="kv">${countToday}</div><div class="kl">Pedidos hoje</div></div>
       <div class="kpi-card"><div class="kv">${money(fixedTotal)}</div><div class="kl">Custos fixos / mês</div></div>
       <div class="kpi-card"><div class="kv">${inventory.length}</div><div class="kl">Itens no estoque</div></div>
     `;
 
-    // best sellers
-    const counts = {};
-    orders.forEach(o => o.items.forEach(i => { counts[i.name] = (counts[i.name]||0) + i.qty; }));
+    // best sellers — dos últimos 30 dias, via estatísticas
+    const counts = productsRange(30);
     const ranked = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
     const maxCount = ranked.length ? ranked[0][1] : 1;
     document.getElementById('bestSellers').innerHTML = ranked.length ? ranked.map(([name,count],i) => `
@@ -1835,7 +2164,7 @@
     for(let i=6;i>=0;i--){
       const d = new Date(); d.setDate(d.getDate()-i);
       const key = d.toISOString().slice(0,10);
-      const dayRevenue = orders.filter(o => (o.createdAt||"").slice(0,10) === key).reduce((s,o)=>s+o.total,0);
+      const dayRevenue = Number((dailyStats[key]||{}).revenue) || 0;
       days.push({label: d.toLocaleDateString('pt-BR',{weekday:'short'}).replace('.',''), value: dayRevenue});
     }
     const maxRev = Math.max(...days.map(d=>d.value), 1);
@@ -2000,6 +2329,7 @@
 
   /* ================= CAIXA ================= */
   let register = {isOpen:false};
+  let storeDeliveryFee = 0;
   let currentBill = null;
   let selectedPayMethod = 'dinheiro';
   let splitMode = false;
@@ -2102,7 +2432,7 @@
 
     renderCloseSummary();
     // fechar caixa é só do gerente
-    document.getElementById('closeRegisterSection').style.display = currentRole === 'gerente' ? 'block' : 'none';
+    document.getElementById('closeRegisterSection').style.display = (currentRole === 'gerente' || myPerms.includes('financeiro')) ? 'block' : 'none';
   }
 
   function methodAmount(order, method){
@@ -2166,18 +2496,56 @@
     try{
       const bills = pendingBills();
       if(bills.length > 0 && !confirm(`Atenção: ainda há ${bills.length} conta(s) em aberto. Fechar mesmo assim?`)) return;
-      await db.collection('store').doc('register').set({
-        isOpen: false,
-        openingAmount: register.openingAmount || 0,
+      const now = new Date().toISOString();
+      const pagos = paidToday().filter(o => new Date(o.paidAt) >= new Date(register.openedAt));
+      const report = {
+        closedAt: now,
         openedAt: register.openedAt,
-        closedAt: new Date().toISOString(),
         closedBy: currentEmployee ? currentEmployee.name : '',
-        expected, counted, difference: diff
-      });
+        openingAmount: register.openingAmount || 0,
+        expected, counted, difference: diff,
+        billsPaid: pagos.length,
+        totalCash: pagos.reduce((s,o)=>s+methodAmount(o,'dinheiro'),0),
+        totalPix: pagos.reduce((s,o)=>s+methodAmount(o,'pix'),0),
+        totalDebit: pagos.reduce((s,o)=>s+methodAmount(o,'debito'),0),
+        totalCredit: pagos.reduce((s,o)=>s+methodAmount(o,'credito'),0),
+        totalRevenue: pagos.reduce((s,o)=>s+(Number(o.paidTotal)||0),0)
+      };
+      // guarda o fechamento do dia pra conferência futura
+      await db.collection('closings').doc(todayStr() + "_" + Date.now()).set(report);
+      await db.collection('store').doc('register').set(Object.assign({isOpen:false}, report));
       document.getElementById('closingAmount').value = "";
       showToast("Caixa fechado — " + diffTxt);
+      if(confirm("Caixa fechado!\n\nImprimir o relatório do turno?")) printClosingReport(report);
     }catch(e){ errEl.textContent = "Não foi possível fechar o caixa."; }
   });
+
+  function printClosingReport(r){
+    const area = document.getElementById('printArea');
+    area.innerHTML = `
+      <div class="p-logo">O MARKIN</div>
+      <div class="p-sub">FECHAMENTO DE CAIXA</div>
+      <div class="p-line"></div>
+      <div class="p-code">${new Date(r.openedAt).toLocaleString('pt-BR')}<br>até ${new Date(r.closedAt).toLocaleString('pt-BR')}</div>
+      <div class="p-row"><span>Operador:</span><span>${escapeHtml(r.closedBy || '-')}</span></div>
+      <div class="p-line"></div>
+      <div class="p-row"><span>Contas pagas:</span><span>${r.billsPaid}</span></div>
+      <div class="p-line"></div>
+      <div class="p-row"><span>Dinheiro:</span><span>${money(r.totalCash)}</span></div>
+      <div class="p-row"><span>Pix:</span><span>${money(r.totalPix)}</span></div>
+      <div class="p-row"><span>Débito:</span><span>${money(r.totalDebit)}</span></div>
+      <div class="p-row"><span>Crédito:</span><span>${money(r.totalCredit)}</span></div>
+      <div class="p-total"><span>TOTAL DO TURNO</span><span>${money(r.totalRevenue)}</span></div>
+      <div class="p-line"></div>
+      <div class="p-row"><span>Fundo inicial:</span><span>${money(r.openingAmount)}</span></div>
+      <div class="p-row"><span>Esperado na gaveta:</span><span>${money(r.expected)}</span></div>
+      <div class="p-row"><span>Contado:</span><span>${money(r.counted)}</span></div>
+      <div class="p-total"><span>DIFERENÇA</span><span>${r.difference === 0 ? 'OK' : (r.difference > 0 ? '+' : '') + money(r.difference)}</span></div>
+      <div class="p-notes" style="margin-top:14px;">Conferido por: ______________________</div>
+      <div class="p-foot">O Markin Chef's Burguer 🔥</div>
+    `;
+    setTimeout(() => window.print(), 100);
+  }
 
   /* ---------- MODAL DE PAGAMENTO ---------- */
   function openPayment(billId){
@@ -2572,6 +2940,182 @@
     }
   }
 
+  /* ---------------- MODO COZINHA ---------------- */
+  function renderKitchen(){
+    const box = document.getElementById('kitchenGrid');
+    const active = orders
+      .filter(o => ['recebido','aceito','preparo'].includes(o.status))
+      .sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
+    document.getElementById('kitchenBadge').textContent = active.length > 0 ? `(${active.length})` : '';
+    if(active.length === 0){
+      box.innerHTML = '<div class="loading-row" style="grid-column:1/-1;">Nenhum pedido na fila. 🎉</div>';
+      return;
+    }
+    box.innerHTML = active.map(o => {
+      const mins = Math.floor((Date.now() - new Date(o.createdAt)) / 60000);
+      const urgency = mins >= 25 ? 'late' : mins >= 15 ? 'warn' : '';
+      const next = o.status === 'recebido' ? 'aceito' : o.status === 'aceito' ? 'preparo' : 'caminho';
+      const nextLabel = o.status === 'recebido' ? 'ACEITAR' : o.status === 'aceito' ? 'INICIAR' : 'PRONTO';
+      return `
+      <div class="kitchen-card ${urgency}">
+        <div class="kc-head">
+          <span class="kc-num">#${o.dailyNumber || '?'}</span>
+          <span class="kc-time">${mins}min</span>
+        </div>
+        <div class="kc-type">${o.orderType === 'mesa' ? '🪑 MESA ' + (o.table||'?') : o.orderType === 'entrega' ? '🛵 ENTREGA' : '🏠 BALCÃO'}</div>
+        <ul class="kc-items">
+          ${o.items.map(i => `<li><b>${i.qty}x</b> ${escapeHtml(i.name)}${i.forItem ? `<em> (no ${escapeHtml(i.forItem)})</em>` : ''}</li>`).join('')}
+        </ul>
+        ${o.notes ? `<div class="kc-notes">📝 ${escapeHtml(o.notes)}</div>` : ''}
+        <button class="kc-btn" data-kitchen="${o.code}" data-next="${next}">${nextLabel}</button>
+      </div>`;
+    }).join('');
+    box.querySelectorAll('[data-kitchen]').forEach(b => b.addEventListener('click', () => setOrderStatus(b.dataset.kitchen, b.dataset.next)));
+  }
+  // atualiza os minutos a cada 30s
+  setInterval(() => {
+    if(document.getElementById('atabCozinha') && document.getElementById('atabCozinha').style.display === 'block') renderKitchen();
+  }, 30000);
+
+  /* ---------------- PEDIDO MANUAL ---------------- */
+  let moCart = [];
+  let moType = 'entrega';
+
+  document.getElementById('newManualOrderBtn').addEventListener('click', () => {
+    moCart = []; moType = 'entrega';
+    ['moName','moPhone','moAddress','moTable','moNotes'].forEach(id => document.getElementById(id).value = "");
+    document.querySelectorAll('[data-motype]').forEach(b => b.classList.toggle('active', b.dataset.motype === 'entrega'));
+    document.getElementById('moAddressField').style.display = 'block';
+    document.getElementById('moTableField').style.display = 'none';
+    document.getElementById('moError').textContent = "";
+    renderMoProducts(); renderMoItems();
+    openOverlay('manualOverlay');
+  });
+
+  document.querySelectorAll('[data-motype]').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-motype]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    moType = btn.dataset.motype;
+    document.getElementById('moAddressField').style.display = moType === 'entrega' ? 'block' : 'none';
+    document.getElementById('moTableField').style.display = moType === 'mesa' ? 'block' : 'none';
+  }));
+
+  function renderMoProducts(){
+    document.getElementById('moProduct').innerHTML = products.map(p =>
+      `<option value="${p.id}">${p.icon || ''} ${escapeHtml(p.name)} — ${money(p.price)}</option>`).join('');
+  }
+  function renderMoItems(){
+    const box = document.getElementById('moItemsList');
+    box.innerHTML = moCart.length === 0
+      ? '<div class="loading-row">Nenhum item ainda.</div>'
+      : moCart.map((i, idx) => `
+        <div class="prod-row">
+          <div class="pi">${i.icon || '🍔'}</div>
+          <div class="pn"><strong>${i.qty}x ${escapeHtml(i.name)}</strong><span>${money(i.price)} un.</span></div>
+          <div class="pp">${money(i.price * i.qty)}</div>
+          <div class="row-actions"><button class="icon-btn danger" data-morm="${idx}">🗑</button></div>
+        </div>`).join('');
+    box.querySelectorAll('[data-morm]').forEach(b => b.addEventListener('click', () => {
+      moCart.splice(Number(b.dataset.morm), 1); renderMoItems();
+    }));
+    document.getElementById('moTotal').textContent = money(moCart.reduce((s,i)=>s+i.price*i.qty,0));
+  }
+  document.getElementById('moAddItemBtn').addEventListener('click', () => {
+    const pid = document.getElementById('moProduct').value;
+    const qty = parseInt(document.getElementById('moQty').value) || 1;
+    const p = products.find(x => x.id === pid); if(!p) return;
+    const ex = moCart.find(i => i.productId === pid);
+    if(ex) ex.qty += qty;
+    else moCart.push({productId:p.id, name:p.name, price:p.price, icon:p.icon, qty});
+    document.getElementById('moQty').value = 1;
+    renderMoItems();
+  });
+
+  document.getElementById('moConfirmBtn').addEventListener('click', async () => {
+    const name = document.getElementById('moName').value.trim();
+    const phone = document.getElementById('moPhone').value.trim();
+    const address = document.getElementById('moAddress').value.trim();
+    const table = document.getElementById('moTable').value.trim();
+    const errEl = document.getElementById('moError');
+    if(!name){ errEl.textContent = "Informe o nome do cliente."; return; }
+    if(moCart.length === 0){ errEl.textContent = "Adicione ao menos um item."; return; }
+    if(moType === 'entrega' && !address){ errEl.textContent = "Informe o endereço."; return; }
+    if(moType === 'mesa' && !table){ errEl.textContent = "Informe a mesa."; return; }
+    errEl.textContent = "";
+
+    const subtotal = moCart.reduce((s,i)=>s+i.price*i.qty,0);
+    const fee = moType === 'entrega' ? (Number(storeDeliveryFee)||0) : 0;
+    const code = generateOrderCode();
+    const order = {
+      code, dailyNumber: await nextManualNumber(),
+      customerName: name, phone, address, table, orderType: moType,
+      payment: document.getElementById('moPayment').value,
+      notes: document.getElementById('moNotes').value.trim(),
+      items: moCart.map(i => ({name:i.name, price:i.price, qty:i.qty, forItem:""})),
+      subtotal, deliveryFee: fee, total: subtotal + fee,
+      status: 'aceito',
+      tabClosed: moType === 'mesa' ? false : true,
+      createdBy: currentEmployee ? currentEmployee.name : '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    try{
+      await db.collection('orders').doc(code).set(order);
+      bumpDailyStats(order);
+      closeOverlay('manualOverlay');
+      showToast("Pedido #" + order.dailyNumber + " lançado ✓");
+      if(confirm("Imprimir a comanda agora?")) setTimeout(() => printComanda(code), 400);
+    }catch(e){ errEl.textContent = "Não foi possível lançar o pedido."; }
+  });
+
+  async function nextManualNumber(){
+    const ref = db.collection('counters').doc('daily');
+    const today = todayStr();
+    try{
+      return await db.runTransaction(async (tx) => {
+        const snap = await tx.get(ref);
+        const d = snap.exists ? snap.data() : {};
+        const count = (d.date === today ? (d.count||0) : 0) + 1;
+        tx.set(ref, {date: today, count});
+        return count;
+      });
+    }catch(e){ return orders.length + 1; }
+  }
+
+  function bumpDailyStats(order){
+    const day = (order.createdAt || "").slice(0,10);
+    const inc = firebase.firestore.FieldValue.increment;
+    const update = {date: day, orderCount: inc(1), revenue: inc(Number(order.total)||0)};
+    update['byType.' + order.orderType] = inc(1);
+    order.items.forEach(i => {
+      const key = i.name.replace(/[.~*/\[\]]/g,'_').slice(0,60);
+      update['products.' + key] = inc(i.qty);
+    });
+    db.collection('stats').doc(day).set(update, {merge:true}).catch(e => console.warn("stats:", e));
+  }
+
+  async function cancelOrder(code){
+    const order = orders.find(o => o.code === code); if(!order) return;
+    const reason = prompt(`Cancelar o pedido #${order.dailyNumber || ''} de ${order.customerName}?\n\nMotivo (o cliente vai ver):`, "Cancelado pela loja");
+    if(reason === null) return;
+    try{
+      await db.collection('orders').doc(code).update({
+        status: 'cancelado',
+        cancelReason: reason || "",
+        canceledAt: new Date().toISOString(),
+        canceledBy: currentEmployee ? currentEmployee.name : '',
+        tabClosed: true
+      });
+      // desconta das estatísticas do dia
+      const day = (order.createdAt || "").slice(0,10);
+      const inc = firebase.firestore.FieldValue.increment;
+      db.collection('stats').doc(day).set({
+        orderCount: inc(-1), revenue: inc(-(Number(order.total)||0)), canceled: inc(1)
+      }, {merge:true}).catch(()=>{});
+      showToast("Pedido cancelado");
+    }catch(e){ alert("Não foi possível cancelar."); }
+  }
+
   async function setOrderStatus(code, status){
     const order = orders.find(o => o.code === code); if(!order) return;
     const wasDelivered = order.status === 'entregue';
@@ -2585,6 +3129,93 @@
     await saveOrder(order); renderAdminOrders(); showToast("Status do pedido " + code + " atualizado ✓");
   }
 
+  /* ---------------- FUNÇÕES E PERMISSÕES ---------------- */
+  const ALL_TABS = ['dashboard','cardapio','pedidos','cozinha','mesas','caixa','financeiro','estoque','equipe','promocao','loja'];
+  const TAB_LABEL = {
+    dashboard:'📊 Dashboard', cardapio:'🍔 Cardápio', pedidos:'📋 Pedidos', cozinha:'👨‍🍳 Cozinha', mesas:'🪑 Mesas',
+    caixa:'💳 Caixa', financeiro:'💰 Financeiro', estoque:'📦 Estoque', equipe:'👥 Equipe',
+    promocao:'📣 Promoção', loja:'🏪 Loja'
+  };
+  const ROLE_PRESETS = {
+    gerente:     {label:'Gerente',     perms: ALL_TABS.slice()},
+    subgerente:  {label:'Subgerente',  perms: ['dashboard','cardapio','pedidos','cozinha','mesas','caixa','financeiro','estoque','promocao','loja']},
+    caixa:       {label:'Caixa',       perms: ['pedidos','mesas','caixa']},
+    balconista:  {label:'Balconista',  perms: ['pedidos','cozinha','mesas','caixa','estoque']},
+    garcom:      {label:'Garçom',      perms: ['pedidos','mesas']},
+    cozinha:     {label:'Cozinha',     perms: ['cozinha','pedidos','estoque']},
+    entregador:  {label:'Entregador',  perms: ['pedidos']},
+    custom:      {label:'Personalizado', perms: []}
+  };
+  function roleLabel(role){ return (ROLE_PRESETS[role] && ROLE_PRESETS[role].label) || 'Funcionário'; }
+
+  // Permissões efetivas de um perfil salvo no banco
+  function permsOf(profile){
+    if(!profile) return [];
+    if(profile.role === 'gerente') return ALL_TABS.slice();
+    if(Array.isArray(profile.perms) && profile.perms.length) return profile.perms;
+    const preset = ROLE_PRESETS[profile.role];
+    if(preset) return preset.perms.slice();
+    return ['pedidos','mesas','estoque']; // compatível com cadastros antigos
+  }
+
+  function selectedPerms(){
+    const role = document.getElementById('empRole').value;
+    if(role === 'custom'){
+      return Array.from(document.querySelectorAll('[data-perm]'))
+        .filter(chk => chk.checked).map(chk => chk.dataset.perm);
+    }
+    return ROLE_PRESETS[role].perms.slice();
+  }
+
+  function renderPermPreview(){
+    const role = document.getElementById('empRole').value;
+    const perms = selectedPerms();
+    document.getElementById('customPerms').style.display = role === 'custom' ? 'block' : 'none';
+    const denied = ALL_TABS.filter(t => !perms.includes(t));
+    document.getElementById('permPreview').innerHTML = `
+      <div class="pp-title">Essa pessoa vai poder acessar</div>
+      ${perms.length ? perms.map(p => `<span class="perm-tag">${TAB_LABEL[p]}</span>`).join('') : '<span style="color:rgba(242,233,218,0.5);">Nada selecionado ainda</span>'}
+      ${denied.length ? `<div class="pp-title" style="margin-top:12px;">Bloqueado</div>` + denied.map(p => `<span class="perm-tag no">${TAB_LABEL[p]}</span>`).join('') : ''}
+    `;
+  }
+  document.getElementById('empRole').addEventListener('change', renderPermPreview);
+  document.querySelectorAll('[data-perm]').forEach(chk => chk.addEventListener('change', renderPermPreview));
+
+  /* ---------------- EDITOR DE PERMISSÕES ---------------- */
+  function openPermEditor(uid){
+    const emp = employees.find(e => e.id === uid); if(!emp) return;
+    if(uid === (currentEmployee && currentEmployee.id)){ alert("Você não pode alterar as próprias permissões."); return; }
+    document.getElementById('permUserId').value = uid;
+    document.getElementById('permUserName').textContent = emp.name;
+    document.getElementById('permRole').value = ROLE_PRESETS[emp.role] ? emp.role : 'custom';
+    document.getElementById('permEditError').textContent = "";
+    renderPermEditGrid(permsOf(emp));
+    openOverlay('permOverlay');
+  }
+  function renderPermEditGrid(active){
+    document.getElementById('permEditGrid').innerHTML = ALL_TABS.map(t =>
+      `<label class="perm-chk"><input type="checkbox" data-editperm-chk="${t}" ${active.includes(t)?'checked':''}> ${TAB_LABEL[t]}</label>`
+    ).join('');
+  }
+  document.getElementById('permRole').addEventListener('change', (e) => {
+    const role = e.target.value;
+    if(role !== 'custom') renderPermEditGrid(ROLE_PRESETS[role].perms);
+  });
+  document.getElementById('savePermBtn').addEventListener('click', async () => {
+    const uid = document.getElementById('permUserId').value;
+    const role = document.getElementById('permRole').value;
+    const perms = Array.from(document.querySelectorAll('[data-editperm-chk]'))
+      .filter(chk => chk.checked).map(chk => chk.dataset.editpermChk);
+    const errEl = document.getElementById('permEditError');
+    if(perms.length === 0){ errEl.textContent = "Selecione ao menos uma área."; return; }
+    errEl.textContent = "";
+    try{
+      await db.collection('users').doc(uid).update({role, perms});
+      closeOverlay('permOverlay');
+      showToast("Permissões atualizadas ✓");
+    }catch(e){ errEl.textContent = "Não foi possível salvar. Você precisa ser gerente."; }
+  });
+
   /* ---------------- EQUIPE (contas reais no Firebase Auth) ---------------- */
   function renderEmployeeSelect(){ /* não é mais usado: login agora é por e-mail */ }
 
@@ -2593,9 +3224,10 @@
     if(employees.length === 0){ box.innerHTML = '<div class="loading-row">Nenhum acesso criado ainda.</div>'; return; }
     box.innerHTML = employees.map(e => `
       <div class="prod-row">
-        <div class="pi">${e.role === 'gerente' ? '👔' : '🧑‍🍳'}</div>
-        <div class="pn"><strong>${escapeHtml(e.name)}${e.active===false?' <span class="stock-badge-low">INATIVO</span>':''}</strong><span>${escapeHtml(e.email || '')} · ${e.role === 'gerente' ? 'Gerente' : 'Funcionário'}</span></div>
+        <div class="pi">${e.role === 'gerente' ? '👔' : e.role === 'subgerente' ? '🧑‍💼' : e.role === 'caixa' ? '💳' : e.role === 'garcom' ? '🍽️' : e.role === 'cozinha' ? '👨‍🍳' : e.role === 'entregador' ? '🛵' : '🧑‍🍳'}</div>
+        <div class="pn"><strong>${escapeHtml(e.name)}<span class="role-badge">${roleLabel(e.role)}</span>${e.active===false?' <span class="stock-badge-low">INATIVO</span>':''}</strong><span>${escapeHtml(e.email || '')} · ${permsOf(e).length} área(s) liberada(s)</span></div>
         <div class="row-actions">
+          <button class="icon-btn" data-editperm="${e.id}" title="Alterar permissões">🔧</button>
           <button class="icon-btn" data-toggleemp="${e.id}" title="${e.active===false?'Reativar acesso':'Bloquear acesso'}">${e.active===false?'▶️':'⏸️'}</button>
           <button class="icon-btn" data-resetemp="${e.id}" title="Enviar redefinição de senha">🔑</button>
         </div>
@@ -2610,6 +3242,7 @@
         showToast(nowActive ? "Acesso reativado ✓" : "Acesso bloqueado ✓");
       }catch(e){ alert("Não foi possível alterar. Verifique se você é gerente."); }
     }));
+    box.querySelectorAll('[data-editperm]').forEach(btn => btn.addEventListener('click', () => openPermEditor(btn.dataset.editperm)));
     box.querySelectorAll('[data-resetemp]').forEach(btn => btn.addEventListener('click', async () => {
       const emp = employees.find(x => x.id === btn.dataset.resetemp); if(!emp || !emp.email) return;
       if(!confirm("Enviar link de redefinição de senha para " + emp.email + "?")) return;
@@ -2653,9 +3286,11 @@
     errEl.textContent = "Criando acesso...";
     try{
       // cria no app secundário pra não deslogar o gerente
+      const perms = selectedPerms();
+      if(perms.length === 0){ errEl.textContent = "Selecione ao menos uma permissão."; return; }
       const cred = await secondaryApp.auth().createUserWithEmailAndPassword(email, pass);
       await db.collection('users').doc(cred.user.uid).set({
-        name, email, role, active: true, createdAt: new Date().toISOString()
+        name, email, role, perms, active: true, createdAt: new Date().toISOString()
       });
       await secondaryApp.auth().signOut();
       errEl.style.color = "var(--green)";
@@ -2674,16 +3309,17 @@
     }
   });
 
-  const EMPLOYEE_TABS = ['pedidos', 'mesas', 'caixa', 'estoque'];
+  let myPerms = [];
 
   document.querySelectorAll('.admin-tab-btn').forEach(btn => btn.addEventListener('click', () => {
     const tab = btn.dataset.atab;
-    if(currentRole === 'funcionario' && !EMPLOYEE_TABS.includes(tab)) return; // bloqueado
+    if(!myPerms.includes(tab)) return; // sem permissão
     document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('atabDashboard').style.display = tab === 'dashboard' ? 'block' : 'none';
     document.getElementById('atabCardapio').style.display = tab === 'cardapio' ? 'block' : 'none';
     document.getElementById('atabPedidos').style.display = tab === 'pedidos' ? 'block' : 'none';
+    document.getElementById('atabCozinha').style.display = tab === 'cozinha' ? 'block' : 'none';
     document.getElementById('atabMesas').style.display = tab === 'mesas' ? 'block' : 'none';
     document.getElementById('atabCaixa').style.display = tab === 'caixa' ? 'block' : 'none';
     document.getElementById('atabFinanceiro').style.display = tab === 'financeiro' ? 'block' : 'none';
@@ -2692,6 +3328,7 @@
     document.getElementById('atabPromocao').style.display = tab === 'promocao' ? 'block' : 'none';
     document.getElementById('atabLoja').style.display = tab === 'loja' ? 'block' : 'none';
     if(tab === 'pedidos') renderAdminOrders();
+    if(tab === 'cozinha') renderKitchen();
     if(tab === 'mesas') renderTables();
     if(tab === 'caixa') renderCaixa();
     if(tab === 'dashboard') renderDashboard();
@@ -2702,20 +3339,19 @@
   }));
 
   function applyRolePermissions(){
-    const restricted = ['dashboard', 'cardapio', 'financeiro', 'equipe', 'promocao', 'loja'];
     document.querySelectorAll('.admin-tab-btn').forEach(btn => {
-      const tab = btn.dataset.atab;
-      const blocked = currentRole === 'funcionario' && restricted.includes(tab);
-      btn.style.display = blocked ? 'none' : 'inline-flex';
+      btn.style.display = myPerms.includes(btn.dataset.atab) ? 'inline-flex' : 'none';
     });
-    // funcionário sempre entra direto em Pedidos
-    if(currentRole === 'funcionario'){
-      document.querySelector('.admin-tab-btn[data-atab="pedidos"]').click();
+    // abre a primeira aba liberada
+    const first = ALL_TABS.find(t => myPerms.includes(t));
+    if(first){
+      const btn = document.querySelector(`.admin-tab-btn[data-atab="${first}"]`);
+      if(btn) btn.click();
     }
     const who = document.getElementById('whoAmI');
     const logoutBtn = document.getElementById('logoutBtn');
-    if(currentRole === 'gerente'){ who.textContent = "👔 Gerente"; }
-    else if(currentRole === 'funcionario'){ who.textContent = "🧑‍🍳 " + (currentEmployee ? currentEmployee.name : ""); }
+    const icons = {gerente:'👔', subgerente:'🧑‍💼', caixa:'💳', balconista:'🧑‍🍳', garcom:'🍽️', cozinha:'👨‍🍳', entregador:'🛵'};
+    who.textContent = (icons[currentRole] || '🧑‍🍳') + " " + (currentEmployee ? currentEmployee.name : "") + " · " + roleLabel(currentRole);
     who.style.display = 'inline';
     logoutBtn.style.display = 'inline-block';
     document.getElementById('soundToggleBtn').style.display = 'inline-block';
@@ -2805,7 +3441,8 @@
         document.getElementById('loginError').textContent = "Sua conta está desativada.";
         return;
       }
-      currentRole = profile.role === 'gerente' ? 'gerente' : 'funcionario';
+      currentRole = profile.role || 'funcionario';
+      myPerms = permsOf(profile);
       currentEmployee = {id: user.uid, name: profile.name || user.email};
       if(!listenersStarted){ startDataListeners(); listenersStarted = true; }
       showView('manager');
@@ -2836,8 +3473,9 @@
     watchStoreInfo();
     watchEmployees();
     watchRegister();
-    // Financeiro é restrito ao gerente — nem tenta ler se for funcionário
-    if(currentRole === 'gerente'){
+    if(myPerms.includes('dashboard')) watchStats();
+    // Só busca o financeiro se a pessoa tiver essa permissão
+    if(myPerms.includes('financeiro')){
       watchCashflow();
       watchFixedCosts();
     }

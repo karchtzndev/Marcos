@@ -397,6 +397,19 @@
   .addon-choice:hover{ border-color:var(--ember); background:rgba(229,118,46,0.1); }
   .addon-choice span:first-child{ font-size:22px; }
 
+  /* ---------- TEMPO ESTIMADO ---------- */
+  .eta-box{background:rgba(240,180,41,0.12); border:1px solid var(--mustard); color:var(--mustard); border-radius:12px; padding:14px 16px; font-size:14px; font-weight:700; text-align:center; margin-bottom:22px;}
+
+  /* ---------- FOTOS DOS PRODUTOS ---------- */
+  .menu-photo{width:100%; height:170px; object-fit:cover; border-radius:14px; margin-bottom:2px;}
+  .ci-photo{width:44px; height:44px; border-radius:10px; object-fit:cover; flex-shrink:0;}
+
+  /* ---------- MESA VIA QR ---------- */
+  .table-badge{background:var(--ember); color:var(--pitch); text-align:center; padding:12px 20px; font-size:14px; font-weight:700; position:sticky; top:74px; z-index:37;}
+
+  /* ---------- OFFLINE ---------- */
+  .offline-banner{background:var(--mustard); color:var(--pitch); text-align:center; padding:12px 20px; font-size:13px; font-weight:700; position:sticky; top:74px; z-index:36;}
+
   /* ---------- LOJA FECHADA ---------- */
   .closed-banner{
     background:var(--tomato); color:var(--cream); text-align:center; padding:14px 20px;
@@ -480,6 +493,8 @@
   </div>
 </header>
 
+<div id="tableBadge" class="table-badge" style="display:none;"></div>
+<div id="offlineBanner" class="offline-banner" style="display:none;">📡 Sem internet — seu pedido será enviado assim que a conexão voltar</div>
 <div id="closedBanner" class="closed-banner" style="display:none;"></div>
 
 <section class="hero">
@@ -735,6 +750,10 @@
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
+  // Modo offline: guarda no aparelho e sincroniza quando a internet voltar
+  db.enablePersistence({synchronizeTabs:true}).catch((err) => {
+    console.warn("Persistência offline indisponível:", err.code);
+  });
 </script>
 
 <script>
@@ -850,7 +869,7 @@
       return `
       <div class="menu-card">
         ${p.tag ? `<span class="tag">${escapeHtml(p.tag)}</span>` : ''}
-        <div class="menu-icon">${p.icon || '🍔'}</div>
+        ${p.photo ? `<img src="${p.photo}" alt="${escapeHtml(p.name)}" class="menu-photo" loading="lazy">` : `<div class="menu-icon">${p.icon || '🍔'}</div>`}
         <h3>${escapeHtml(p.name)}</h3>
         <p>${escapeHtml(p.desc || '')}</p>
         <div class="menu-foot"><span class="price">${money(p.price)}</span>${footControl}</div>
@@ -894,7 +913,7 @@
     const key = p.id + "|" + (forItem || "");
     const existing = cart.find(c => c.key === key);
     if(existing) existing.qty += 1;
-    else cart.push({key, productId: p.id, cat: p.cat, name: p.name, price: p.price, icon: p.icon, qty: 1, forItem: forItem || ""});
+    else cart.push({key, productId: p.id, cat: p.cat, name: p.name, price: p.price, icon: p.icon, photo: p.photo || "", qty: 1, forItem: forItem || ""});
     updateCartUI(); renderMenu();
     if(!existing) showToast(p.name + (forItem ? " → " + forItem : "") + " adicionado ✓");
   }
@@ -929,7 +948,7 @@
     else{
       box.innerHTML = cart.map(c => `
         <div class="cart-item">
-          <div class="ci">${c.icon || '🍔'}</div>
+          ${c.photo ? `<img src="${c.photo}" class="ci-photo" alt="">` : `<div class="ci">${c.icon || '🍔'}</div>`}
           <div class="cn"><strong>${escapeHtml(c.name)}</strong><span>${money(c.price)} un.${c.forItem ? ' · para: ' + escapeHtml(c.forItem) : ''}</span></div>
           <div class="qty-ctrl">
             <button data-qty="${c.key}" data-delta="-1">−</button>
@@ -999,6 +1018,22 @@
     autofillCustomer();
   });
 
+  // Mesa vinda do QR code: ?mesa=7
+  function applyTableFromURL(){
+    const params = new URLSearchParams(window.location.search);
+    const mesa = params.get('mesa');
+    if(!mesa) return;
+    sessionStorage.setItem('omarkin_mesa', mesa);
+    selectedOrderType = 'mesa';
+    document.querySelectorAll('[data-ordertype]').forEach(b => b.classList.toggle('active', b.dataset.ordertype === 'mesa'));
+    document.getElementById('ckAddressField').style.display = 'none';
+    document.getElementById('ckTableField').style.display = 'block';
+    document.getElementById('ckPhoneField').style.display = 'none';
+    document.getElementById('ckTable').value = mesa;
+    const badge = document.getElementById('tableBadge');
+    if(badge){ badge.textContent = "🪑 Você está na Mesa " + mesa; badge.style.display = 'block'; }
+  }
+
   function autofillCustomer(){
     try{
       const saved = JSON.parse(localStorage.getItem('omarkin_customer') || 'null');
@@ -1025,33 +1060,64 @@
   // Ele só acompanha o próprio pedido, buscando pelo código.
   let trackUnsubscribe = null;
 
-  async function saveOrder(order){
-    await db.collection('orders').doc(order.code).set(order);
+  // Grava no cache local imediatamente; o envio ao servidor acontece em segundo
+  // plano (e sozinho, quando a internet voltar). Não travamos a tela esperando.
+  function saveOrder(order){
+    const p = db.collection('orders').doc(order.code).set(order);
+    p.catch(e => console.warn("Sincronização pendente:", e));
+    // resolve na hora se o servidor não responder em 2,5s (modo offline)
+    return Promise.race([p, new Promise(res => setTimeout(res, 2500))]);
   }
 
   async function generateDailyNumber(){
     const today = todayStr();
     const ref = db.collection('counters').doc('daily');
     try{
-      return await db.runTransaction(async (tx) => {
-        const snap = await tx.get(ref);
-        const data = snap.exists ? snap.data() : {};
-        const count = (data.date === today ? (data.count || 0) : 0) + 1;
-        tx.set(ref, {date: today, count});
-        return count;
-      });
+      const result = await Promise.race([
+        db.runTransaction(async (tx) => {
+          const snap = await tx.get(ref);
+          const data = snap.exists ? snap.data() : {};
+          const count = (data.date === today ? (data.count || 0) : 0) + 1;
+          tx.set(ref, {date: today, count});
+          return count;
+        }),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 3000))
+      ]);
+      return result;
     }catch(e){
-      return Math.floor(Date.now() / 1000) % 1000; // fallback
+      // offline: numera localmente e marca pra conferência
+      const local = parseInt(sessionStorage.getItem('omarkin_localnum') || '0') + 1;
+      sessionStorage.setItem('omarkin_localnum', String(local));
+      return local;
     }
   }
 
-  async function generateUniqueOrderCode(){
-    for(let i = 0; i < 6; i++){
-      const code = genOrderCode();
-      const snap = await db.collection('orders').doc(code).get();
-      if(!snap.exists) return code;
-    }
-    return "MK-" + Date.now().toString().slice(-7);
+  // Código longo o bastante pra não colidir sem precisar consultar o servidor
+  // (importante: offline não dá pra verificar duplicidade)
+  // Consolida o dia num único documento (mantém o painel rápido mesmo com
+  // milhares de pedidos por mês)
+  function bumpDailyStats(order){
+    const day = (order.createdAt || "").slice(0,10);
+    const ref = db.collection('stats').doc(day);
+    const inc = firebase.firestore.FieldValue.increment;
+    const update = {
+      date: day,
+      orderCount: inc(1),
+      revenue: inc(Number(order.total) || 0)
+    };
+    update['byType.' + order.orderType] = inc(1);
+    order.items.forEach(i => {
+      const key = i.name.replace(/[.~*/\[\]]/g, '_').slice(0,60);
+      update['products.' + key] = inc(i.qty);
+    });
+    ref.set(update, {merge:true}).catch(e => console.warn("stats:", e));
+  }
+
+  function generateOrderCode(){
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sem I,O,0,1 (confusão visual)
+    let s = "";
+    for(let i = 0; i < 5; i++) s += chars[Math.floor(Math.random()*chars.length)];
+    return "MK-" + s;
   }
 
   /* ---------------- PROMOÇÃO / AVISO (App Cliente) ---------------- */
@@ -1082,6 +1148,8 @@
   }
   let storeWhatsappNumber = "";
   let storeIsOpen = true;
+  let storePrepTime = 25;
+  let storeDeliveryTime = 20;
   let storeClosedMsg = "";
   let deliveryFee = 0;
   let freeShippingFrom = 0;
@@ -1120,6 +1188,8 @@
 
       storeWhatsappNumber = info.whatsapp || "";
       storeIsOpen = info.isOpen !== false;
+      storePrepTime = Number(info.prepTime) || 25;
+      storeDeliveryTime = Number(info.deliveryTime) || 20;
       storeClosedMsg = info.closedMsg || "No momento estamos fechados. Confira nossos horários abaixo.";
       deliveryFee = Number(info.deliveryFee) || 0;
       freeShippingFrom = Number(info.freeFrom) || 0;
@@ -1160,7 +1230,7 @@
 
     let order;
     try{
-      const code = await generateUniqueOrderCode();
+      const code = generateOrderCode();
       const dailyNumber = await generateDailyNumber();
       order = {
         code, dailyNumber,
@@ -1175,6 +1245,7 @@
         updatedAt: new Date().toISOString()
       };
       await saveOrder(order);
+      bumpDailyStats(order);
     }catch(e){
       console.error(e);
       btn.disabled = false; btn.textContent = "Confirmar pedido";
@@ -1249,8 +1320,39 @@
   /* ---------------- TRACKING ---------------- */
   function stepIndex(status){ return STATUS_FLOW.findIndex(s => s.key === status); }
 
+  function etaText(order){
+    if(order.status === 'entregue') return "";
+    const prep = Number(storePrepTime) || 25;
+    const deliv = Number(storeDeliveryTime) || 20;
+    const started = new Date(order.createdAt).getTime();
+    const totalMin = prep + (order.orderType === 'entrega' ? deliv : 0);
+    const readyAt = started + totalMin * 60000;
+    const remaining = Math.round((readyAt - Date.now()) / 60000);
+    if(order.status === 'caminho') return "Seu pedido saiu para entrega — chega em instantes";
+    if(remaining <= 0) return "Deve estar saindo a qualquer momento";
+    const label = order.orderType === 'entrega' ? "entrega" : (order.orderType === 'mesa' ? "sair pra sua mesa" : "retirada");
+    return `Previsão para ${label}: cerca de ${remaining} min`;
+  }
+
   function renderStepper(order){
+    if(order.status === 'cancelado'){
+      return `
+        <div class="order-summary-box" style="border-color:var(--tomato);">
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <span class="order-code">#${order.dailyNumber || '–'} · ${order.code}</span>
+            <span style="color:rgba(242,233,218,0.5); font-size:12px;">${new Date(order.createdAt).toLocaleString('pt-BR')}</span>
+          </div>
+          <div style="font-size:13px; color:rgba(242,233,218,0.7);">${order.items.map(i => i.qty + 'x ' + escapeHtml(i.name)).join(', ')}</div>
+        </div>
+        <div style="background:rgba(182,56,44,0.12); border:1px solid var(--tomato); color:var(--tomato); border-radius:14px; padding:22px; text-align:center;">
+          <div style="font-size:34px; margin-bottom:8px;">❌</div>
+          <strong style="display:block; font-size:17px; margin-bottom:6px;">Pedido cancelado</strong>
+          ${order.cancelReason ? `<span style="font-size:13px; opacity:0.9;">${escapeHtml(order.cancelReason)}</span>` : ''}
+          <div style="font-size:12px; margin-top:12px; opacity:0.8;">Qualquer dúvida, fale com a gente pelo WhatsApp.</div>
+        </div>`;
+    }
     const curIdx = stepIndex(order.status);
+    const eta = etaText(order);
     return `
       <div class="order-summary-box">
         <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
@@ -1262,6 +1364,7 @@
         <div style="font-family:'Anton',sans-serif; color:var(--mustard); font-size:16px;">${money(order.total)}</div>
       </div>
       <button class="wa-send-btn" id="waSendBtn" data-wacode="${order.code}">📲 Enviar pedido pelo WhatsApp</button>
+      ${eta ? `<div class="eta-box">⏱️ ${eta}</div>` : ''}
       <div class="stepper">
         ${STATUS_FLOW.map((s, i) => `
           <div class="step ${i < curIdx ? 'done' : i === curIdx ? 'current' : 'pending'}">
@@ -1349,6 +1452,15 @@
 
   // O app do cliente só lê o que é público: cardápio, avisos e dados da loja.
   // Pedidos, financeiro, estoque e equipe ficam bloqueados pelas regras do Firestore.
+  function updateOnlineStatus(){
+    const b = document.getElementById('offlineBanner');
+    if(b) b.style.display = navigator.onLine ? 'none' : 'block';
+  }
+  window.addEventListener('online', updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+  updateOnlineStatus();
+  applyTableFromURL();
+
   watchProducts();
   watchPromo();
   watchStoreInfo();
