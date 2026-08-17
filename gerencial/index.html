@@ -366,6 +366,30 @@
   .orders-filters input, .orders-filters select{flex:1; min-width:140px; background:var(--pitch); border:1px solid var(--line); border-radius:10px; padding:10px 14px; color:var(--cream); font-size:13px; font-family:inherit;}
   .orders-filters input:focus, .orders-filters select:focus{outline:none; border-color:var(--ember);}
 
+  /* botão de ação principal */
+  .main-action{
+    width:100%; border:none; border-radius:12px; padding:15px; font-size:15px; font-weight:700;
+    cursor:pointer; margin:12px 0 10px; letter-spacing:0.3px; transition:filter .2s; color:var(--pitch);
+  }
+  .main-action:hover{filter:brightness(1.12);}
+  .act-accept{background:var(--green); color:#062814;}
+  .act-kitchen{background:var(--ember);}
+  .act-ready{background:var(--mustard);}
+  .act-done{background:#4a9dd4;}
+  .more-status{margin-bottom:10px;}
+  .more-status summary{font-size:12px; color:rgba(242,233,218,0.45); cursor:pointer; padding:6px 0; list-style:none;}
+  .more-status summary::-webkit-details-marker{display:none;}
+  .more-status summary:before{content:'⚙ '; }
+  .more-status summary:hover{color:var(--ember);}
+  .more-status .status-buttons{margin-top:8px;}
+  .new-flag{
+    background:var(--green); color:#062814; font-size:12px; font-weight:700; letter-spacing:0.5px;
+    padding:8px 14px; border-radius:999px; display:inline-block; margin-bottom:12px;
+    animation:blinkNew 1.6s ease-in-out infinite;
+  }
+  @keyframes blinkNew{0%,100%{opacity:1;}50%{opacity:0.55;}}
+  .oc-new{border-color:var(--green)!important; box-shadow:0 0 0 1px rgba(76,175,109,0.25);}
+
   /* urgência nos cards */
   .oc-late{border-color:var(--tomato)!important; animation:pulseLate 2s infinite;}
   .oc-warn{border-color:var(--mustard)!important;}
@@ -2117,7 +2141,9 @@
   // ---- filtros ----
   let orderSearch='', orderFilterType='todos', orderFilterStatus='ativos';
   function filteredOrders(){
-    let list = orders.filter(o => !(o.orderType==='mesa' && o.tabClosed!==true));
+    // A aba Pedidos mostra TUDO — entrega, balcão e mesa.
+    // A aba Mesas continua servindo pra juntar as rodadas e fechar a conta.
+    let list = orders.slice();
     if(orderFilterStatus==='ativos') list=list.filter(o=>!['entregue','cancelado'].includes(o.status));
     else if(orderFilterStatus!=='todos') list=list.filter(o=>o.status===orderFilterStatus);
     if(orderFilterType!=='todos') list=list.filter(o=>o.orderType===orderFilterType);
@@ -2136,16 +2162,29 @@
   }
 
   // ---- CARD reutilizável ----
+  // próxima ação natural de cada status
+  function nextAction(status){
+    return {
+      recebido: {to:'aceito',  label:'✅ ACEITAR PEDIDO', cls:'act-accept'},
+      aceito:   {to:'preparo', label:'👨‍🍳 MANDAR PRA COZINHA', cls:'act-kitchen'},
+      preparo:  {to:'caminho', label:'🛵 PRONTO / SAIU', cls:'act-ready'},
+      caminho:  {to:'entregue',label:'🎉 MARCAR ENTREGUE', cls:'act-done'}
+    }[status] || null;
+  }
+
   function orderCard(o){
     const si=statusInfo(o.status); const mins=minsAgo(o);
+    const isNew = o.status==='recebido';
     const urgency=o.status==='cancelado'?'canceled':mins>=25&&!['entregue','cancelado'].includes(o.status)?'late':mins>=15&&!['entregue','cancelado'].includes(o.status)?'warn':'';
+    const act = nextAction(o.status);
     return `
-    <div class="order-row oc-${urgency}">
+    <div class="order-row oc-${urgency}${isNew?' oc-new':''}">
+      ${isNew?'<div class="new-flag">🔔 PEDIDO NOVO — aguardando seu aceite</div>':''}
       <div class="order-row-top">
         <div>
           <span class="order-code">#${o.dailyNumber||'–'} · ${o.code}</span>
           <div class="order-meta">${escapeHtml(o.customerName)}${o.phone?' · '+escapeHtml(o.phone):''}</div>
-          <div class="order-meta">${typeIcon(o)}</div>
+          <div class="order-meta">${typeIcon(o)}${o.orderType==='entrega'&&o.address?' · '+escapeHtml(o.address):''}</div>
           <div class="order-extra">
             <span>💳 ${paymentLabel(o.payment)}</span>
             <span>🕒 ${new Date(o.createdAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · ${mins}min</span>
@@ -2157,12 +2196,16 @@
       ${o.notes?`<div class="order-meta" style="color:var(--mustard);">📝 ${escapeHtml(o.notes)}</div>`:''}
       <div class="order-total">${money(o.total)}</div>
       ${o.status!=='cancelado'?`
-      <div class="status-buttons">
-        ${STATUS_FLOW.map(s=>`<button class="status-btn ${s.key===o.status?'current':''}" data-setstatus="${o.code}" data-status="${s.key}">${s.icon} ${s.label}</button>`).join('')}
-      </div>
+      ${act?`<button class="main-action ${act.cls}" data-setstatus="${o.code}" data-status="${act.to}">${act.label}</button>`:''}
+      <details class="more-status">
+        <summary>Mudar status manualmente</summary>
+        <div class="status-buttons">
+          ${STATUS_FLOW.map(s=>`<button class="status-btn ${s.key===o.status?'current':''}" data-setstatus="${o.code}" data-status="${s.key}">${s.icon} ${s.label}</button>`).join('')}
+        </div>
+      </details>
       <div class="order-actions-row">
         <button class="print-btn" data-print="${o.code}">🖨️ Comanda</button>
-        <button class="pay-now-btn" data-paybill="pedido:${o.code}" style="padding:8px 14px;font-size:12px;">💳 Receber</button>
+        <button class="pay-now-btn" data-paybill="${o.orderType==='mesa'?'mesa:'+o.table:'pedido:'+o.code}" style="padding:8px 14px;font-size:12px;">💳 Receber</button>
         <button class="cancel-btn" data-cancel="${o.code}">❌ Cancelar</button>
       </div>`:`<div style="color:var(--tomato);font-weight:700;font-size:13px;margin-top:8px;">❌ CANCELADO${o.cancelReason?' — '+escapeHtml(o.cancelReason):''}</div>`}
     </div>`;
@@ -2203,12 +2246,13 @@
             <td class="td-actions">
               ${o.status!=='cancelado'?`
               <div class="tb-actions-col">
+                ${(()=>{const a=nextAction(o.status);return a?`<button class="main-action ${a.cls}" style="padding:8px 12px;font-size:12px;" data-setstatus="${o.code}" data-status="${a.to}">${a.label}</button>`:'';})()}
                 <div class="status-buttons" style="flex-wrap:nowrap;">
                   ${STATUS_FLOW.map(s=>`<button class="status-btn ${s.key===o.status?'current':''}" data-setstatus="${o.code}" data-status="${s.key}" title="${s.label}">${s.icon}</button>`).join('')}
                 </div>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;">
                   <button class="print-btn" data-print="${o.code}">🖨️</button>
-                  <button class="pay-now-btn" data-paybill="pedido:${o.code}" style="padding:6px 10px;font-size:12px;">💳</button>
+                  <button class="pay-now-btn" data-paybill="${o.orderType==='mesa'?'mesa:'+o.table:'pedido:'+o.code}" style="padding:6px 10px;font-size:12px;">💳</button>
                   <button class="cancel-btn" data-cancel="${o.code}" style="padding:4px 10px;font-size:12px;">❌</button>
                 </div>
               </div>`
@@ -2254,8 +2298,9 @@
               <div class="kk-total">${money(o.total)}</div>
               ${o.status!=='cancelado'?`
               <div class="kk-btns">
-                ${STATUS_FLOW.filter(s=>s.key!==o.status).slice(0,2).map(s=>`<button class="status-btn kk-btn" data-setstatus="${o.code}" data-status="${s.key}">${s.icon} ${s.label}</button>`).join('')}
+                ${(()=>{const a=nextAction(o.status);return a?`<button class="main-action ${a.cls}" style="padding:8px 10px;font-size:11px;width:100%;" data-setstatus="${o.code}" data-status="${a.to}">${a.label}</button>`:'';})()}
                 <button class="print-btn kk-print" data-print="${o.code}">🖨️</button>
+                <button class="cancel-btn" data-cancel="${o.code}" style="padding:5px 10px;font-size:11px;">❌</button>
               </div>`:''}
             </div>`;
           }).join('')}
@@ -2269,7 +2314,7 @@
   function renderAdminOrders(){
     renderDayStats();
     const list=filteredOrders();
-    const pendingCount=orders.filter(o=>!['entregue','cancelado'].includes(o.status)&&!(o.orderType==='mesa'&&o.tabClosed!==true)).length;
+    const pendingCount=orders.filter(o=>!['entregue','cancelado'].includes(o.status)).length;
     document.getElementById('pendingBadge').textContent=pendingCount>0?`(${pendingCount})`:'';
     if(currentOrderView==='painel') renderViewPainel(list);
     else if(currentOrderView==='tabela') renderViewTabela(list);
@@ -3172,19 +3217,21 @@
   /* ---------------- MODO COZINHA ---------------- */
   function renderKitchen(){
     const box = document.getElementById('kitchenGrid');
+    // A cozinha só vê o que JÁ FOI ACEITO na aba Pedidos.
+    // Pedido novo (recebido) fica aguardando aceite lá, não polui a chapa.
     const active = orders
-      .filter(o => ['recebido','aceito','preparo'].includes(o.status))
+      .filter(o => ['aceito','preparo'].includes(o.status))
       .sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
     document.getElementById('kitchenBadge').textContent = active.length > 0 ? `(${active.length})` : '';
     if(active.length === 0){
-      box.innerHTML = '<div class="loading-row" style="grid-column:1/-1;">Nenhum pedido na fila. 🎉</div>';
+      box.innerHTML = '<div class="loading-row" style="grid-column:1/-1;">Nenhum pedido aceito na fila. 🎉<br><small style="opacity:0.6;">Pedidos novos aparecem aqui depois de aceitos na aba 📋 Pedidos.</small></div>';
       return;
     }
     box.innerHTML = active.map(o => {
       const mins = Math.floor((Date.now() - new Date(o.createdAt)) / 60000);
       const urgency = mins >= 25 ? 'late' : mins >= 15 ? 'warn' : '';
-      const next = o.status === 'recebido' ? 'aceito' : o.status === 'aceito' ? 'preparo' : 'caminho';
-      const nextLabel = o.status === 'recebido' ? 'ACEITAR' : o.status === 'aceito' ? 'INICIAR' : 'PRONTO';
+      const next = o.status === 'aceito' ? 'preparo' : 'caminho';
+      const nextLabel = o.status === 'aceito' ? '▶️ INICIAR PREPARO' : '✅ PRONTO';
       return `
       <div class="kitchen-card ${urgency}">
         <div class="kc-head">
