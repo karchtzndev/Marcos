@@ -357,6 +357,60 @@
   .cancel-btn{background:transparent; border:1px solid var(--tomato); color:var(--tomato); padding:8px 14px; border-radius:999px; font-size:12px; font-weight:700; cursor:pointer;}
   .cancel-btn:hover{background:var(--tomato); color:var(--cream);}
 
+  /* ===== ÁREA DE PEDIDOS ===== */
+  .orders-toolbar{display:flex; align-items:center; gap:14px; margin-bottom:22px; flex-wrap:wrap;}
+  .view-switch{display:flex; gap:6px; background:var(--pitch); border:1px solid var(--line); border-radius:999px; padding:4px;}
+  .view-btn{padding:8px 16px; border-radius:999px; border:none; background:transparent; color:rgba(242,233,218,0.6); font-size:13px; font-weight:700; cursor:pointer; transition:all .2s; white-space:nowrap;}
+  .view-btn.active{background:var(--ember); color:var(--pitch);}
+  .orders-filters{display:flex; gap:10px; flex-grow:1; flex-wrap:wrap;}
+  .orders-filters input, .orders-filters select{flex:1; min-width:140px; background:var(--pitch); border:1px solid var(--line); border-radius:10px; padding:10px 14px; color:var(--cream); font-size:13px; font-family:inherit;}
+  .orders-filters input:focus, .orders-filters select:focus{outline:none; border-color:var(--ember);}
+
+  /* urgência nos cards */
+  .oc-late{border-color:var(--tomato)!important; animation:pulseLate 2s infinite;}
+  .oc-warn{border-color:var(--mustard)!important;}
+  .oc-canceled{opacity:0.65; border-color:rgba(242,233,218,0.08)!important;}
+
+  /* TABELA */
+  .orders-table-wrap{overflow-x:auto;}
+  .orders-table{width:100%; border-collapse:collapse; font-size:13px;}
+  .orders-table thead tr{border-bottom:2px solid var(--ember);}
+  .orders-table th{padding:10px 14px; text-align:left; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:rgba(242,233,218,0.55); white-space:nowrap;}
+  .orders-table td{padding:12px 14px; border-bottom:1px solid var(--line); vertical-align:middle;}
+  .orders-table tr:hover td{background:rgba(229,118,46,0.05);}
+  .orders-table .tr-late td{background:rgba(182,56,44,0.07);}
+  .orders-table .tr-warn td{background:rgba(240,180,41,0.06);}
+  .td-num{font-family:'Anton',sans-serif; font-size:20px; color:var(--ember);}
+  .td-money{font-family:'Anton',sans-serif; font-size:15px; color:var(--mustard); white-space:nowrap;}
+  .td-late{color:var(--tomato); font-weight:700;}
+  .td-warn{color:var(--mustard); font-weight:700;}
+  .td-items{max-width:200px; line-height:1.5;}
+  .td-actions{white-space:nowrap;}
+  .tb-actions-col{display:flex; flex-direction:column; gap:6px;}
+  .orders-table code{font-size:11px; background:rgba(242,233,218,0.08); padding:2px 6px; border-radius:6px;}
+
+  /* KANBAN */
+  .kanban-board{display:flex; gap:14px; overflow-x:auto; padding-bottom:12px; align-items:flex-start;}
+  .kanban-col{min-width:220px; width:220px; flex-shrink:0; background:var(--pitch); border:1px solid var(--line); border-radius:16px; overflow:hidden;}
+  .kanban-col-head{padding:14px 16px; font-size:13px; font-weight:700; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:var(--pitch);}
+  .kanban-count{background:var(--ember); color:var(--pitch); font-size:11px; padding:2px 8px; border-radius:999px; font-family:'Anton',sans-serif;}
+  .kanban-col-body{padding:10px; display:flex; flex-direction:column; gap:10px; max-height:70vh; overflow-y:auto;}
+  .kanban-empty{font-size:13px; color:rgba(242,233,218,0.35); text-align:center; padding:20px 0;}
+  .kanban-card{background:var(--char); border:1px solid var(--line); border-radius:12px; padding:14px; transition:border-color .2s;}
+  .kanban-card.kc-urgent{border-color:var(--tomato); animation:pulseLate 2s infinite;}
+  .kk-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .kk-num{font-family:'Anton',sans-serif; font-size:20px; color:var(--ember);}
+  .kk-mins{font-size:12px; color:rgba(242,233,218,0.5); font-weight:700;}
+  .kk-late{color:var(--tomato)!important;}
+  .kk-warn{color:var(--mustard)!important;}
+  .kk-name{font-size:14px; font-weight:700; margin-bottom:4px;}
+  .kk-type{font-size:12px; color:var(--mustard); margin-bottom:6px;}
+  .kk-items{font-size:12px; color:rgba(242,233,218,0.65); line-height:1.5; margin-bottom:8px;}
+  .kk-total{font-family:'Anton',sans-serif; font-size:15px; color:var(--mustard); margin-bottom:10px;}
+  .kk-btns{display:flex; gap:6px; flex-wrap:wrap;}
+  .kk-btn{padding:6px 10px; font-size:11px;}
+  .kk-print{padding:6px 10px; font-size:12px;}
+
   /* ---------- PERMISSÕES ---------- */
   .perm-preview{background:var(--pitch); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:16px; font-size:13px; line-height:1.7;}
   .perm-preview .pp-title{font-size:11px; letter-spacing:1px; color:rgba(242,233,218,0.5); text-transform:uppercase; margin-bottom:8px;}
@@ -820,10 +874,37 @@
         <div id="atabPedidos" style="display:none;">
           <button class="btn-primary" id="newManualOrderBtn" style="width:100%; margin-bottom:20px; padding:15px;">📞 Novo pedido (telefone / balcão)</button>
           <div id="dayStats" class="day-stats"></div>
-          <div class="admin-list" style="margin-top:0; border-top:none; padding-top:0;">
-            <h3>Pedidos recebidos</h3>
-            <div id="adminOrderList"><div class="loading-row">Carregando...</div></div>
+
+          <div class="orders-toolbar">
+            <div class="view-switch">
+              <button class="view-btn active" data-view="painel">🗂️ Painel</button>
+              <button class="view-btn" data-view="tabela">📊 Tabela</button>
+              <button class="view-btn" data-view="kanban">📋 Kanban</button>
+            </div>
+            <div class="orders-filters">
+              <input type="text" id="orderSearch" placeholder="🔍 Buscar nome, código ou mesa...">
+              <select id="orderFilterType">
+                <option value="todos">Todos os tipos</option>
+                <option value="entrega">🛵 Entrega</option>
+                <option value="retirada">🏠 Balcão</option>
+                <option value="mesa">🪑 Mesa</option>
+              </select>
+              <select id="orderFilterStatus">
+                <option value="ativos">Em andamento</option>
+                <option value="todos">Todos</option>
+                <option value="recebido">Recebidos</option>
+                <option value="aceito">Aceitos</option>
+                <option value="preparo">Em preparo</option>
+                <option value="caminho">Indo até você</option>
+                <option value="entregue">Entregues</option>
+                <option value="cancelado">Cancelados</option>
+              </select>
+            </div>
           </div>
+
+          <div id="viewPainel"><div id="adminOrderList"><div class="loading-row">Carregando...</div></div></div>
+          <div id="viewTabela" style="display:none;"><div id="ordersTableWrap"></div></div>
+          <div id="viewKanban" style="display:none;"><div id="kanbanBoard" class="kanban-board"></div></div>
         </div>
 
         <!-- COZINHA TAB -->
@@ -2012,43 +2093,179 @@
     `;
   }
 
+  /* ===== VISUALIZAÇÕES DE PEDIDOS ===== */
+  let currentOrderView = localStorage.getItem('omarkin_order_view') || 'painel';
+
+  // STATUS_COLORS e STATUS_FLOW já declarados; precisamos de um helper seguro
+  function statusInfo(st){
+    const EXTRA = {cancelado:{label:'Cancelado', icon:'❌', color:'#6b6b6b'}};
+    const f = STATUS_FLOW.find(s=>s.key===st);
+    if(f) return {label:f.label, icon:f.icon, color:STATUS_COLORS[st]||'#999'};
+    return EXTRA[st] || {label:st||'?', icon:'?', color:'#999'};
+  }
+  function typeIcon(o){ return o.orderType==='mesa'?'🪑 MESA '+escapeHtml(o.table||'?'):o.orderType==='retirada'?'🏠 Balcão':'🛵 Entrega'; }
+  function minsAgo(o){ return Math.floor((Date.now()-new Date(o.createdAt).getTime())/60000); }
+
+  // ---- filtros ----
+  let orderSearch='', orderFilterType='todos', orderFilterStatus='ativos';
+  function filteredOrders(){
+    let list = orders.filter(o => !(o.orderType==='mesa' && o.tabClosed!==true));
+    if(orderFilterStatus==='ativos') list=list.filter(o=>!['entregue','cancelado'].includes(o.status));
+    else if(orderFilterStatus!=='todos') list=list.filter(o=>o.status===orderFilterStatus);
+    if(orderFilterType!=='todos') list=list.filter(o=>o.orderType===orderFilterType);
+    if(orderSearch){
+      const q=orderSearch.toLowerCase();
+      list=list.filter(o=>(o.customerName||'').toLowerCase().includes(q)||(o.code||'').toLowerCase().includes(q)||(o.table||'').toString().includes(q));
+    }
+    return list.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  }
+
+  function bindOrderActions(container){
+    container.querySelectorAll('[data-setstatus]').forEach(btn=>btn.addEventListener('click',()=>setOrderStatus(btn.dataset.setstatus,btn.dataset.status)));
+    container.querySelectorAll('[data-print]').forEach(btn=>btn.addEventListener('click',()=>printComanda(btn.dataset.print)));
+    container.querySelectorAll('[data-cancel]').forEach(btn=>btn.addEventListener('click',()=>cancelOrder(btn.dataset.cancel)));
+    container.querySelectorAll('[data-paybill]').forEach(btn=>btn.addEventListener('click',()=>openPayment(btn.dataset.paybill)));
+  }
+
+  // ---- CARD reutilizável ----
+  function orderCard(o){
+    const si=statusInfo(o.status); const mins=minsAgo(o);
+    const urgency=o.status==='cancelado'?'canceled':mins>=25&&!['entregue','cancelado'].includes(o.status)?'late':mins>=15&&!['entregue','cancelado'].includes(o.status)?'warn':'';
+    return `
+    <div class="order-row oc-${urgency}">
+      <div class="order-row-top">
+        <div>
+          <span class="order-code">#${o.dailyNumber||'–'} · ${o.code}</span>
+          <div class="order-meta">${escapeHtml(o.customerName)}${o.phone?' · '+escapeHtml(o.phone):''}</div>
+          <div class="order-meta">${typeIcon(o)}</div>
+          <div class="order-extra">
+            <span>💳 ${paymentLabel(o.payment)}</span>
+            <span>🕒 ${new Date(o.createdAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · ${mins}min</span>
+          </div>
+        </div>
+        <span class="status-pill" style="background:${si.color}22;color:${si.color};">${si.label}</span>
+      </div>
+      <div class="order-items">${o.items.map(i=>i.qty+'x '+escapeHtml(i.name)+(i.forItem?` <em style="color:var(--mustard);">(no ${escapeHtml(i.forItem)})</em>`:'')).join(', ')}</div>
+      ${o.notes?`<div class="order-meta" style="color:var(--mustard);">📝 ${escapeHtml(o.notes)}</div>`:''}
+      <div class="order-total">${money(o.total)}</div>
+      ${o.status!=='cancelado'?`
+      <div class="status-buttons">
+        ${STATUS_FLOW.map(s=>`<button class="status-btn ${s.key===o.status?'current':''}" data-setstatus="${o.code}" data-status="${s.key}">${s.icon} ${s.label}</button>`).join('')}
+      </div>
+      <div class="order-actions-row">
+        <button class="print-btn" data-print="${o.code}">🖨️ Comanda</button>
+        <button class="pay-now-btn" data-paybill="pedido:${o.code}" style="padding:8px 14px;font-size:12px;">💳 Receber</button>
+        <button class="cancel-btn" data-cancel="${o.code}">❌ Cancelar</button>
+      </div>`:`<div style="color:var(--tomato);font-weight:700;font-size:13px;margin-top:8px;">❌ CANCELADO${o.cancelReason?' — '+escapeHtml(o.cancelReason):''}</div>`}
+    </div>`;
+  }
+
+  // ---- PAINEL (lista) ----
+  function renderViewPainel(list){
+    const box=document.getElementById('adminOrderList');
+    if(list.length===0){box.innerHTML='<div class="loading-row">Nenhum pedido com esses filtros.</div>';return;}
+    box.innerHTML=list.map(o=>orderCard(o)).join('');
+    bindOrderActions(box);
+  }
+
+  // ---- TABELA ----
+  function renderViewTabela(list){
+    const wrap=document.getElementById('ordersTableWrap');
+    if(list.length===0){wrap.innerHTML='<div class="loading-row">Nenhum pedido com esses filtros.</div>';return;}
+    wrap.innerHTML=`
+    <div class="orders-table-wrap">
+      <table class="orders-table">
+        <thead><tr>
+          <th>#</th><th>Código</th><th>Cliente</th><th>Tipo</th>
+          <th>Itens</th><th>Total</th><th>Status</th><th>Tempo</th><th>Ações</th>
+        </tr></thead>
+        <tbody>
+        ${list.map(o=>{
+          const si=statusInfo(o.status); const mins=minsAgo(o);
+          const urgClass=o.status!=='cancelado'&&mins>=25?'tr-late':o.status!=='cancelado'&&mins>=15?'tr-warn':'';
+          return `<tr class="${urgClass}">
+            <td class="td-num">${o.dailyNumber||'–'}</td>
+            <td><code>${o.code}</code></td>
+            <td><strong>${escapeHtml(o.customerName)}</strong><br><small>${o.phone||''}</small></td>
+            <td>${typeIcon(o)}</td>
+            <td class="td-items">${o.items.map(i=>i.qty+'x '+escapeHtml(i.name)).join('<br>')}</td>
+            <td class="td-money">${money(o.total)}</td>
+            <td><span class="status-pill" style="background:${si.color}22;color:${si.color};white-space:nowrap;">${si.icon} ${si.label}</span></td>
+            <td class="${mins>=25&&!['entregue','cancelado'].includes(o.status)?'td-late':mins>=15&&!['entregue','cancelado'].includes(o.status)?'td-warn':''}">${mins}min</td>
+            <td class="td-actions">
+              ${o.status!=='cancelado'?`
+              <div class="tb-actions-col">
+                <div class="status-buttons" style="flex-wrap:nowrap;">
+                  ${STATUS_FLOW.map(s=>`<button class="status-btn ${s.key===o.status?'current':''}" data-setstatus="${o.code}" data-status="${s.key}" title="${s.label}">${s.icon}</button>`).join('')}
+                </div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <button class="print-btn" data-print="${o.code}">🖨️</button>
+                  <button class="pay-now-btn" data-paybill="pedido:${o.code}" style="padding:6px 10px;font-size:12px;">💳</button>
+                  <button class="cancel-btn" data-cancel="${o.code}" style="padding:4px 10px;font-size:12px;">❌</button>
+                </div>
+              </div>`
+              :'<span style="color:var(--tomato);font-size:12px;">Cancelado</span>'}
+            </td>
+          </tr>`;
+        }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+    bindOrderActions(wrap);
+  }
+
+  // ---- KANBAN ----
+  const KANBAN_COLS = [
+    {key:'recebido', label:'📝 Recebidos'},
+    {key:'aceito',   label:'✅ Aceitos'},
+    {key:'preparo',  label:'👨‍🍳 Em preparo'},
+    {key:'caminho',  label:'🛵 Saiu'},
+    {key:'entregue', label:'🎉 Entregue'},
+    {key:'cancelado',label:'❌ Cancelado'}
+  ];
+  function renderViewKanban(list){
+    const board=document.getElementById('kanbanBoard');
+    const byStatus={};
+    KANBAN_COLS.forEach(col=>byStatus[col.key]=[]);
+    list.forEach(o=>(byStatus[o.status]||(byStatus[o.status]=[])).push(o));
+    board.innerHTML=KANBAN_COLS.map(col=>{
+      const items=byStatus[col.key]||[];
+      return `
+      <div class="kanban-col">
+        <div class="kanban-col-head">${col.label} <span class="kanban-count">${items.length}</span></div>
+        <div class="kanban-col-body" id="kcol-${col.key}">
+          ${items.length===0?`<div class="kanban-empty">Nenhum</div>`:items.map(o=>{
+            const mins=minsAgo(o);
+            const urgent=!['entregue','cancelado'].includes(o.status)&&mins>=25;
+            return `
+            <div class="kanban-card${urgent?' kc-urgent':''}">
+              <div class="kk-head"><span class="kk-num">#${o.dailyNumber||'?'}</span><span class="kk-mins ${mins>=25&&!['entregue','cancelado'].includes(o.status)?'kk-late':mins>=15&&!['entregue','cancelado'].includes(o.status)?'kk-warn':''}">${mins}m</span></div>
+              <div class="kk-name">${escapeHtml(o.customerName)}</div>
+              <div class="kk-type">${typeIcon(o)}</div>
+              <div class="kk-items">${o.items.map(i=>i.qty+'x '+escapeHtml(i.name)).join(', ')}</div>
+              <div class="kk-total">${money(o.total)}</div>
+              ${o.status!=='cancelado'?`
+              <div class="kk-btns">
+                ${STATUS_FLOW.filter(s=>s.key!==o.status).slice(0,2).map(s=>`<button class="status-btn kk-btn" data-setstatus="${o.code}" data-status="${s.key}">${s.icon} ${s.label}</button>`).join('')}
+                <button class="print-btn kk-print" data-print="${o.code}">🖨️</button>
+              </div>`:''}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }).join('');
+    bindOrderActions(board);
+  }
+
+  // ---- RENDER PRINCIPAL ----
   function renderAdminOrders(){
     renderDayStats();
-    const box = document.getElementById('adminOrderList');
-    // Mesas com comanda aberta aparecem na aba "Mesas", não aqui (evita duplicar)
-    const list = orders.filter(o => !(o.orderType === 'mesa' && o.tabClosed !== true));
-    const pendingCount = list.filter(o => o.status !== 'entregue').length;
-    document.getElementById('pendingBadge').textContent = pendingCount > 0 ? `(${pendingCount})` : '';
-    if(list.length === 0){ box.innerHTML = '<div class="loading-row">Nenhum pedido de entrega ou balcão. Confira a aba 🪑 Mesas.</div>'; return; }
-    box.innerHTML = list.map(o => `
-      <div class="order-row">
-        <div class="order-row-top">
-          <div>
-            <span class="order-code">#${o.dailyNumber || '–'} · ${o.code}</span>
-            <div class="order-meta">${escapeHtml(o.customerName)}${o.phone ? ' · ' + escapeHtml(o.phone) : ''}</div>
-            <div class="order-meta">${o.orderType === 'mesa' ? '🪑 MESA ' + escapeHtml(o.table || '?') : o.orderType === 'retirada' ? '🏠 Retirada no balcão' : '🛵 ' + escapeHtml(o.address || '')}</div>
-            <div class="order-extra">
-              <span>💳 ${paymentLabel(o.payment)}</span>
-              <span>🕒 ${new Date(o.createdAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
-            </div>
-          </div>
-          <span class="status-pill" style="background:${STATUS_COLORS[o.status]}22; color:${STATUS_COLORS[o.status]};">${STATUS_FLOW.find(s=>s.key===o.status).label}</span>
-        </div>
-        <div class="order-items">${o.items.map(i => i.qty + 'x ' + escapeHtml(i.name) + (i.forItem ? ' <em style="color:var(--mustard);">(no ' + escapeHtml(i.forItem) + ')</em>' : '')).join(', ')}</div>
-        ${o.notes ? `<div class="order-meta" style="color:var(--mustard);">📝 ${escapeHtml(o.notes)}</div>` : ''}
-        <div class="order-total">${money(o.total)}</div>
-        <div class="status-buttons">
-          ${STATUS_FLOW.map(s => `<button class="status-btn ${s.key===o.status ? 'current':''}" data-setstatus="${o.code}" data-status="${s.key}">${s.icon} ${s.label}</button>`).join('')}
-        </div>
-        <div class="order-actions-row">
-          <button class="print-btn" data-print="${o.code}">🖨️ Imprimir comanda</button>
-          ${o.status !== 'cancelado' ? `<button class="cancel-btn" data-cancel="${o.code}">❌ Cancelar</button>` : '<span style="color:var(--tomato); font-weight:700; font-size:13px;">❌ CANCELADO</span>'}
-        </div>
-      </div>
-    `).join('');
-    box.querySelectorAll('[data-setstatus]').forEach(btn => btn.addEventListener('click', () => setOrderStatus(btn.dataset.setstatus, btn.dataset.status)));
-    box.querySelectorAll('[data-print]').forEach(btn => btn.addEventListener('click', () => printComanda(btn.dataset.print)));
-    box.querySelectorAll('[data-cancel]').forEach(btn => btn.addEventListener('click', () => cancelOrder(btn.dataset.cancel)));
+    const list=filteredOrders();
+    const pendingCount=orders.filter(o=>!['entregue','cancelado'].includes(o.status)&&!(o.orderType==='mesa'&&o.tabClosed!==true)).length;
+    document.getElementById('pendingBadge').textContent=pendingCount>0?`(${pendingCount})`:'';
+    if(currentOrderView==='painel') renderViewPainel(list);
+    else if(currentOrderView==='tabela') renderViewTabela(list);
+    else renderViewKanban(list);
   }
   function paymentLabel(p){ return {dinheiro:"Dinheiro", cartao:"Cartão", pix:"Pix"}[p] || p || "–"; }
 
@@ -2980,6 +3197,29 @@
   /* ---------------- PEDIDO MANUAL ---------------- */
   let moCart = [];
   let moType = 'entrega';
+
+  /* ---- seletor de visualização e filtros ---- */
+  document.querySelectorAll('[data-view]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.view === currentOrderView);
+    btn.addEventListener('click', () => {
+      currentOrderView = btn.dataset.view;
+      localStorage.setItem('omarkin_order_view', currentOrderView);
+      document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('viewPainel').style.display = currentOrderView === 'painel' ? 'block' : 'none';
+      document.getElementById('viewTabela').style.display = currentOrderView === 'tabela' ? 'block' : 'none';
+      document.getElementById('viewKanban').style.display = currentOrderView === 'kanban' ? 'block' : 'none';
+      renderAdminOrders();
+    });
+  });
+  // inicializar visibilidade
+  document.getElementById('viewPainel').style.display = currentOrderView === 'painel' ? 'block' : 'none';
+  document.getElementById('viewTabela').style.display = currentOrderView === 'tabela' ? 'block' : 'none';
+  document.getElementById('viewKanban').style.display = currentOrderView === 'kanban' ? 'block' : 'none';
+
+  document.getElementById('orderSearch').addEventListener('input', e => { orderSearch=e.target.value; renderAdminOrders(); });
+  document.getElementById('orderFilterType').addEventListener('change', e => { orderFilterType=e.target.value; renderAdminOrders(); });
+  document.getElementById('orderFilterStatus').addEventListener('change', e => { orderFilterStatus=e.target.value; renderAdminOrders(); });
 
   document.getElementById('newManualOrderBtn').addEventListener('click', () => {
     moCart = []; moType = 'entrega';
