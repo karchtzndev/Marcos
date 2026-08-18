@@ -388,6 +388,16 @@
   body.has-quickbar .whatsapp-fab{ bottom:96px; }
   body.has-quickbar{ padding-bottom:80px; }
 
+  /* ---------- VÍNCULO DE ADICIONAL NO CARRINHO ---------- */
+  .addon-link{
+    margin-top:6px; width:100%; background:var(--pitch); color:var(--mustard);
+    border:1px solid var(--line); border-radius:8px; padding:6px 10px;
+    font-size:12px; font-family:inherit; cursor:pointer;
+  }
+  .addon-link:focus{outline:none; border-color:var(--ember);}
+  .addon-warn{display:block; margin-top:5px; font-size:11px; color:var(--tomato);}
+  .cart-item.ci-linked{border-left:3px solid var(--mustard); padding-left:11px;}
+
   /* ---------- ESCOLHER LANCHE DO ADICIONAL ---------- */
   .addon-choice{
     width:100%; display:flex; align-items:center; gap:14px; padding:16px; margin-bottom:10px;
@@ -891,20 +901,24 @@
   });
 
   /* ---------------- CART ---------------- */
+  function burgersInCart(){
+    return cart.filter(c => c.cat === 'burguers');
+  }
+
   function addToCart(productId){
     const p = products.find(x => x.id === productId); if(!p) return;
 
-    // Adicionais: pergunta pra qual lanche vai (se houver mais de um)
     if(p.cat === 'adicionais'){
-      const burgers = cart.filter(c => c.cat === 'burguers');
-      if(burgers.length === 1){
-        pushToCart(p, burgers[0].name);
+      const burgers = burgersInCart();
+      if(burgers.length === 0){
+        // adicional antes do lanche: entra avulso e avisa como vincular depois
+        pushToCart(p, "");
+        showToast("Adicione o lanche e depois vincule no carrinho 🛒");
         return;
       }
-      if(burgers.length > 1){
-        openAddonPicker(p, burgers);
-        return;
-      }
+      // sempre pergunta — mesmo com um lanche só, o cliente pode querer avulso
+      openAddonPicker(p, burgers);
+      return;
     }
     pushToCart(p, "");
   }
@@ -934,6 +948,23 @@
     openOverlay('addonOverlay');
   }
 
+  // Permite trocar (ou tirar) o lanche vinculado a um adicional já no carrinho
+  function relinkAddon(cartKey, newFor){
+    const item = cart.find(c => c.key === cartKey); if(!item) return;
+    const novaKey = item.productId + "|" + (newFor || "");
+    const jaExiste = cart.find(c => c.key === novaKey && c.key !== cartKey);
+    if(jaExiste){
+      // já tem esse adicional no mesmo lanche: junta as quantidades
+      jaExiste.qty += item.qty;
+      cart = cart.filter(c => c.key !== cartKey);
+    }else{
+      item.forItem = newFor || "";
+      item.key = novaKey;
+    }
+    updateCartUI();
+    showToast(newFor ? `${item.name} → ${newFor} ✓` : `${item.name} agora é avulso`);
+  }
+
   function changeQty(cartKey, delta){
     const item = cart.find(c => c.key === cartKey); if(!item) return;
     item.qty += delta;
@@ -946,18 +977,33 @@
     const box = document.getElementById('cartItems');
     if(cart.length === 0){ box.innerHTML = '<div class="loading-row">Seu carrinho está vazio. Adicione algo gostoso! 🍔</div>'; }
     else{
-      box.innerHTML = cart.map(c => `
-        <div class="cart-item">
+      const burgers = burgersInCart();
+      box.innerHTML = cart.map(c => {
+        const isAddon = c.cat === 'adicionais';
+        return `
+        <div class="cart-item${isAddon && c.forItem ? ' ci-linked' : ''}">
           ${c.photo ? `<img src="${c.photo}" class="ci-photo" alt="">` : `<div class="ci">${c.icon || '🍔'}</div>`}
-          <div class="cn"><strong>${escapeHtml(c.name)}</strong><span>${money(c.price)} un.${c.forItem ? ' · para: ' + escapeHtml(c.forItem) : ''}</span></div>
+          <div class="cn">
+            <strong>${escapeHtml(c.name)}</strong>
+            <span>${money(c.price)} un.</span>
+            ${isAddon ? (
+              burgers.length > 0
+                ? `<select class="addon-link" data-linkfor="${c.key}">
+                     <option value="" ${!c.forItem ? 'selected' : ''}>— item avulso —</option>
+                     ${burgers.map(b => `<option value="${escapeHtml(b.name)}" ${c.forItem === b.name ? 'selected' : ''}>no ${escapeHtml(b.name)}</option>`).join('')}
+                   </select>`
+                : `<span class="addon-warn">Adicione um lanche pra vincular</span>`
+            ) : ''}
+          </div>
           <div class="qty-ctrl">
             <button data-qty="${c.key}" data-delta="-1">−</button>
             <span>${c.qty}</span>
             <button data-qty="${c.key}" data-delta="1">+</button>
           </div>
-        </div>
-      `).join('');
+        </div>`;
+      }).join('');
       box.querySelectorAll('[data-qty]').forEach(btn => btn.addEventListener('click', () => changeQty(btn.dataset.qty, parseInt(btn.dataset.delta))));
+      box.querySelectorAll('[data-linkfor]').forEach(sel => sel.addEventListener('change', () => relinkAddon(sel.dataset.linkfor, sel.value)));
     }
     const sub = cartSubtotal();
     const fee = currentDeliveryFee();

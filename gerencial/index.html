@@ -365,6 +365,8 @@
   .kc-items li{font-size:17px; line-height:1.5; padding:5px 0; border-bottom:1px dashed var(--line);}
   .kc-items li b{color:var(--ember); font-family:'Anton',sans-serif; margin-right:6px;}
   .kc-items li em{color:var(--mustard); font-size:14px; font-style:normal;}
+  .kc-addons{list-style:none; margin:4px 0 0 14px; padding:0 0 0 10px; border-left:2px solid var(--mustard);}
+  .kc-addons li{font-size:14px; color:var(--mustard); padding:2px 0; border:none;}
   .kc-notes{background:rgba(240,180,41,0.12); border-radius:10px; padding:10px; font-size:14px; color:var(--mustard); margin-bottom:12px;}
   .kc-btn{background:var(--ember); color:var(--pitch); border:none; border-radius:12px; padding:16px; font-size:16px; font-weight:700; cursor:pointer; letter-spacing:0.5px;}
   .kc-btn:hover{background:var(--mustard);}
@@ -550,14 +552,9 @@
   /* ===== IMPRESSÃO: CUPOM 80mm ===== */
   /* Define o tamanho do papel. Sem isso o navegador manda numa folha A4
      inteira, com o cupom minúsculo no canto e um mar de branco em volta. */
-  /* A impressão acontece num iframe isolado (ver doPrint no script).
-     A área abaixo só guarda o conteúdo antes de ser enviado. */
+  /* A impressão acontece numa janela própria (ver doPrint no script).
+     Esta área só guarda o conteúdo antes de ser enviado. */
   .print-area{display:none;}
-  @media print{
-    /* rede de segurança: se algo disparar print na janela principal,
-       nada da interface vaza para o papel */
-    body > *{display:none !important;}
-  }
 </style>
 </head>
 <body>
@@ -1844,6 +1841,10 @@
     .p-item{display:flex; justify-content:space-between; gap:6px; font-size:13px; font-weight:700; margin-bottom:5px;}
     .p-item span:first-child{flex:1; word-break:break-word;}
     .p-item span:last-child{white-space:nowrap;}
+    .p-addon{display:flex; justify-content:space-between; gap:6px; font-size:12px;
+             margin:-2px 0 5px 5mm; padding-left:2mm; border-left:2px solid #000;}
+    .p-addon span:first-child{flex:1;}
+    .p-addon span:last-child{white-space:nowrap;}
     .p-total{display:flex; justify-content:space-between; font-size:16px; font-weight:900;
              border-top:2px solid #000; margin-top:6px; padding-top:5px;}
     .p-notes{font-size:12px; font-weight:700; border:1px solid #000; padding:6px; margin-top:8px;}
@@ -1867,37 +1868,41 @@
     const html = document.getElementById('printArea').innerHTML;
     if(!html.trim()){ alert("Nada para imprimir."); return; }
     const css = mode === 'a4' ? QR_CSS : CUPOM_CSS;
+    const doc = '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+                '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+                '<title>O Markin — Comanda</title><style>' + css + '</style></head><body>' +
+                html +
+                '<script>' +
+                'window.onload=function(){setTimeout(function(){window.focus();window.print();},' +
+                (mode === 'a4' ? '700' : '250') + ');};' +
+                'window.onafterprint=function(){setTimeout(function(){window.close();},300);};' +
+                '<\/script></body></html>';
 
-    // iframe escondido: documento próprio, sem herdar nada do painel
-    const old = document.getElementById('printFrame');
-    if(old) old.remove();
+    // Janela própria: funciona no iPhone, no Android e no computador.
+    // (No iOS o Safari ignora o print vindo de iframe e imprimia a página
+    //  principal em branco — era o que estava acontecendo.)
+    const win = window.open('', '_blank');
+    if(win && win.document){
+      win.document.open();
+      win.document.write(doc);
+      win.document.close();
+      return;
+    }
+
+    // Pop-up bloqueado: cai pro iframe (funciona no desktop)
+    const oldFrame = document.getElementById('printFrame');
+    if(oldFrame) oldFrame.remove();
     const frame = document.createElement('iframe');
     frame.id = 'printFrame';
-    frame.setAttribute('aria-hidden','true');
-    frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+    frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
     document.body.appendChild(frame);
-
-    const doc = frame.contentWindow.document;
-    doc.open();
-    doc.write('<!DOCTYPE html><html><head><meta charset="utf-8">' +
-              '<title>Comanda</title><style>' + css + '</style></head><body>' +
-              html + '</body></html>');
-    doc.close();
-
-    const fire = () => {
-      try{
-        frame.contentWindow.focus();
-        frame.contentWindow.print();
-      }catch(e){
-        console.error("Falha ao imprimir:", e);
-        alert("Não foi possível abrir a impressão.");
-      }
+    const fdoc = frame.contentWindow.document;
+    fdoc.open(); fdoc.write(doc); fdoc.close();
+    setTimeout(() => {
+      try{ frame.contentWindow.focus(); frame.contentWindow.print(); }
+      catch(e){ alert("Seu navegador bloqueou a impressão. Libere os pop-ups para este site."); }
       setTimeout(() => { const f = document.getElementById('printFrame'); if(f) f.remove(); }, 3000);
-    };
-    // espera as imagens (QR) carregarem
-    if(mode === 'a4') setTimeout(fire, 600);
-    else if(frame.contentWindow.document.readyState === 'complete') setTimeout(fire, 120);
-    else frame.onload = () => setTimeout(fire, 120);
+    }, mode === 'a4' ? 700 : 250);
   }
 
   /* ---------------- RENDER AGRUPADO ---------------- */
@@ -2641,6 +2646,26 @@
   }
   function paymentLabel(p){ return {dinheiro:"Dinheiro", cartao:"Cartão", pix:"Pix"}[p] || p || "–"; }
 
+  // Agrupa os adicionais logo abaixo do lanche a que pertencem, pra
+  // cozinha montar certo sem precisar cruzar as linhas da comanda.
+  function renderComandaItems(items){
+    const principais = items.filter(i => !i.forItem);
+    const addons = items.filter(i => i.forItem);
+    let html = '';
+    principais.forEach(p => {
+      html += `<div class="p-item"><span>${p.qty}x ${escapeHtml(p.name)}</span><span>${money(p.price*p.qty)}</span></div>`;
+      addons.filter(a => a.forItem === p.name).forEach(a => {
+        html += `<div class="p-addon"><span>+ ${a.qty}x ${escapeHtml(a.name)}</span><span>${money(a.price*a.qty)}</span></div>`;
+      });
+    });
+    // adicionais sem lanche correspondente (avulsos)
+    const orfaos = addons.filter(a => !principais.some(p => p.name === a.forItem));
+    orfaos.forEach(a => {
+      html += `<div class="p-item"><span>${a.qty}x ${escapeHtml(a.name)}${a.forItem ? ' (no ' + escapeHtml(a.forItem) + ')' : ''}</span><span>${money(a.price*a.qty)}</span></div>`;
+    });
+    return html;
+  }
+
   function printComanda(code){
     const o = orders.find(x => x.code === code); if(!o) return;
     const area = document.getElementById('printArea');
@@ -2658,7 +2683,7 @@
       ${o.orderType === 'entrega' ? `<div class="p-row"><span>Endereço:</span><span>${escapeHtml(o.address || '')}</span></div>` : ''}
       <div class="p-row"><span>Pagamento:</span><span>${paymentLabel(o.payment).toUpperCase()}</span></div>
       <div class="p-line"></div>
-      ${o.items.map(i => `<div class="p-item"><span>${i.qty}x ${escapeHtml(i.name)}${i.forItem ? ' (no ' + escapeHtml(i.forItem) + ')' : ''}</span><span>${money(i.price * i.qty)}</span></div>`).join('')}
+      ${renderComandaItems(o.items)}
       <div class="p-line"></div>
       ${o.deliveryFee > 0 ? `<div class="p-row"><span>Subtotal:</span><span>${money(o.subtotal)}</span></div><div class="p-row"><span>Taxa entrega:</span><span>${money(o.deliveryFee)}</span></div>` : ''}
       <div class="p-total"><span>TOTAL</span><span>${money(o.total)}</span></div>
@@ -3604,7 +3629,20 @@
         </div>
         <div class="kc-type">${o.orderType === 'mesa' ? '🪑 MESA ' + (o.table||'?') : o.orderType === 'entrega' ? '🛵 ENTREGA' : '🏠 BALCÃO'}</div>
         <ul class="kc-items">
-          ${o.items.map(i => `<li><b>${i.qty}x</b> ${escapeHtml(i.name)}${i.forItem ? `<em> (no ${escapeHtml(i.forItem)})</em>` : ''}</li>`).join('')}
+          ${(() => {
+            const principais = o.items.filter(i => !i.forItem);
+            const addons = o.items.filter(i => i.forItem);
+            let h = '';
+            principais.forEach(p => {
+              h += `<li><b>${p.qty}x</b> ${escapeHtml(p.name)}`;
+              const meus = addons.filter(a => a.forItem === p.name);
+              if(meus.length) h += `<ul class="kc-addons">${meus.map(a => `<li>+ ${a.qty}x ${escapeHtml(a.name)}</li>`).join('')}</ul>`;
+              h += `</li>`;
+            });
+            addons.filter(a => !principais.some(p => p.name === a.forItem))
+                  .forEach(a => { h += `<li><b>${a.qty}x</b> ${escapeHtml(a.name)}${a.forItem ? `<em> (no ${escapeHtml(a.forItem)})</em>` : ''}</li>`; });
+            return h;
+          })()}
         </ul>
         ${o.notes ? `<div class="kc-notes">📝 ${escapeHtml(o.notes)}</div>` : ''}
         <button class="kc-btn" data-kitchen="${o.code}" data-next="${next}">${nextLabel}</button>
