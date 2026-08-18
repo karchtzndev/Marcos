@@ -1097,7 +1097,7 @@
   // Consolida o dia num único documento (mantém o painel rápido mesmo com
   // milhares de pedidos por mês)
   function bumpDailyStats(order){
-    const day = (order.createdAt || "").slice(0,10);
+    const day = localDateStr(order.createdAt);
     const ref = db.collection('stats').doc(day);
     const inc = firebase.firestore.FieldValue.increment;
     const update = {
@@ -1208,7 +1208,16 @@
     }, (err) => console.error("Erro info da loja:", err));
   }
 
-  function todayStr(){ return new Date().toISOString().slice(0,10); }
+  // Data no fuso LOCAL. toISOString() devolve UTC e, como operamos 19h-23h
+  // (UTC-3), jogaria todo pedido após as 21h para o dia seguinte.
+  function localDateStr(d){
+    const dt = d ? new Date(d) : new Date();
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth()+1).padStart(2,'0');
+    const day = String(dt.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+  function todayStr(){ return localDateStr(); }
 
   document.getElementById('confirmOrderBtn').addEventListener('click', async () => {
     const name = document.getElementById('ckName').value.trim();

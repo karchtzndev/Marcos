@@ -324,9 +324,24 @@
   .fc-total span{color:var(--mustard); font-family:'Anton',sans-serif; font-size:19px;}
 
   /* ---------- QR CODES ---------- */
-  .qr-actions{margin-bottom:16px;}
   .qr-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); gap:16px;}
-  .qr-card{background:#fff; border-radius:14px; padding:16px; text-align:center;}
+  .qr-card{
+    /* xadrez indicando que o PNG sai com fundo transparente */
+    background:#fff;
+    background-image:linear-gradient(45deg,#e8e8e8 25%,transparent 25%),
+                     linear-gradient(-45deg,#e8e8e8 25%,transparent 25%),
+                     linear-gradient(45deg,transparent 75%,#e8e8e8 75%),
+                     linear-gradient(-45deg,transparent 75%,#e8e8e8 75%);
+    background-size:16px 16px;
+    background-position:0 0,0 8px,8px -8px,-8px 0;
+    border-radius:14px; padding:16px; text-align:center;
+  }
+  .qr-dl{
+    margin-top:10px; width:100%; background:var(--pitch); color:var(--cream);
+    border:none; border-radius:8px; padding:8px; font-size:12px; font-weight:700; cursor:pointer;
+  }
+  .qr-dl:hover{background:var(--ember); color:var(--pitch);}
+  .qr-actions{display:flex; gap:10px; flex-wrap:wrap;}
   .qr-mesa{font-family:'Anton',sans-serif; font-size:20px; color:#120e0b; margin-bottom:10px;}
   .qr-img{display:flex; justify-content:center;}
   .qr-img img, .qr-img canvas{display:block;}
@@ -532,29 +547,16 @@
 
   /* ---------- PRINT AREA (comanda térmica) ---------- */
   .print-area{display:none;}
+  /* ===== IMPRESSÃO: CUPOM 80mm ===== */
+  /* Define o tamanho do papel. Sem isso o navegador manda numa folha A4
+     inteira, com o cupom minúsculo no canto e um mar de branco em volta. */
+  /* A impressão acontece num iframe isolado (ver doPrint no script).
+     A área abaixo só guarda o conteúdo antes de ser enviado. */
+  .print-area{display:none;}
   @media print{
-    body > *:not(.print-area){display:none !important;}
-    .print-area{
-      display:block !important; width:78mm; margin:0 auto; padding:6px;
-      font-family:'DM Sans', monospace; color:#000; background:#fff;
-    }
-    .print-area .p-logo{font-family:'Anton',sans-serif; font-size:20px; text-align:center; margin-bottom:2px;}
-    .print-area .p-sub{text-align:center; font-size:10px; margin-bottom:10px;}
-    .print-area .p-line{border-top:1px dashed #000; margin:8px 0;}
-    .print-area .p-num{text-align:center; font-family:'Anton',sans-serif; font-size:30px; margin:6px 0;}
-    .print-area .p-table{text-align:center; font-family:'Anton',sans-serif; font-size:26px; border:2px solid #000; border-radius:6px; padding:4px; margin:6px 0;}
-    .print-area .p-code{text-align:center; font-size:12px; margin-bottom:8px;}
-    .print-area .p-row{display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;}
-    .print-area .p-item{display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; font-weight:700;}
-    .print-area .p-total{display:flex; justify-content:space-between; font-size:15px; font-weight:700; margin-top:8px;}
-    .print-area .p-notes{font-size:12px; margin-top:10px; border:1px solid #000; padding:8px; border-radius:4px;}
-    .print-area .p-foot{text-align:center; font-size:10px; margin-top:14px;}
-    .print-area:has(.qr-print-wrap){width:100% !important; padding:10mm;}
-    .print-area .qr-print-wrap{width:100%;}
-    .print-area .qr-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
-    .print-area .qr-card{border:2px dashed #000; border-radius:10px; padding:14px; text-align:center; page-break-inside:avoid; background:#fff;}
-    .print-area .qr-mesa{font-family:'Anton',sans-serif; font-size:20px; margin-bottom:8px; color:#000;}
-    .print-area .qr-hint{font-size:10px; color:#333; margin-top:8px;}
+    /* rede de segurança: se algo disparar print na janela principal,
+       nada da interface vaza para o papel */
+    body > *{display:none !important;}
   }
 </style>
 </head>
@@ -1147,6 +1149,21 @@
             <div class="form-grid">
               <div class="field"><label>Quantidade de mesas</label><input type="number" id="qrCount" value="10" min="1" max="60"></div>
               <div class="field"><label>Endereço do site</label><input type="text" id="qrBaseUrl" placeholder="https://seusite.vercel.app"></div>
+              <div class="field"><label>Cor do QR (PNG transparente)</label>
+                <select id="qrColor">
+                  <option value="#000000">⬛ Preto — para arte de fundo claro</option>
+                  <option value="#FFFFFF">⬜ Branco — para arte de fundo escuro</option>
+                  <option value="#E5762E">🟧 Laranja da marca</option>
+                  <option value="#F0B429">🟨 Amarelo da marca</option>
+                </select>
+              </div>
+              <div class="field"><label>Resolução do PNG</label>
+                <select id="qrSize">
+                  <option value="512">512px — web e redes sociais</option>
+                  <option value="1024" selected>1024px — adesivo e display de mesa</option>
+                  <option value="2048">2048px — impressão grande / banner</option>
+                </select>
+              </div>
             </div>
             <button class="btn-primary" id="genQrBtn">Gerar QR Codes</button>
             <div id="qrArea" style="margin-top:20px;"></div>
@@ -1570,6 +1587,11 @@
     }else{
       products.push({id: genId(), name, cat, price, cost, icon, tag, desc, photo: pendingPhoto || "", recipe: []});
     }
+    if(menuSizeBytes() > MENU_SAFE_BYTES){
+      document.getElementById('formError').textContent =
+        "O cardápio ficou grande demais (limite do banco). Remova alguma foto antes de salvar.";
+      return;
+    }
     await saveProducts(); renderMenu(); renderAdminList(); clearForm();
   });
   document.getElementById('cancelEditBtn').addEventListener('click', clearForm);
@@ -1596,14 +1618,47 @@
       reader.readAsDataURL(file);
     });
   }
+  // O cardápio inteiro vive num único documento e o Firestore limita 1MB.
+  // Por isso a foto vai bem pequena (~30KB) e avisamos quanto ainda cabe.
+  const PHOTO_MAX_BYTES = 45000;   // por foto
+  const MENU_SAFE_BYTES = 850000;  // margem sob o limite de 1MB do documento
+
+  function menuSizeBytes(extra){
+    try{ return new Blob([JSON.stringify(products)]).size + (extra || 0); }
+    catch(e){ return JSON.stringify(products).length + (extra || 0); }
+  }
+
   document.getElementById('fPhoto').addEventListener('change', async (e) => {
     const file = e.target.files[0]; if(!file) return;
-    // 600px / qualidade 0.65 mantém a foto bem abaixo do limite do banco
-    let data = await compressImage(file, 600, 0.65);
-    if(data.length > 700000) data = await compressImage(file, 420, 0.55);
+    const errEl = document.getElementById('formError');
+    errEl.textContent = "Otimizando a foto...";
+
+    // reduz progressivamente até caber no orçamento
+    let data = null;
+    for(const [w,q] of [[400,0.6],[340,0.55],[280,0.5],[220,0.45],[180,0.4]]){
+      data = await compressImage(file, w, q);
+      if(data.length <= PHOTO_MAX_BYTES) break;
+    }
+
+    // já existe foto neste produto? substitui, não soma
+    const current = editingId ? (products.find(x=>x.id===editingId)||{}).photo || "" : "";
+    const projected = menuSizeBytes(data.length - current.length);
+
+    if(projected > MENU_SAFE_BYTES){
+      const comFoto = products.filter(x=>x.photo).length;
+      errEl.textContent = `Não cabe mais foto no cardápio (${comFoto} produtos já têm). ` +
+        `Remova a foto de outro produto pra liberar espaço.`;
+      document.getElementById('fPhoto').value = "";
+      return;
+    }
+
     pendingPhoto = data;
     document.getElementById('fPhotoPreview').src = data;
     document.getElementById('fPhotoWrap').style.display = 'block';
+    const usoPct = Math.round((projected / MENU_SAFE_BYTES) * 100);
+    errEl.style.color = usoPct > 80 ? "var(--mustard)" : "var(--green)";
+    errEl.textContent = `Foto pronta (${Math.round(data.length/1024)}KB). Espaço do cardápio: ${usoPct}% usado.`;
+    setTimeout(()=>{ errEl.textContent=""; errEl.style.color=""; }, 6000);
   });
   document.getElementById('fPhotoRemove').addEventListener('click', () => {
     pendingPhoto = "";
@@ -1733,27 +1788,147 @@
     return start.toISOString();
   }
 
+  let ordersUnsub = null;
+  let currentShiftStart = null;
+
   function watchOrders(){
-    db.collection('orders')
-      .where('createdAt', '>=', shiftStartISO())
+    if(ordersUnsub){ ordersUnsub(); ordersUnsub = null; }
+    currentShiftStart = shiftStartISO();
+
+    const onData = (snap) => {
+      orders = snap.docs.map(d => d.data());
+      checkForNewOrders();
+      scheduleRender();
+    };
+
+    ordersUnsub = db.collection('orders')
+      .where('createdAt', '>=', currentShiftStart)
       .orderBy('createdAt', 'desc')
-      .onSnapshot((snap) => {
-        orders = snap.docs.map(d => d.data());
-        checkForNewOrders();
-        renderAdminOrders();
-        renderTables();
-        renderCaixa();
-        renderDashboard();
-        renderEmployeeRanking();
-        if(currentTrackedCode) refreshTrackView();
-      }, (err) => {
+      .onSnapshot(onData, (err) => {
         console.error("Erro ao ler pedidos:", err);
-        // se faltar índice composto, cai pro modo simples
-        db.collection('orders').orderBy('createdAt','desc').limit(200).onSnapshot((snap) => {
-          orders = snap.docs.map(d => d.data());
-          checkForNewOrders(); renderAdminOrders(); renderTables(); renderCaixa(); renderDashboard();
-        });
+        ordersUnsub = db.collection('orders').orderBy('createdAt','desc').limit(200).onSnapshot(onData);
       });
+  }
+
+  // A janela do turno era fixada no login: com o painel aberto da quarta pra
+  // quinta, os pedidos do dia seguinte nunca apareciam.
+  setInterval(() => {
+    if(!listenersStarted) return;
+    const novo = shiftStartISO();
+    if(novo !== currentShiftStart){
+      knownOrderCodes = null; // evita disparar alarme pro turno inteiro
+      watchOrders();
+    }
+  }, 5 * 60 * 1000);
+
+  /* ---------------- IMPRESSÃO ---------------- */
+  // Imprime num documento ISOLADO (iframe), contendo só o cupom.
+  // Esconder a interface por CSS era frágil: bastava uma regra do site
+  // vazar pra impressão sair a página inteira, como estava acontecendo.
+  const CUPOM_CSS = `
+    @page{ size: 80mm auto; margin: 0; }
+    *{ margin:0; padding:0; box-sizing:border-box;
+       -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    body{
+      width:80mm; padding:3mm 3mm 8mm; background:#fff; color:#000;
+      font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;
+      font-size:12px; line-height:1.35;
+    }
+    .p-logo{font-size:22px; font-weight:900; text-align:center; letter-spacing:1px; margin-bottom:1px;}
+    .p-sub{text-align:center; font-size:10px; font-weight:700; margin-bottom:8px;}
+    .p-line{border-top:1px dashed #000; margin:6px 0;}
+    .p-num{text-align:center; font-size:36px; font-weight:900; line-height:1; margin:4px 0;}
+    .p-table{text-align:center; font-size:26px; font-weight:900; border:2px solid #000; padding:3px; margin:5px 0;}
+    .p-code{text-align:center; font-size:11px; margin-bottom:6px;}
+    .p-row{display:flex; justify-content:space-between; gap:6px; font-size:12px; margin-bottom:3px;}
+    .p-item{display:flex; justify-content:space-between; gap:6px; font-size:13px; font-weight:700; margin-bottom:5px;}
+    .p-item span:first-child{flex:1; word-break:break-word;}
+    .p-item span:last-child{white-space:nowrap;}
+    .p-total{display:flex; justify-content:space-between; font-size:16px; font-weight:900;
+             border-top:2px solid #000; margin-top:6px; padding-top:5px;}
+    .p-notes{font-size:12px; font-weight:700; border:1px solid #000; padding:6px; margin-top:8px;}
+    .p-foot{text-align:center; font-size:10px; margin-top:12px;}
+  `;
+
+  const QR_CSS = `
+    @page{ size: A4 portrait; margin: 10mm; }
+    *{ margin:0; padding:0; box-sizing:border-box;
+       -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    body{background:#fff; color:#000; font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;}
+    .qr-grid{display:grid; grid-template-columns:1fr 1fr; gap:14mm 10mm;}
+    .qr-card{border:2px dashed #000; padding:6mm; text-align:center; page-break-inside:avoid;}
+    .qr-mesa{font-size:22px; font-weight:900; margin-bottom:4mm;}
+    .qr-img{display:flex; justify-content:center;}
+    .qr-img img, .qr-img canvas{display:block; max-width:100%;}
+    .qr-hint{font-size:10px; margin-top:3mm;}
+  `;
+
+  function doPrint(mode){
+    const html = document.getElementById('printArea').innerHTML;
+    if(!html.trim()){ alert("Nada para imprimir."); return; }
+    const css = mode === 'a4' ? QR_CSS : CUPOM_CSS;
+
+    // iframe escondido: documento próprio, sem herdar nada do painel
+    const old = document.getElementById('printFrame');
+    if(old) old.remove();
+    const frame = document.createElement('iframe');
+    frame.id = 'printFrame';
+    frame.setAttribute('aria-hidden','true');
+    frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+    document.body.appendChild(frame);
+
+    const doc = frame.contentWindow.document;
+    doc.open();
+    doc.write('<!DOCTYPE html><html><head><meta charset="utf-8">' +
+              '<title>Comanda</title><style>' + css + '</style></head><body>' +
+              html + '</body></html>');
+    doc.close();
+
+    const fire = () => {
+      try{
+        frame.contentWindow.focus();
+        frame.contentWindow.print();
+      }catch(e){
+        console.error("Falha ao imprimir:", e);
+        alert("Não foi possível abrir a impressão.");
+      }
+      setTimeout(() => { const f = document.getElementById('printFrame'); if(f) f.remove(); }, 3000);
+    };
+    // espera as imagens (QR) carregarem
+    if(mode === 'a4') setTimeout(fire, 600);
+    else if(frame.contentWindow.document.readyState === 'complete') setTimeout(fire, 120);
+    else frame.onload = () => setTimeout(fire, 120);
+  }
+
+  /* ---------------- RENDER AGRUPADO ---------------- */
+  // Antes, cada mudança redesenhava 6 telas — inclusive abas invisíveis.
+  let renderQueued = false;
+  function currentTab(){
+    const btn = document.querySelector('.admin-tab-btn.active');
+    return btn ? btn.dataset.atab : 'pedidos';
+  }
+  function scheduleRender(){
+    if(renderQueued) return;
+    renderQueued = true;
+    requestAnimationFrame(() => {
+      renderQueued = false;
+      updateTabBadges();                    // contadores: baratos, sempre
+      const tab = currentTab();
+      if(tab === 'pedidos')        renderAdminOrders();
+      else if(tab === 'cozinha')   renderKitchen();
+      else if(tab === 'mesas')     renderTables();
+      else if(tab === 'caixa')     renderCaixa();
+      else if(tab === 'dashboard'){ renderDashboard(); renderEmployeeRanking(); }
+      if(currentTrackedCode) refreshTrackView();
+    });
+  }
+
+  function updateTabBadges(){
+    const set = (id, n) => { const el = document.getElementById(id); if(el) el.textContent = n > 0 ? `(${n})` : ''; };
+    set('pendingBadge', orders.filter(o => !['entregue','cancelado'].includes(o.status)).length);
+    set('kitchenBadge', orders.filter(o => ['aceito','preparo'].includes(o.status)).length);
+    try{ set('openTablesBadge', openTables().length); }catch(e){}
+    try{ set('caixaBadge', pendingBills().length); }catch(e){}
   }
   function saveOrder(order){
     const p = db.collection('orders').doc(order.code).set(order);
@@ -1927,87 +2102,233 @@
   });
 
   /* ---------------- QR CODE DAS MESAS ---------------- */
+  let qrLastConfig = null;
+
   document.getElementById('genQrBtn').addEventListener('click', () => {
     const count = parseInt(document.getElementById('qrCount').value) || 10;
     let base = document.getElementById('qrBaseUrl').value.trim() || window.location.origin;
     base = base.replace(/\/+$/, '').replace(/\/gerencial$/, '');
+    const color = document.getElementById('qrColor').value;
+    const size = parseInt(document.getElementById('qrSize').value) || 1024;
     const area = document.getElementById('qrArea');
-    if(typeof QRCode === 'undefined'){ area.innerHTML = '<div class="error-msg">Biblioteca de QR não carregou. Verifique a internet.</div>'; return; }
-    area.innerHTML = '<div class="qr-actions"><button class="btn-primary" id="printQrBtn">🖨️ Imprimir todos</button></div><div class="qr-grid" id="qrGrid"></div>';
+
+    if(typeof QRCode === 'undefined'){
+      area.innerHTML = '<div class="error-msg">Biblioteca de QR não carregou. Verifique a internet e recarregue.</div>';
+      return;
+    }
+    qrLastConfig = {count, base, color, size};
+
+    area.innerHTML = `
+      <div class="qr-actions">
+        <button class="btn-primary" id="downloadAllQrBtn">⬇️ Baixar todos em PNG</button>
+        <button class="btn-ghost" id="printQrBtn">🖨️ Imprimir cartela</button>
+      </div>
+      <p style="font-size:12px; color:rgba(242,233,218,0.5); margin:10px 0 16px;">
+        Os PNGs saem com fundo transparente — é só arrastar por cima da sua arte no Canva, Photoshop ou onde preferir.
+      </p>
+      <div class="qr-grid" id="qrGrid"></div>`;
+
     const grid = document.getElementById('qrGrid');
     for(let i = 1; i <= count; i++){
       const card = document.createElement('div');
       card.className = 'qr-card';
-      card.innerHTML = `<div class="qr-mesa">MESA ${i}</div><div class="qr-img" id="qr-${i}"></div><div class="qr-hint">Aponte a câmera e faça seu pedido</div>`;
+      card.innerHTML = `<div class="qr-mesa">MESA ${i}</div>
+                        <div class="qr-img" id="qr-${i}"></div>
+                        <div class="qr-hint">Aponte a câmera e faça seu pedido</div>
+                        <button class="qr-dl" data-qrdl="${i}">⬇️ PNG</button>`;
       grid.appendChild(card);
       new QRCode(document.getElementById('qr-' + i), {
         text: base + "/?mesa=" + i,
         width: 150, height: 150,
         colorDark: "#000000", colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.M
+        correctLevel: QRCode.CorrectLevel.H   // tolera logo sobreposto na arte
       });
     }
+
+    grid.querySelectorAll('[data-qrdl]').forEach(btn =>
+      btn.addEventListener('click', () => downloadQrPng(Number(btn.dataset.qrdl))));
     document.getElementById('printQrBtn').addEventListener('click', () => printQrCodes(count));
+    document.getElementById('downloadAllQrBtn').addEventListener('click', downloadAllQrPngs);
   });
+
+  // Gera o PNG em alta resolução com FUNDO TRANSPARENTE.
+  // A biblioteca desenha em canvas com fundo branco; aqui redesenhamos
+  // lendo os módulos escuros e descartando o resto.
+  function buildQrCanvas(mesa){
+    const cfg = qrLastConfig; if(!cfg) return null;
+
+    // 1) gera o QR num elemento temporário, bem grande, pra ler os módulos
+    const tmp = document.createElement('div');
+    tmp.style.cssText = 'position:absolute;left:-99999px;top:0;';
+    document.body.appendChild(tmp);
+    new QRCode(tmp, {
+      text: cfg.base + "/?mesa=" + mesa,
+      width: 512, height: 512,
+      colorDark: "#000000", colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H
+    });
+    const src = tmp.querySelector('canvas');
+    if(!src){ tmp.remove(); return null; }
+
+    const sctx = src.getContext('2d');
+    const data = sctx.getImageData(0, 0, src.width, src.height).data;
+
+    // 2) descobre o tamanho do módulo (menor quadrado do QR)
+    const out = document.createElement('canvas');
+    out.width = cfg.size; out.height = cfg.size;
+    const octx = out.getContext('2d');
+    octx.clearRect(0, 0, out.width, out.height); // fundo transparente
+    octx.fillStyle = cfg.color;
+
+    // 3) redesenha pixel a pixel, ampliando, só o que é escuro
+    const scale = cfg.size / src.width;
+    for(let y = 0; y < src.height; y++){
+      for(let x = 0; x < src.width; x++){
+        const idx = (y * src.width + x) * 4;
+        const lum = (data[idx] + data[idx+1] + data[idx+2]) / 3;
+        if(lum < 128){
+          // arredonda pra fora pra não deixar fresta entre os quadrados
+          octx.fillRect(Math.floor(x*scale), Math.floor(y*scale),
+                        Math.ceil(scale), Math.ceil(scale));
+        }
+      }
+    }
+    tmp.remove();
+    return out;
+  }
+
+  function downloadQrPng(mesa){
+    const canvas = buildQrCanvas(mesa);
+    if(!canvas){ alert("Não foi possível gerar o PNG."); return; }
+    canvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `qr-mesa-${String(mesa).padStart(2,'0')}.png`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }, 'image/png');
+  }
+
+  async function downloadAllQrPngs(){
+    const cfg = qrLastConfig; if(!cfg) return;
+    const btn = document.getElementById('downloadAllQrBtn');
+    btn.disabled = true;
+    for(let i = 1; i <= cfg.count; i++){
+      btn.textContent = `Baixando ${i} de ${cfg.count}...`;
+      downloadQrPng(i);
+      await new Promise(r => setTimeout(r, 350)); // o navegador bloqueia downloads muito rápidos
+    }
+    btn.disabled = false;
+    btn.textContent = "⬇️ Baixar todos em PNG";
+    showToast(`${cfg.count} QR Codes baixados ✓`);
+  }
 
   function printQrCodes(count){
     const grid = document.getElementById('qrGrid');
     const area = document.getElementById('printArea');
     area.innerHTML = '<div class="qr-print-wrap">' + grid.innerHTML + '</div>';
-    setTimeout(() => window.print(), 200);
+    doPrint('a4');
   }
 
   /* ---------------- BACKUP ---------------- */
   document.getElementById('exportDataBtn').addEventListener('click', async () => {
+    const msg = document.getElementById('backupMsg');
+    msg.style.color = ""; msg.textContent = "Gerando backup...";
     try{
-      const docs = ['menu','orders','cashflow','fixedcosts','inventory','employees','promo','info'];
-      const backup = {exportedAt: new Date().toISOString()};
-      for(const d of docs){
-        const snap = await db.collection('store').doc(d).get();
-        backup[d] = snap.exists ? snap.data() : null;
+      const backup = {exportedAt: new Date().toISOString(), version: 2, store: {}, orders: [], users: [], stats: [], closings: []};
+
+      // documentos de configuração
+      for(const d of ['menu','info','promo','inventory','cashflow','fixedcosts','register']){
+        try{
+          const snap = await db.collection('store').doc(d).get();
+          backup.store[d] = snap.exists ? snap.data() : null;
+        }catch(e){ backup.store[d] = null; } // sem permissão: segue sem travar
       }
+
+      // coleções (o formato antigo salvava docs que não existem mais)
+      const collect = async (name, limit) => {
+        try{
+          let q = db.collection(name);
+          if(name === 'orders') q = q.orderBy('createdAt','desc').limit(limit || 3000);
+          const snap = await q.get();
+          return snap.docs.map(d => Object.assign({_id: d.id}, d.data()));
+        }catch(e){ return []; }
+      };
+      backup.orders   = await collect('orders', 3000);
+      backup.users    = await collect('users');
+      backup.stats    = await collect('stats');
+      backup.closings = await collect('closings');
+
       const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = "omarkin-backup-" + new Date().toISOString().slice(0,10) + ".json";
+      a.download = "omarkin-backup-" + todayStr() + ".json";
       a.click();
       URL.revokeObjectURL(url);
-      document.getElementById('backupMsg').style.color = "var(--green)";
-      document.getElementById('backupMsg').textContent = "Backup baixado ✓";
+      msg.style.color = "var(--green)";
+      msg.textContent = `Backup baixado ✓ (${backup.orders.length} pedidos, ${backup.stats.length} dias de histórico)`;
     }catch(e){
-      document.getElementById('backupMsg').style.color = "var(--tomato)";
-      document.getElementById('backupMsg').textContent = "Não foi possível gerar o backup.";
+      console.error(e);
+      msg.style.color = "var(--tomato)";
+      msg.textContent = "Não foi possível gerar o backup.";
     }
   });
+
   document.getElementById('importDataBtn').addEventListener('click', () => document.getElementById('importDataInput').click());
   document.getElementById('importDataInput').addEventListener('change', (e) => {
     const file = e.target.files[0]; if(!file) return;
-    if(!confirm("Restaurar o backup vai SUBSTITUIR todos os dados atuais (cardápio, pedidos, estoque, financeiro, equipe). Continuar?")) { e.target.value = ""; return; }
+    const msg = document.getElementById('backupMsg');
+    if(currentRole !== 'gerente'){
+      msg.style.color = "var(--tomato)";
+      msg.textContent = "Só o gerente pode restaurar backup.";
+      e.target.value = ""; return;
+    }
+    if(!confirm("Restaurar vai SUBSTITUIR cardápio, estoque, financeiro e configurações.\n\nPedidos e histórico NÃO são apagados.\n\nContinuar?")){
+      e.target.value = ""; return;
+    }
     const reader = new FileReader();
     reader.onload = async (ev) => {
       try{
         const data = JSON.parse(ev.target.result);
-        const docs = ['menu','orders','cashflow','fixedcosts','inventory','employees','promo','info'];
-        for(const d of docs){
-          if(data[d]) await db.collection('store').doc(d).set(data[d]);
+        msg.style.color = ""; msg.textContent = "Restaurando...";
+        if(data.version >= 2 && data.store){
+          for(const [k, v] of Object.entries(data.store)){
+            if(v) await db.collection('store').doc(k).set(v);
+          }
+        }else{
+          // formato antigo
+          for(const d of ['menu','info','promo','inventory','cashflow','fixedcosts']){
+            if(data[d]) await db.collection('store').doc(d).set(data[d]);
+          }
         }
-        document.getElementById('backupMsg').style.color = "var(--green)";
-        document.getElementById('backupMsg').textContent = "Backup restaurado ✓";
+        msg.style.color = "var(--green)";
+        msg.textContent = "Backup restaurado ✓";
         showToast("Dados restaurados ✓");
       }catch(err){
-        document.getElementById('backupMsg').style.color = "var(--tomato)";
-        document.getElementById('backupMsg').textContent = "Arquivo inválido ou corrompido.";
+        console.error(err);
+        msg.style.color = "var(--tomato)";
+        msg.textContent = "Arquivo inválido ou sem permissão.";
       }
       e.target.value = "";
     };
     reader.readAsText(file);
   });
 
-  function todayStr(){ return new Date().toISOString().slice(0,10); }
+  // Data no fuso LOCAL. toISOString() devolve UTC e, como operamos 19h-23h
+  // (UTC-3), jogaria todo pedido após as 21h para o dia seguinte.
+  function localDateStr(d){
+    const dt = d ? new Date(d) : new Date();
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth()+1).padStart(2,'0');
+    const day = String(dt.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+  function todayStr(){ return localDateStr(); }
   function nextDailyNumber(){
     const today = todayStr();
-    const todays = orders.filter(o => (o.createdAt || "").slice(0,10) === today);
+    const todays = orders.filter(o => localDateStr(o.createdAt) === today);
     return todays.length + 1;
   }
 
@@ -2115,7 +2436,7 @@
   /* ---------------- ADMIN: ORDERS TAB ---------------- */
   function renderDayStats(){
     const today = todayStr();
-    const todays = orders.filter(o => (o.createdAt || "").slice(0,10) === today);
+    const todays = orders.filter(o => localDateStr(o.createdAt) === today);
     const revenue = todays.reduce((s,o) => s + o.total, 0);
     const active = orders.filter(o => o.status !== 'entregue').length;
     document.getElementById('dayStats').innerHTML = `
@@ -2314,8 +2635,6 @@
   function renderAdminOrders(){
     renderDayStats();
     const list=filteredOrders();
-    const pendingCount=orders.filter(o=>!['entregue','cancelado'].includes(o.status)).length;
-    document.getElementById('pendingBadge').textContent=pendingCount>0?`(${pendingCount})`:'';
     if(currentOrderView==='painel') renderViewPainel(list);
     else if(currentOrderView==='tabela') renderViewTabela(list);
     else renderViewKanban(list);
@@ -2346,7 +2665,7 @@
       ${o.notes ? `<div class="p-notes"><strong>OBSERVAÇÕES:</strong><br>${escapeHtml(o.notes)}</div>` : ''}
       <div class="p-foot">Feito na chapa, na hora 🔥</div>
     `;
-    setTimeout(() => window.print(), 100);
+    doPrint('cupom');
   }
 
   /* ---------------- ESTATÍSTICAS HISTÓRICAS ---------------- */
@@ -2354,7 +2673,7 @@
 
   function watchStats(){
     // últimos 60 dias — 60 documentos, independente do volume de pedidos
-    const from = new Date(Date.now() - 60*24*60*60*1000).toISOString().slice(0,10);
+    const from = localDateStr(Date.now() - 60*24*60*60*1000);
     db.collection('stats').where('date','>=',from).onSnapshot((snap) => {
       dailyStats = {};
       snap.docs.forEach(d => dailyStats[d.id] = d.data());
@@ -2363,11 +2682,16 @@
   }
 
   function statsRange(days){
-    const cutoff = new Date(Date.now() - days*24*60*60*1000).toISOString().slice(0,10);
+    const cutoff = localDateStr(Date.now() - days*24*60*60*1000);
     return Object.values(dailyStats).filter(s => s.date >= cutoff);
   }
   function revenueRange(days){ return statsRange(days).reduce((s,d) => s + (Number(d.revenue)||0), 0); }
   function countRange(days){ return statsRange(days).reduce((s,d) => s + (Number(d.orderCount)||0), 0); }
+  // O Firestore não aceita . ~ * / [ ] em nomes de campo. Guardamos a chave
+  // sanitizada e comparamos pela MESMA regra na hora de ler — antes o produto
+  // com ponto no nome sumia do ranking de lucro.
+  function statsKey(name){ return String(name).replace(/[.~*/\[\]]/g,'_').slice(0,60); }
+
   function productsRange(days){
     const acc = {};
     statsRange(days).forEach(d => {
@@ -2418,7 +2742,14 @@
     `;
 
     // best sellers — dos últimos 30 dias, via estatísticas
-    const counts = productsRange(30);
+    const rawCounts = productsRange(30);
+    // traduz a chave sanitizada de volta pro nome real do produto
+    const counts = {};
+    Object.entries(rawCounts).forEach(([key, qty]) => {
+      const p = products.find(x => statsKey(x.name) === key);
+      counts[p ? p.name : key.replace(/_/g,' ')] = qty;
+    });
+    const countsByKey = rawCounts;
     const ranked = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
     const maxCount = ranked.length ? ranked[0][1] : 1;
     document.getElementById('bestSellers').innerHTML = ranked.length ? ranked.map(([name,count],i) => `
@@ -2433,7 +2764,7 @@
     const days = [];
     for(let i=6;i>=0;i--){
       const d = new Date(); d.setDate(d.getDate()-i);
-      const key = d.toISOString().slice(0,10);
+      const key = localDateStr(d);
       const dayRevenue = Number((dailyStats[key]||{}).revenue) || 0;
       days.push({label: d.toLocaleDateString('pt-BR',{weekday:'short'}).replace('.',''), value: dayRevenue});
     }
@@ -2445,17 +2776,19 @@
       </div>
     `).join('');
 
-    renderProfitRanking(counts);
+    renderProfitRanking(countsByKey);
   }
 
   function renderProfitRanking(counts){
     const box = document.getElementById('profitRanking');
     const rows = [];
-    Object.entries(counts).forEach(([name, qty]) => {
-      const p = products.find(x => x.name === name);
+    // 'counts' vem das estatísticas com a chave SANITIZADA; casamos aplicando
+    // a mesma regra ao nome do produto (senão itens com ponto no nome somem).
+    Object.entries(counts).forEach(([key, qty]) => {
+      const p = products.find(x => statsKey(x.name) === key) || products.find(x => x.name === key);
       if(!p || !p.cost) return;
       const unitProfit = p.price - p.cost;
-      rows.push({name, qty, unitProfit, totalProfit: unitProfit * qty, margin: Math.round((unitProfit/p.price)*100)});
+      rows.push({name: p.name, qty, unitProfit, totalProfit: unitProfit * qty, margin: Math.round((unitProfit/p.price)*100)});
     });
     if(rows.length === 0){
       box.innerHTML = '<div class="loading-row">Cadastre o custo dos produtos no Cardápio pra ver o lucro por item.</div>';
@@ -2518,7 +2851,7 @@
     const desc = document.getElementById('cfDesc').value.trim();
     const amount = parseFloat(document.getElementById('cfAmount').value);
     const category = document.getElementById('cfCategory').value;
-    const date = document.getElementById('cfDate').value || new Date().toISOString().slice(0,10);
+    const date = document.getElementById('cfDate').value || todayStr();
     const errEl = document.getElementById('cfError');
     if(!desc || isNaN(amount) || amount <= 0){ errEl.textContent = "Preencha descrição e um valor válido."; return; }
     errEl.textContent = "";
@@ -2648,7 +2981,7 @@
 
   function paidToday(){
     const today = todayStr();
-    return orders.filter(o => o.paid === true && (o.paidAt || '').slice(0,10) === today)
+    return orders.filter(o => o.paid === true && o.paidAt && localDateStr(o.paidAt) === today)
                  .sort((a,b) => new Date(b.paidAt) - new Date(a.paidAt));
   }
 
@@ -2661,7 +2994,6 @@
       : `<div class="register-banner closed"><span>🔒 Caixa FECHADO</span><span>Abra o caixa pra receber pagamentos</span></div>`;
 
     const bills = pendingBills();
-    document.getElementById('caixaBadge').textContent = bills.length > 0 ? `(${bills.length})` : '';
     if(!isOpen) return;
 
     // KPIs do turno
@@ -2814,14 +3146,29 @@
       <div class="p-notes" style="margin-top:14px;">Conferido por: ______________________</div>
       <div class="p-foot">O Markin Chef's Burguer 🔥</div>
     `;
-    setTimeout(() => window.print(), 100);
+    doPrint('cupom');
   }
 
   /* ---------- MODAL DE PAGAMENTO ---------- */
   function openPayment(billId){
     if(register.isOpen !== true){ alert("Abra o caixa antes de receber pagamentos."); return; }
-    const bill = pendingBills().find(b => b.id === billId);
-    if(!bill) return;
+    let bill = pendingBills().find(b => b.id === billId);
+
+    // Fallback: pedido já pago, cancelado ou mesa sem comanda aberta.
+    // Antes o botão 💳 simplesmente não fazia nada.
+    if(!bill){
+      const code = billId.startsWith('pedido:') ? billId.slice(7) : null;
+      const o = code ? orders.find(x => x.code === code) : null;
+      if(o && o.paid === true){ alert("Este pedido já foi pago em " + new Date(o.paidAt).toLocaleString('pt-BR') + "."); return; }
+      if(o && o.status === 'cancelado'){ alert("Pedido cancelado — não há o que receber."); return; }
+      if(billId.startsWith('mesa:')){
+        const mesa = billId.slice(5);
+        const aberta = openTables().find(t => t.table === String(mesa));
+        if(!aberta){ alert("A conta da mesa " + mesa + " já foi fechada."); return; }
+      }
+      alert("Não foi possível abrir esta conta. Tente pela aba 💳 Caixa.");
+      return;
+    }
     currentBill = bill;
     document.getElementById('payBillId').value = billId;
     document.getElementById('payBillTitle').textContent = bill.icon + " " + bill.title;
@@ -3010,7 +3357,7 @@
       ${change > 0 ? `<div class="p-row"><span>Troco:</span><span>${money(change)}</span></div>` : ''}
       <div class="p-foot">Obrigado pela preferência! 🔥</div>
     `;
-    setTimeout(() => window.print(), 100);
+    doPrint('cupom');
   }
 
   /* ---------------- COMANDAS DE MESA ---------------- */
@@ -3045,7 +3392,6 @@
   function renderTables(){
     const box = document.getElementById('tablesList');
     const tables = openTables();
-    document.getElementById('openTablesBadge').textContent = tables.length > 0 ? `(${tables.length})` : '';
     if(tables.length === 0){
       box.innerHTML = '<div class="loading-row">Nenhuma mesa com comanda aberta.</div>';
       return;
@@ -3111,7 +3457,7 @@
       <div class="p-row"><span>Com serviço:</span><span>${money(tab.total * 1.1)}</span></div>
       <div class="p-foot">Obrigado pela preferência! 🔥</div>
     `;
-    setTimeout(() => window.print(), 100);
+    doPrint('cupom');
   }
 
   async function closeTableTab(tableNum){
@@ -3195,22 +3541,41 @@
     renderRecipeList();
   });
 
+  // Desconta o estoque dentro de uma transação: dois pedidos entregues ao
+  // mesmo tempo não se sobrescrevem (antes o último a salvar apagava o outro).
   async function deductStockForOrder(order){
-    let changed = false;
+    // monta o quanto sai de cada item do estoque
+    const deductions = {};
     order.items.forEach(item => {
       const p = products.find(x => x.name === item.name);
       if(!p || !p.recipe || p.recipe.length === 0) return;
       p.recipe.forEach(r => {
-        const invItem = inventory.find(i => i.id === r.itemId);
-        if(!invItem) return;
-        invItem.qty = Math.max(0, Number(invItem.qty) - (Number(r.qty) * item.qty));
-        changed = true;
+        deductions[r.itemId] = (deductions[r.itemId] || 0) + (Number(r.qty) * item.qty);
       });
     });
-    if(changed){
-      await saveInventory();
-      const low = inventory.filter(i => Number(i.qty) <= Number(i.min));
-      if(low.length > 0) showToast("⚠️ Estoque baixo: " + low.map(i => i.name).join(', '));
+    if(Object.keys(deductions).length === 0) return;
+
+    const ref = db.collection('store').doc('inventory');
+    try{
+      const low = await Promise.race([
+        db.runTransaction(async (tx) => {
+          const snap = await tx.get(ref);
+          const list = (snap.exists && snap.data().list) ? snap.data().list : [];
+          const lowItems = [];
+          list.forEach(invItem => {
+            const out = deductions[invItem.id];
+            if(!out) return;
+            invItem.qty = Math.max(0, Number(invItem.qty) - out);
+            if(Number(invItem.qty) <= Number(invItem.min)) lowItems.push(invItem.name);
+          });
+          tx.set(ref, {list});
+          return lowItems;
+        }),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 4000))
+      ]);
+      if(low && low.length > 0) showToast("⚠️ Estoque baixo: " + low.join(', '));
+    }catch(e){
+      console.warn("Baixa de estoque adiada:", e);
     }
   }
 
@@ -3222,7 +3587,6 @@
     const active = orders
       .filter(o => ['aceito','preparo'].includes(o.status))
       .sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
-    document.getElementById('kitchenBadge').textContent = active.length > 0 ? `(${active.length})` : '';
     if(active.length === 0){
       box.innerHTML = '<div class="loading-row" style="grid-column:1/-1;">Nenhum pedido aceito na fila. 🎉<br><small style="opacity:0.6;">Pedidos novos aparecem aqui depois de aceitos na aba 📋 Pedidos.</small></div>';
       return;
@@ -3402,20 +3766,19 @@
       ]);
     }catch(e){
       // offline ou lento: numera pelos pedidos já carregados do dia
-      const todays = orders.filter(o => (o.createdAt||'').slice(0,10) === today);
+      const todays = orders.filter(o => localDateStr(o.createdAt) === today);
       const maxNum = todays.reduce((m,o) => Math.max(m, Number(o.dailyNumber)||0), 0);
       return maxNum + 1;
     }
   }
 
   function bumpDailyStats(order){
-    const day = (order.createdAt || "").slice(0,10);
+    const day = localDateStr(order.createdAt);
     const inc = firebase.firestore.FieldValue.increment;
     const update = {date: day, orderCount: inc(1), revenue: inc(Number(order.total)||0)};
     update['byType.' + order.orderType] = inc(1);
     order.items.forEach(i => {
-      const key = i.name.replace(/[.~*/\[\]]/g,'_').slice(0,60);
-      update['products.' + key] = inc(i.qty);
+      update['products.' + statsKey(i.name)] = inc(i.qty);
     });
     db.collection('stats').doc(day).set(update, {merge:true}).catch(e => console.warn("stats:", e));
   }
@@ -3433,7 +3796,7 @@
         tabClosed: true
       });
       // desconta das estatísticas do dia
-      const day = (order.createdAt || "").slice(0,10);
+      const day = localDateStr(order.createdAt);
       const inc = firebase.firestore.FieldValue.increment;
       db.collection('stats').doc(day).set({
         orderCount: inc(-1), revenue: inc(-(Number(order.total)||0)), canceled: inc(1)
@@ -3442,17 +3805,55 @@
     }catch(e){ alert("Não foi possível cancelar."); }
   }
 
+  // Grava SÓ os campos alterados. Antes usávamos .set() (substituição total),
+  // o que fazia o caixa e a cozinha apagarem o trabalho um do outro ao mexer
+  // no mesmo pedido quase ao mesmo tempo.
   async function setOrderStatus(code, status){
     const order = orders.find(o => o.code === code); if(!order) return;
     const wasDelivered = order.status === 'entregue';
-    order.status = status; order.updatedAt = new Date().toISOString();
+
+    const patch = {
+      status,
+      updatedAt: new Date().toISOString(),
+      handledBy: currentEmployee ? currentEmployee.name : (order.handledBy || "Gerente")
+    };
+
+    // Baixa de estoque protegida por transação: dois aparelhos marcando
+    // "entregue" ao mesmo tempo não descontam duas vezes.
     if(status === 'entregue' && !wasDelivered && !order.stockDeducted){
-      order.stockDeducted = true;
-      await deductStockForOrder(order);
+      const didDeduct = await claimStockDeduction(code);
+      if(didDeduct) await deductStockForOrder(order);
     }
-    if(currentEmployee) order.handledBy = currentEmployee.name;
-    else if(currentRole === 'gerente') order.handledBy = order.handledBy || "Gerente";
-    await saveOrder(order); renderAdminOrders(); showToast("Status do pedido " + code + " atualizado ✓");
+
+    try{
+      const w = db.collection('orders').doc(code).update(patch);
+      w.catch(e => console.warn("Sincronização pendente:", e));
+      await Promise.race([w, new Promise(res => setTimeout(res, 2000))]);
+      showToast("Pedido " + code + " → " + statusInfo(status).label);
+    }catch(e){
+      console.error(e);
+      showToast("Não foi possível atualizar. Tente de novo.");
+    }
+  }
+
+  // Marca a baixa de estoque de forma atômica; devolve true só pra quem
+  // conseguiu marcar primeiro.
+  async function claimStockDeduction(code){
+    const ref = db.collection('orders').doc(code);
+    try{
+      return await Promise.race([
+        db.runTransaction(async (tx) => {
+          const snap = await tx.get(ref);
+          if(!snap.exists) return false;
+          if(snap.data().stockDeducted === true) return false; // já foi
+          tx.update(ref, {stockDeducted: true});
+          return true;
+        }),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 3000))
+      ]);
+    }catch(e){
+      return false; // offline: não desconta pra não arriscar baixa dupla
+    }
   }
 
   /* ---------------- FUNÇÕES E PERMISSÕES ---------------- */
