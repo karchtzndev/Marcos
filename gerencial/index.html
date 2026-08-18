@@ -371,6 +371,9 @@
   .kc-btn{background:var(--ember); color:var(--pitch); border:none; border-radius:12px; padding:16px; font-size:16px; font-weight:700; cursor:pointer; letter-spacing:0.5px;}
   .kc-btn:hover{background:var(--mustard);}
 
+  .call-btn{background:var(--green); color:#062814; border:none; padding:8px 14px; border-radius:999px; font-size:12px; font-weight:700; cursor:pointer;}
+  .call-btn:hover{filter:brightness(1.12);}
+
   .cancel-btn{background:transparent; border:1px solid var(--tomato); color:var(--tomato); padding:8px 14px; border-radius:999px; font-size:12px; font-weight:700; cursor:pointer;}
   .cancel-btn:hover{background:var(--tomato); color:var(--cream);}
 
@@ -1140,6 +1143,19 @@
               <div class="field"><label>Entrega (minutos)</label><input type="number" id="lojaDeliveryTime" placeholder="Ex: 20"></div>
             </div>
           </div>
+          <div class="admin-list">
+            <h3>📺 Painel de chamada (TV)</h3>
+            <p style="font-size:13px; color:rgba(242,233,218,0.6); margin-bottom:14px;">Abra este endereço na TV ou tablet do salão. Quando você tocar em "📢 Chamar na TV" num pedido, ele aparece em tela cheia com aviso sonoro. Se dois saírem juntos, entram numa fila — nenhum é sobrescrito.</p>
+            <div class="field">
+              <label>Endereço para abrir na TV</label>
+              <input type="text" id="tvUrl" readonly style="font-size:13px;">
+            </div>
+            <div class="form-actions">
+              <a href="../chamada/" target="_blank" class="btn-primary" style="text-decoration:none; display:inline-block;">📺 Abrir painel agora</a>
+              <button class="btn-ghost" id="copyTvUrl">📋 Copiar endereço</button>
+            </div>
+          </div>
+
           <div class="admin-list">
             <h3>🪑 QR Code das mesas</h3>
             <p style="font-size:13px; color:rgba(242,233,218,0.6); margin-bottom:14px;">Gera um QR pra cada mesa. O cliente escaneia e o número da mesa já vem preenchido — acaba o risco de pedido ir pra mesa errada.</p>
@@ -2074,6 +2090,8 @@
       document.getElementById('lojaPrepTime').value = info.prepTime || 25;
       document.getElementById('lojaDeliveryTime').value = info.deliveryTime || 20;
       if(!document.getElementById('qrBaseUrl').value) document.getElementById('qrBaseUrl').value = window.location.origin;
+      const tv = document.getElementById('tvUrl');
+      if(tv && !tv.value) tv.value = window.location.origin + "/chamada/";
       storeDeliveryFee = Number(info.deliveryFee) || 0;
       document.getElementById('lojaDeliveryFee').value = (info.deliveryFee !== undefined && info.deliveryFee !== null) ? info.deliveryFee : "";
       document.getElementById('lojaFreeFrom').value = (info.freeFrom !== undefined && info.freeFrom !== null) ? info.freeFrom : "";
@@ -2104,6 +2122,14 @@
       showToast("Dados da loja salvos ✓");
       document.getElementById('lojaError').textContent = "";
     }catch(e){ document.getElementById('lojaError').textContent = "Não foi possível salvar. Tente novamente."; }
+  });
+
+  document.getElementById('copyTvUrl').addEventListener('click', () => {
+    const el = document.getElementById('tvUrl');
+    el.select();
+    navigator.clipboard.writeText(el.value)
+      .then(() => showToast("Endereço copiado ✓"))
+      .catch(() => { document.execCommand('copy'); showToast("Endereço copiado ✓"); });
   });
 
   /* ---------------- QR CODE DAS MESAS ---------------- */
@@ -2484,6 +2510,7 @@
     container.querySelectorAll('[data-setstatus]').forEach(btn=>btn.addEventListener('click',()=>setOrderStatus(btn.dataset.setstatus,btn.dataset.status)));
     container.querySelectorAll('[data-print]').forEach(btn=>btn.addEventListener('click',()=>printComanda(btn.dataset.print)));
     container.querySelectorAll('[data-cancel]').forEach(btn=>btn.addEventListener('click',()=>cancelOrder(btn.dataset.cancel)));
+    container.querySelectorAll('[data-call]').forEach(btn=>btn.addEventListener('click',()=>chamarPedido(btn.dataset.call)));
     container.querySelectorAll('[data-paybill]').forEach(btn=>btn.addEventListener('click',()=>openPayment(btn.dataset.paybill)));
   }
 
@@ -2531,6 +2558,7 @@
       </details>
       <div class="order-actions-row">
         <button class="print-btn" data-print="${o.code}">🖨️ Comanda</button>
+        <button class="call-btn" data-call="${o.code}">📢 Chamar na TV</button>
         <button class="pay-now-btn" data-paybill="${o.orderType==='mesa'?'mesa:'+o.table:'pedido:'+o.code}" style="padding:8px 14px;font-size:12px;">💳 Receber</button>
         <button class="cancel-btn" data-cancel="${o.code}">❌ Cancelar</button>
       </div>`:`<div style="color:var(--tomato);font-weight:700;font-size:13px;margin-top:8px;">❌ CANCELADO${o.cancelReason?' — '+escapeHtml(o.cancelReason):''}</div>`}
@@ -3646,9 +3674,11 @@
         </ul>
         ${o.notes ? `<div class="kc-notes">📝 ${escapeHtml(o.notes)}</div>` : ''}
         <button class="kc-btn" data-kitchen="${o.code}" data-next="${next}">${nextLabel}</button>
+        <button class="call-btn" data-call="${o.code}" style="width:100%; margin-top:8px;">📢 Chamar na TV</button>
       </div>`;
     }).join('');
     box.querySelectorAll('[data-kitchen]').forEach(b => b.addEventListener('click', () => setOrderStatus(b.dataset.kitchen, b.dataset.next)));
+    box.querySelectorAll('[data-call]').forEach(b => b.addEventListener('click', () => chamarPedido(b.dataset.call)));
   }
   // atualiza os minutos a cada 30s
   setInterval(() => {
@@ -3819,6 +3849,27 @@
       update['products.' + statsKey(i.name)] = inc(i.qty);
     });
     db.collection('stats').doc(day).set(update, {merge:true}).catch(e => console.warn("stats:", e));
+  }
+
+  /* ---------------- CHAMAR NO PAINEL DA TV ---------------- */
+  async function chamarPedido(code){
+    const o = orders.find(x => x.code === code); if(!o) return;
+    try{
+      // documento novo a cada chamada: permite chamar o mesmo pedido de novo
+      await db.collection('calls').add({
+        code: o.code,
+        dailyNumber: o.dailyNumber || null,
+        customerName: o.customerName || '',
+        orderType: o.orderType || '',
+        table: o.table || '',
+        calledAt: new Date().toISOString(),
+        calledBy: currentEmployee ? currentEmployee.name : ''
+      });
+      showToast("📢 Pedido #" + (o.dailyNumber||'') + " chamado na TV");
+    }catch(e){
+      console.error(e);
+      alert("Não foi possível chamar. Verifique a conexão.");
+    }
   }
 
   async function cancelOrder(code){
