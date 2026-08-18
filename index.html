@@ -388,6 +388,27 @@
   body.has-quickbar .whatsapp-fab{ bottom:96px; }
   body.has-quickbar{ padding-bottom:80px; }
 
+  /* ---------- TURBINAR O LANCHE ---------- */
+  .extras-head{display:flex; align-items:center; gap:14px; padding-bottom:16px; margin-bottom:16px; border-bottom:1px solid var(--line);}
+  .extras-icon{width:56px; height:56px; border-radius:14px; background:rgba(229,118,46,0.15); display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0; overflow:hidden;}
+  .extras-icon img{width:100%; height:100%; object-fit:cover;}
+  .extras-head strong{display:block; font-family:'Anton',sans-serif; font-size:20px; color:var(--cream);}
+  .extras-head span{font-size:14px; color:var(--mustard); font-weight:700;}
+  .extras-hint{font-size:13px; color:rgba(242,233,218,0.55); margin-bottom:16px;}
+  .extra-row{display:flex; align-items:center; gap:12px; padding:13px 14px; border:1px solid var(--line); border-radius:12px; margin-bottom:10px; transition:border-color .2s;}
+  .extra-row.picked{border-color:var(--ember); background:rgba(229,118,46,0.08);}
+  .extra-row .ex-ico{font-size:20px; flex-shrink:0;}
+  .extra-row .ex-info{flex-grow:1; min-width:0;}
+  .extra-row .ex-info strong{display:block; font-size:14px; font-weight:700;}
+  .extra-row .ex-info span{font-size:13px; color:var(--mustard);}
+  .ex-step{display:flex; align-items:center; gap:6px; background:var(--pitch); border-radius:999px; padding:4px; flex-shrink:0;}
+  .ex-step button{width:30px; height:30px; border-radius:50%; border:none; background:var(--char); color:var(--cream); font-size:17px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center;}
+  .ex-step button:hover{background:var(--ember); color:var(--pitch);}
+  .ex-step span{min-width:20px; text-align:center; font-weight:700; font-size:14px;}
+  .extras-total{display:flex; justify-content:space-between; align-items:center; padding:16px 0; margin-top:6px; border-top:1px solid var(--line);}
+  .extras-total span{font-size:14px; color:rgba(242,233,218,0.7);}
+  .extras-total strong{font-family:'Anton',sans-serif; font-size:24px; color:var(--mustard);}
+
   /* ---------- VÍNCULO DE ADICIONAL NO CARRINHO ---------- */
   .addon-link{
     margin-top:6px; width:100%; background:var(--pitch); color:var(--mustard);
@@ -717,6 +738,30 @@
   </div>
 </div>
 
+<!-- ================= TURBINAR O LANCHE ================= -->
+<div class="overlay" id="extrasOverlay">
+  <div class="panel narrow">
+    <div class="panel-head"><h2>Quer turbinar?</h2><button class="close-btn" data-close="extrasOverlay">✕</button></div>
+    <div class="panel-body">
+      <div class="extras-head">
+        <div class="extras-icon" id="extrasIcon">🍔</div>
+        <div>
+          <strong id="extrasName"></strong>
+          <span id="extrasBasePrice"></span>
+        </div>
+      </div>
+      <p class="extras-hint">Toque no + pra incluir. Se não quiser nada, é só seguir sem extras.</p>
+      <div id="extrasList"></div>
+      <div class="extras-total">
+        <span>Total do lanche</span>
+        <strong id="extrasTotal">R$ 0,00</strong>
+      </div>
+      <button class="btn-primary" id="extrasConfirm" style="width:100%; padding:16px; font-size:16px;">Adicionar ao carrinho</button>
+      <button class="btn-ghost" id="extrasSkip" style="width:100%; margin-top:10px;">Continuar sem extras</button>
+    </div>
+  </div>
+</div>
+
 <!-- ================= ESCOLHER LANCHE DO ADICIONAL ================= -->
 <div class="overlay" id="addonOverlay">
   <div class="panel narrow">
@@ -905,31 +950,123 @@
     return cart.filter(c => c.cat === 'burguers');
   }
 
+  // Lanches que não aceitam adicional (a descrição avisa o cliente)
+  function aceitaAdicionais(p){
+    return p.cat === 'burguers' && !/não é possível colocar adicionais/i.test(p.desc || '');
+  }
+  function adicionaisDisponiveis(){
+    return products.filter(x => x.cat === 'adicionais');
+  }
+
   function addToCart(productId){
     const p = products.find(x => x.id === productId); if(!p) return;
 
+    // LANCHE: pergunta se quer turbinar, só na primeira unidade
+    if(aceitaAdicionais(p)){
+      const jaTem = cart.some(c => c.productId === p.id);
+      const extras = adicionaisDisponiveis();
+      if(!jaTem && extras.length > 0){
+        openExtrasPicker(p, extras);
+        return;
+      }
+      pushToCart(p, "");
+      return;
+    }
+
+    // ADICIONAL avulso: vincula ao lanche existente
     if(p.cat === 'adicionais'){
       const burgers = burgersInCart();
       if(burgers.length === 0){
-        // adicional antes do lanche: entra avulso e avisa como vincular depois
         pushToCart(p, "");
         showToast("Adicione o lanche e depois vincule no carrinho 🛒");
         return;
       }
-      // sempre pergunta — mesmo com um lanche só, o cliente pode querer avulso
       openAddonPicker(p, burgers);
       return;
     }
+
     pushToCart(p, "");
   }
 
-  function pushToCart(p, forItem){
+  /* ---------- TURBINAR O LANCHE ---------- */
+  let extrasCtx = null; // {produto, escolhas:{idAdicional:qtd}}
+
+  function openExtrasPicker(produto, extras){
+    extrasCtx = {produto, escolhas: {}};
+    document.getElementById('extrasName').textContent = produto.name;
+    document.getElementById('extrasBasePrice').textContent = money(produto.price);
+    const ico = document.getElementById('extrasIcon');
+    ico.innerHTML = produto.photo ? `<img src="${produto.photo}" alt="">` : (produto.icon || '🍔');
+
+    document.getElementById('extrasList').innerHTML = extras.map(e => `
+      <div class="extra-row" data-exrow="${e.id}">
+        <span class="ex-ico">${e.icon || '➕'}</span>
+        <div class="ex-info"><strong>${escapeHtml(e.name)}</strong><span>+ ${money(e.price)}</span></div>
+        <div class="ex-step">
+          <button data-exdec="${e.id}">−</button>
+          <span id="exq-${e.id}">0</span>
+          <button data-exinc="${e.id}">+</button>
+        </div>
+      </div>`).join('');
+
+    document.querySelectorAll('[data-exinc]').forEach(b => b.addEventListener('click', () => stepExtra(b.dataset.exinc, 1)));
+    document.querySelectorAll('[data-exdec]').forEach(b => b.addEventListener('click', () => stepExtra(b.dataset.exdec, -1)));
+    updateExtrasTotal();
+    openOverlay('extrasOverlay');
+  }
+
+  function stepExtra(id, delta){
+    if(!extrasCtx) return;
+    const atual = extrasCtx.escolhas[id] || 0;
+    const novo = Math.max(0, atual + delta);
+    if(novo === 0) delete extrasCtx.escolhas[id];
+    else extrasCtx.escolhas[id] = novo;
+    document.getElementById('exq-' + id).textContent = novo;
+    const row = document.querySelector(`[data-exrow="${id}"]`);
+    if(row) row.classList.toggle('picked', novo > 0);
+    updateExtrasTotal();
+  }
+
+  function updateExtrasTotal(){
+    if(!extrasCtx) return;
+    let total = extrasCtx.produto.price;
+    Object.entries(extrasCtx.escolhas).forEach(([id, qtd]) => {
+      const e = products.find(x => x.id === id);
+      if(e) total += e.price * qtd;
+    });
+    document.getElementById('extrasTotal').textContent = money(total);
+    const n = Object.values(extrasCtx.escolhas).reduce((s,q) => s+q, 0);
+    document.getElementById('extrasConfirm').textContent =
+      n > 0 ? `Adicionar com ${n} extra${n>1?'s':''}` : "Adicionar ao carrinho";
+  }
+
+  function confirmarExtras(comExtras){
+    if(!extrasCtx) return;
+    const {produto, escolhas} = extrasCtx;
+    pushToCart(produto, "", true);
+    if(comExtras){
+      Object.entries(escolhas).forEach(([id, qtd]) => {
+        const e = products.find(x => x.id === id);
+        if(!e) return;
+        for(let i = 0; i < qtd; i++) pushToCart(e, produto.name, true);
+      });
+    }
+    const n = comExtras ? Object.values(escolhas).reduce((s,q)=>s+q,0) : 0;
+    showToast(produto.name + (n > 0 ? ` + ${n} extra${n>1?'s':''} ✓` : " adicionado ✓"));
+    closeOverlay('extrasOverlay');
+    extrasCtx = null;
+  }
+
+  document.getElementById('extrasConfirm').addEventListener('click', () => confirmarExtras(true));
+  document.getElementById('extrasSkip').addEventListener('click', () => confirmarExtras(false));
+
+  function pushToCart(p, forItem, silencioso){
     const key = p.id + "|" + (forItem || "");
     const existing = cart.find(c => c.key === key);
     if(existing) existing.qty += 1;
     else cart.push({key, productId: p.id, cat: p.cat, name: p.name, price: p.price, icon: p.icon, photo: p.photo || "", qty: 1, forItem: forItem || ""});
     updateCartUI(); renderMenu();
-    if(!existing) showToast(p.name + (forItem ? " → " + forItem : "") + " adicionado ✓");
+    if(!existing && !silencioso) showToast(p.name + (forItem ? " → " + forItem : "") + " adicionado ✓");
   }
 
   function openAddonPicker(product, burgers){
