@@ -404,6 +404,18 @@
   body.has-quickbar .whatsapp-fab{ bottom:96px; }
   body.has-quickbar{ padding-bottom:80px; }
 
+  /* ---------- AVALIAÇÃO ---------- */
+  .rate-box{background:var(--pitch); border:1px solid var(--line); border-radius:14px; padding:20px; margin-top:22px; text-align:center;}
+  .rate-box strong{display:block; font-family:'Anton',sans-serif; font-size:17px; color:var(--ember); margin-bottom:4px;}
+  .rate-box p{font-size:13px; color:rgba(242,233,218,0.6); margin-bottom:14px;}
+  .rate-stars{display:flex; justify-content:center; gap:6px; margin-bottom:12px;}
+  .rate-stars button{background:none; border:none; font-size:34px; cursor:pointer; padding:2px; line-height:1; transition:transform .15s;}
+  .rate-stars button:hover{transform:scale(1.2);}
+  .rate-stars-static{font-size:26px; margin:8px 0;}
+  .rate-box.done{border-color:var(--green);}
+  .rate-box.done strong{color:var(--green);}
+  #rateComment{width:100%; background:var(--char); border:1px solid var(--line); border-radius:10px; padding:10px 12px; color:var(--cream); font-family:inherit; font-size:14px; resize:vertical;}
+
   /* ---------- RESUMO NO CHECKOUT ---------- */
   .ck-summary{
     background:var(--pitch); border:1px solid var(--line); border-radius:14px;
@@ -1475,6 +1487,7 @@
   let storeWhatsappNumber = "";
   let storeIsOpen = true;
   let storePrepTime = 25;
+  let features = {};
   let storeDeliveryTime = 20;
   let storeClosedMsg = "";
   let deliveryFee = 0;
@@ -1746,7 +1759,8 @@
   function renderTrackView(){
     const resultBox = document.getElementById('trackResult');
     if(!trackedOrder) return;
-    resultBox.innerHTML = renderStepper(trackedOrder);
+    resultBox.innerHTML = renderStepper(trackedOrder) + renderAvaliacao(trackedOrder);
+    bindAvaliacao();
     const waBtn = document.getElementById('waSendBtn');
     if(waBtn) waBtn.addEventListener('click', () => {
       if(!storeWhatsappNumber){ alert("O WhatsApp da loja ainda não foi cadastrado no painel."); return; }
@@ -1756,6 +1770,58 @@
 
   // mantida para compatibilidade com chamadas existentes
   function refreshTrackView(){ renderTrackView(); }
+
+  /* ---------- AVALIAÇÃO ---------- */
+  function renderAvaliacao(o){
+    if(features.avaliacao !== true) return '';
+    if(o.status !== 'entregue') return '';
+    if(o.rating){
+      return `<div class="rate-box done">
+        <strong>Obrigado pela avaliação!</strong>
+        <div class="rate-stars-static">${'⭐'.repeat(o.rating)}</div>
+        ${o.ratingComment ? `<p>"${escapeHtml(o.ratingComment)}"</p>` : ''}
+      </div>`;
+    }
+    return `<div class="rate-box">
+      <strong>Como foi seu pedido?</strong>
+      <p>Sua nota ajuda a gente a melhorar.</p>
+      <div class="rate-stars" id="rateStars">
+        ${[1,2,3,4,5].map(n => `<button data-star="${n}">☆</button>`).join('')}
+      </div>
+      <textarea id="rateComment" placeholder="Quer contar mais? (opcional)" rows="2" style="display:none;"></textarea>
+      <button class="btn-primary" id="rateSend" style="display:none; width:100%; margin-top:10px;">Enviar avaliação</button>
+    </div>`;
+  }
+
+  let notaEscolhida = 0;
+  function bindAvaliacao(){
+    const box = document.getElementById('rateStars');
+    if(!box) return;
+    notaEscolhida = 0;
+    box.querySelectorAll('[data-star]').forEach(b => b.addEventListener('click', () => {
+      notaEscolhida = Number(b.dataset.star);
+      box.querySelectorAll('[data-star]').forEach(x =>
+        x.textContent = Number(x.dataset.star) <= notaEscolhida ? '⭐' : '☆');
+      document.getElementById('rateComment').style.display = 'block';
+      document.getElementById('rateSend').style.display = 'block';
+    }));
+    document.getElementById('rateSend')?.addEventListener('click', async () => {
+      if(!notaEscolhida || !trackedOrder) return;
+      const btn = document.getElementById('rateSend');
+      btn.disabled = true; btn.textContent = 'Enviando...';
+      try{
+        await db.collection('orders').doc(trackedOrder.code).update({
+          rating: notaEscolhida,
+          ratingComment: document.getElementById('rateComment').value.trim(),
+          ratedAt: new Date().toISOString()
+        });
+        showToast('Obrigado pela avaliação! ⭐');
+      }catch(e){
+        btn.disabled = false; btn.textContent = 'Enviar avaliação';
+        alert('Não foi possível enviar. Tente de novo.');
+      }
+    });
+  }
 
   document.getElementById('trackSearchBtn').addEventListener('click', () => {
     const code = document.getElementById('trackCodeInput').value.trim();
@@ -1795,6 +1861,12 @@
   window.addEventListener('offline', updateOnlineStatus);
   updateOnlineStatus();
   applyTableFromURL();
+
+  // módulos ligados pelo painel
+  db.collection('store').doc('features').onSnapshot((doc) => {
+    features = doc.exists ? doc.data() : {};
+    if(trackedOrder) renderTrackView();
+  }, () => {});
 
   watchProducts();
   watchPromo();

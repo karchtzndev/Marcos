@@ -380,6 +380,42 @@
   .qr-img img, .qr-img canvas{display:block;}
   .qr-hint{font-size:11px; color:#555; margin-top:10px;}
 
+  /* ---------- MÓDULOS ---------- */
+  .mod-row{display:flex; align-items:center; gap:16px; padding:16px 18px; border:1px solid var(--line); border-radius:14px; margin-bottom:12px; transition:border-color .2s;}
+  .mod-row.on{border-color:rgba(76,175,109,0.45); background:rgba(76,175,109,0.05);}
+  .mod-ico{width:44px; height:44px; border-radius:12px; background:rgba(229,118,46,0.14); display:flex; align-items:center; justify-content:center; font-size:21px; flex-shrink:0;}
+  .mod-row.on .mod-ico{background:rgba(76,175,109,0.16);}
+  .mod-txt{flex-grow:1; min-width:0;}
+  .mod-txt strong{display:block; font-size:15px; margin-bottom:3px;}
+  .mod-txt span{font-size:12.5px; color:rgba(242,233,218,0.55); line-height:1.5;}
+  .mod-switch{width:54px; height:30px; border-radius:99px; border:none; background:rgba(242,233,218,0.14); position:relative; cursor:pointer; flex-shrink:0; transition:background .25s; padding:0;}
+  .mod-switch.on{background:var(--green);}
+  .mod-switch .knob{position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%; background:#fff; transition:transform .25s;}
+  .mod-switch.on .knob{transform:translateX(24px);}
+  .mod-extra{margin-top:8px;}
+
+  /* clientes */
+  .cli-rank{width:30px; height:30px; border-radius:50%; background:rgba(229,118,46,0.16); color:var(--ember); display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:13px; flex-shrink:0;}
+  .fid-badge{display:inline-block; background:rgba(76,175,109,0.2); color:var(--green); border-radius:999px; padding:2px 9px; font-size:10px; font-weight:700; margin-left:6px;}
+  .fid-flag{background:rgba(76,175,109,0.16); color:var(--green); border-radius:999px; padding:8px 15px; font-size:12px; font-weight:700; display:inline-block; margin-bottom:10px;}
+  .fid-flag.soft{background:rgba(240,180,41,0.14); color:var(--mustard);}
+
+  /* entregas */
+  .ent-select{background:var(--pitch); border:1px solid var(--line); border-radius:9px; padding:8px 11px; color:var(--cream); font-size:12.5px; font-family:inherit; max-width:170px; flex-shrink:0;}
+  .ent-select:focus{outline:none; border-color:var(--ember);}
+
+  /* previsão */
+  .prev-tend{font-size:13px; font-weight:700; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--line);}
+  .prev-dia{display:flex; align-items:center; gap:12px; margin-bottom:11px;}
+  .pd-nome{width:88px; flex-shrink:0;}
+  .pd-nome strong{display:block; font-size:13px;}
+  .pd-nome span{font-size:11px; color:rgba(242,233,218,0.45);}
+  .pd-bar{flex-grow:1; height:22px; background:var(--pitch); border-radius:6px; overflow:hidden;}
+  .pd-fill{height:100%; background:linear-gradient(90deg, var(--ember), var(--mustard)); border-radius:6px;}
+  .pd-val{width:110px; text-align:right; flex-shrink:0; font-family:'Anton',sans-serif; font-size:14px; color:var(--mustard);}
+  .pd-val span{display:block; font-family:'DM Sans',sans-serif; font-size:11px; color:rgba(242,233,218,0.45); font-weight:400;}
+  .prev-nota{font-size:11px; color:rgba(242,233,218,0.4); margin-top:14px; padding-top:12px; border-top:1px solid var(--line); line-height:1.5;}
+
   /* ---------- IMPORTAÇÃO EM MASSA ---------- */
   .bulk-tool{border:1px solid var(--line); border-radius:14px; margin-bottom:22px; overflow:hidden;}
   .bulk-tool summary{
@@ -999,6 +1035,9 @@
           <button class="admin-tab-btn" data-atab="equipe">👥 Equipe</button>
           <button class="admin-tab-btn" data-atab="promocao">📣 Promoção</button>
           <button class="admin-tab-btn" data-atab="loja">🏪 Loja</button>
+          <button class="admin-tab-btn" data-atab="clientes" style="display:none;">👥 Clientes</button>
+          <button class="admin-tab-btn" data-atab="entregas" style="display:none;">🛵 Entregas</button>
+          <button class="admin-tab-btn" data-atab="modulos">🧩 Módulos</button>
         </div>
 
         <!-- DASHBOARD TAB -->
@@ -1013,6 +1052,10 @@
             <div class="dash-card">
               <h3>📈 Faturamento — últimos 7 dias</h3>
               <div id="revenueChart" class="chart-bars"></div>
+            </div>
+            <div class="dash-card" id="previsaoCard" style="display:none;">
+              <h3>📈 Previsão para os próximos dias</h3>
+              <div id="previsaoBox"></div>
             </div>
             <div class="dash-card">
               <h3>💰 Quem dá mais lucro</h3>
@@ -1176,6 +1219,43 @@
           </div>
         </div>
 
+        <!-- CLIENTES TAB -->
+        <div id="atabClientes" style="display:none;">
+          <div id="cliKpis" class="kpi-grid"></div>
+          <div class="admin-list" style="margin-top:0;border-top:none;padding-top:0;">
+            <input type="text" id="cliBusca" placeholder="🔍 Buscar nome ou telefone..." style="width:100%;">
+          </div>
+          <div class="admin-list">
+            <h3>Clientes <span style="font-size:12px;font-weight:400;color:rgba(242,233,218,0.45);">— por quanto já gastaram</span></h3>
+            <div id="cliList"><div class="loading-row">Carregando...</div></div>
+          </div>
+        </div>
+
+        <!-- ENTREGAS TAB -->
+        <div id="atabEntregas" style="display:none;">
+          <div class="admin-list" style="margin-top:0;border-top:none;padding-top:0;">
+            <h3>🛵 Entregadores do turno</h3>
+            <p style="font-size:13px;color:rgba(242,233,218,0.6);margin-bottom:14px;">Atribua o entregador no card do pedido. Aqui somam as taxas de cada um.</p>
+            <div id="entResumo"></div>
+          </div>
+          <div class="admin-list">
+            <h3>Entregas do turno</h3>
+            <div id="entList"><div class="loading-row">Carregando...</div></div>
+          </div>
+        </div>
+
+        <!-- MÓDULOS TAB -->
+        <div id="atabModulos" style="display:none;">
+          <div class="addon-intro">
+            <div class="ai-icon">🧩</div>
+            <div>
+              <strong>Ligue só o que você usa</strong>
+              <p>Cada módulo desligado some do painel e não consome nada. Ligue conforme a operação for pedindo.</p>
+            </div>
+          </div>
+          <div id="modulesList"></div>
+        </div>
+
         <!-- PAINEL TV TAB -->
         <div id="atabTv" style="display:none;">
           <div class="tv-hero">
@@ -1248,6 +1328,16 @@
         <!-- FINANCEIRO TAB -->
         <div id="atabFinanceiro" style="display:none;">
           <div id="finKpis" class="kpi-grid"></div>
+
+          <div class="admin-list" id="relatoriosBox" style="display:none;">
+            <h3>📊 Relatórios em CSV</h3>
+            <p style="font-size:13px;color:rgba(242,233,218,0.6);margin-bottom:14px;">Abre no Excel ou Google Sheets. Bom pra mandar ao contador.</p>
+            <div class="form-actions">
+              <button class="btn-ghost" id="csvPedidos">📥 Pedidos do turno</button>
+              <button class="btn-ghost" id="csvVendas">📥 Vendas por dia</button>
+              <button class="btn-ghost" id="csvProdutos">📥 Produtos vendidos</button>
+            </div>
+          </div>
 
           <div class="dash-card" style="margin-bottom:26px;">
             <h3>💵 Lançar entrada ou saída</h3>
@@ -1598,6 +1688,7 @@
           <button type="button" class="pay-method-btn" data-paymethod="pix">📱 Pix</button>
           <button type="button" class="pay-method-btn" data-paymethod="debito">💳 Débito</button>
           <button type="button" class="pay-method-btn" data-paymethod="credito">💳 Crédito</button>
+          <button type="button" class="pay-method-btn" data-paymethod="fiado" id="btnFiado" style="display:none;">📒 Fiado</button>
         </div>
       </div>
 
@@ -2420,7 +2511,9 @@
       else if(tab === 'cozinha')   renderKitchen();
       else if(tab === 'mesas')     renderTables();
       else if(tab === 'caixa')     renderCaixa();
-      else if(tab === 'dashboard'){ renderDashboard(); renderEmployeeRanking(); }
+      else if(tab === 'dashboard'){ renderDashboard(); renderEmployeeRanking(); renderPrevisao(); }
+      else if(tab === 'clientes')  renderClientes();
+      else if(tab === 'entregas')  renderEntregas();
       if(currentTrackedCode) refreshTrackView();
     });
   }
@@ -3021,6 +3114,11 @@
     return `
     <div class="order-row oc-${urgency}${isNew?' oc-new':''}">
       ${isNew?'<div class="new-flag">🔔 PEDIDO NOVO — aguardando seu aceite</div>':''}
+      ${(()=>{const f=statusFidelidade(o.phone);
+        if(!f) return '';
+        if(f.ganhou) return `<div class="fid-flag">🎁 CLIENTE GANHOU: ${escapeHtml(f.premio)} (${f.n}º pedido)</div>`;
+        if(f.faltam<=2) return `<div class="fid-flag soft">🎁 Faltam ${f.faltam} pedido(s) pro brinde</div>`;
+        return '';})()}
       <div class="order-row-top">
         <div>
           <span class="order-code">#${o.dailyNumber||'–'} · ${o.code}</span>
@@ -3219,6 +3317,7 @@
       dailyStats = {};
       snap.docs.forEach(d => dailyStats[d.id] = d.data());
       renderDashboard();
+      renderPrevisao();
     }, (err) => console.warn("stats:", err));
   }
 
@@ -3588,11 +3687,12 @@
     if(!order.paymentMethods || order.paymentMethods.length === 0) return '-';
     return order.paymentMethods.map(m => payMethodLabel(m.method) + ' ' + money(m.amount)).join(' + ');
   }
-  function payMethodLabel(m){ return {dinheiro:'Dinheiro', pix:'Pix', debito:'Débito', credito:'Crédito'}[m] || m; }
+  function payMethodLabel(m){ return {dinheiro:'Dinheiro', pix:'Pix', debito:'Débito', credito:'Crédito', fiado:'📒 Fiado'}[m] || m; }
 
   function renderCloseSummary(){
     const pagos = paidToday().filter(o => new Date(o.paidAt) >= new Date(register.openedAt));
     const cash = pagos.reduce((s,o) => s + methodAmount(o,'dinheiro'), 0);
+    const fiado = pagos.reduce((s,o) => s + methodAmount(o,'fiado'), 0);
     const troco = pagos.reduce((s,o) => s + (Number(o.change)||0), 0);
     const pix = pagos.reduce((s,o) => s + methodAmount(o,'pix'), 0);
     const deb = pagos.reduce((s,o) => s + methodAmount(o,'debito'), 0);
@@ -3605,7 +3705,8 @@
       <div class="close-summary-row" style="margin-top:14px;"><span>📱 Pix</span><span>${money(pix)}</span></div>
       <div class="close-summary-row"><span>💳 Débito</span><span>${money(deb)}</span></div>
       <div class="close-summary-row"><span>💳 Crédito</span><span>${money(cred)}</span></div>
-      <div class="close-summary-row highlight"><span>Total do turno</span><span>${money(cash+pix+deb+cred)}</span></div>
+      ${fiado > 0 ? `<div class="close-summary-row"><span>📒 Fiado (a receber)</span><span>${money(fiado)}</span></div>` : ''}
+      <div class="close-summary-row highlight"><span>Total do turno</span><span>${money(cash+pix+deb+cred+fiado)}</span></div>
     `;
     document.getElementById('closeSummary').dataset.expected = esperado;
   }
@@ -3730,6 +3831,8 @@
     selectedPayMethod = 'dinheiro';
     document.querySelectorAll('[data-paymethod]').forEach(b => b.classList.toggle('active', b.dataset.paymethod === 'dinheiro'));
     document.getElementById('payError').textContent = "";
+    const bf = document.getElementById('btnFiado');
+    if(bf) bf.style.display = moduloAtivo('fiado') ? 'block' : 'none';
     recalcPayment();
     openOverlay('payOverlay');
   }
@@ -3831,6 +3934,11 @@
       if(received < total){ errEl.textContent = "Valor recebido é menor que o total."; return; }
       change = Math.round((received - total) * 100) / 100;
       methods = [{method:'dinheiro', amount: total}];
+    }else if(selectedPayMethod === 'fiado'){
+      const limite = Number(features.fiadoLimite) || 100;
+      if(total > limite){ errEl.textContent = `Fiado acima do limite de ${money(limite)}.`; return; }
+      if(!confirm(`Deixar ${money(total)} na conta de ${currentBill.title}?\n\nVai constar como pendente até o acerto.`)) return;
+      methods = [{method:'fiado', amount: total}];
     }else{
       methods = [{method: selectedPayMethod, amount: total}];
     }
@@ -4052,6 +4160,393 @@
 
   // Produtos do cardápio (tudo menos adicionais)
   window.__menuOnly = function(){ return products.filter(p => p.cat !== 'adicionais'); };
+
+  /* ================= HORÁRIO AUTOMÁTICO ================= */
+  // Abre e fecha a loja sozinho conforme os horários cadastrados.
+  // Qua-Dom 19h-23h por padrão; lê de storeInfo.hours* se preenchido.
+  function horarioDeHoje(){
+    const d = new Date();
+    const ds = d.getDay(); // 0=dom
+    // dias de funcionamento: qua(3) a dom(0)
+    const abre = [0,3,4,5,6].includes(ds);
+    if(!abre) return null;
+    return {inicio: 19*60, fim: 23*60 + 30};
+  }
+
+  async function checarHorarioAuto(){
+    if(!moduloAtivo('horario')) return;
+    if(currentRole !== 'gerente' && !myPerms.includes('loja')) return;
+    const h = horarioDeHoje();
+    const agora = new Date();
+    const min = agora.getHours()*60 + agora.getMinutes();
+    const deveEstarAberta = h ? (min >= h.inicio && min < h.fim) : false;
+    const estaAberta = storeInfo.isOpen !== false;
+    if(deveEstarAberta === estaAberta) return;
+    try{
+      await db.collection('store').doc('info').set({isOpen: deveEstarAberta}, {merge:true});
+      showToast(deveEstarAberta ? '🔓 Loja aberta automaticamente' : '🔒 Loja fechada automaticamente');
+    }catch(e){ console.warn('horário auto:', e); }
+  }
+  setInterval(checarHorarioAuto, 60000);
+
+  /* ================= FIDELIDADE ================= */
+  function pedidosDoCliente(telefone){
+    const tel = (telefone||'').replace(/\D/g,'');
+    if(!tel) return 0;
+    return orders.filter(o => (o.phone||'').replace(/\D/g,'') === tel && o.status !== 'cancelado').length;
+  }
+  function statusFidelidade(telefone){
+    if(!moduloAtivo('fidelidade')) return null;
+    const meta = features.fidQtd || 10;
+    const n = pedidosDoCliente(telefone);
+    if(n === 0) return null;
+    const faltam = (meta - (n % meta)) % meta;
+    return {n, meta, faltam, ganhou: faltam === 0, premio: features.fidPremio || 'Um brinde'};
+  }
+
+  /* ================= CLIENTES ================= */
+  function agruparClientes(){
+    const mapa = {};
+    orders.forEach(o => {
+      if(o.status === 'cancelado') return;
+      const tel = (o.phone || '').replace(/\D/g,'');
+      const chave = tel || ('nome:' + (o.customerName||'').toLowerCase());
+      if(!chave || chave === 'nome:') return;
+      if(!mapa[chave]) mapa[chave] = {nome:o.customerName||'', telefone:o.phone||'', pedidos:0, gasto:0, ultimo:o.createdAt, endereco:o.address||''};
+      const cl = mapa[chave];
+      cl.pedidos++;
+      cl.gasto += Number(o.total)||0;
+      if(new Date(o.createdAt) > new Date(cl.ultimo)){ cl.ultimo = o.createdAt; cl.nome = o.customerName||cl.nome; }
+      if(o.address) cl.endereco = o.address;
+    });
+    return Object.values(mapa).sort((a,b) => b.gasto - a.gasto);
+  }
+
+  function renderClientes(){
+    const lista = agruparClientes();
+    const busca = (document.getElementById('cliBusca')?.value || '').toLowerCase();
+    const filtrada = busca
+      ? lista.filter(c => c.nome.toLowerCase().includes(busca) || c.telefone.includes(busca))
+      : lista;
+
+    const total = lista.reduce((s,c) => s + c.gasto, 0);
+    const recorrentes = lista.filter(c => c.pedidos > 1).length;
+    document.getElementById('cliKpis').innerHTML = `
+      <div class="kpi-card"><div class="kv">${lista.length}</div><div class="kl">Clientes no período</div></div>
+      <div class="kpi-card"><div class="kv">${recorrentes}</div><div class="kl">Voltaram mais de 1x</div></div>
+      <div class="kpi-card"><div class="kv">${money(lista.length ? total/lista.length : 0)}</div><div class="kl">Gasto médio</div></div>
+      <div class="kpi-card"><div class="kv">${lista.length ? Math.round((recorrentes/lista.length)*100) : 0}%</div><div class="kl">Taxa de retorno</div></div>`;
+
+    const box = document.getElementById('cliList');
+    if(filtrada.length === 0){ box.innerHTML = '<div class="loading-row">Nenhum cliente encontrado.</div>'; return; }
+    const fidQtd = features.fidQtd || 10;
+    box.innerHTML = filtrada.slice(0,80).map((cl,i) => {
+      const dias = Math.floor((Date.now() - new Date(cl.ultimo)) / 86400000);
+      const faltam = moduloAtivo('fidelidade') ? (fidQtd - (cl.pedidos % fidQtd)) % fidQtd : null;
+      const premiou = moduloAtivo('fidelidade') && cl.pedidos > 0 && cl.pedidos % fidQtd === 0;
+      return `
+      <div class="prod-row">
+        <div class="cli-rank">${i+1}</div>
+        <div class="pn">
+          <strong>${escapeHtml(cl.nome)}${premiou ? ' <span class="fid-badge">🎁 GANHOU BRINDE</span>' : ''}</strong>
+          <span>${escapeHtml(cl.telefone || 'sem telefone')} · ${cl.pedidos} pedido(s) · ${dias === 0 ? 'hoje' : dias + ' dia(s) atrás'}${
+            faltam !== null && faltam > 0 ? ` · faltam ${faltam} pro brinde` : ''}</span>
+        </div>
+        <div class="pp">${money(cl.gasto)}</div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('cliBusca')?.addEventListener('input', renderClientes);
+
+  /* ================= ENTREGADORES ================= */
+  function renderEntregas(){
+    const entregas = orders.filter(o => o.orderType === 'entrega' && o.status !== 'cancelado');
+    const porPessoa = {};
+    entregas.forEach(o => {
+      const quem = o.deliveredBy || '(não atribuído)';
+      if(!porPessoa[quem]) porPessoa[quem] = {n:0, taxas:0, valor:0};
+      porPessoa[quem].n++;
+      porPessoa[quem].taxas += Number(o.deliveryFee)||0;
+      porPessoa[quem].valor += Number(o.total)||0;
+    });
+    const res = document.getElementById('entResumo');
+    const chaves = Object.keys(porPessoa);
+    res.innerHTML = chaves.length === 0
+      ? '<div class="loading-row">Nenhuma entrega no turno.</div>'
+      : chaves.map(k => `
+        <div class="bill-row">
+          <div class="bill-icon">🛵</div>
+          <div class="bill-info"><strong>${escapeHtml(k)}</strong><span>${porPessoa[k].n} entrega(s) · ${money(porPessoa[k].valor)} em pedidos</span></div>
+          <div class="bill-amount">${money(porPessoa[k].taxas)}</div>
+        </div>`).join('');
+
+    const lista = document.getElementById('entList');
+    lista.innerHTML = entregas.length === 0
+      ? '<div class="loading-row">Nenhuma entrega ainda.</div>'
+      : entregas.map(o => `
+        <div class="prod-row">
+          <div class="pi">🛵</div>
+          <div class="pn"><strong>#${o.dailyNumber||'–'} ${escapeHtml(o.customerName)}</strong>
+            <span>${escapeHtml(o.address||'')} · taxa ${money(o.deliveryFee||0)}</span></div>
+          <select class="ent-select" data-entorder="${o.code}">
+            <option value="">— quem levou? —</option>
+            ${employees.map(e => `<option value="${escapeHtml(e.name)}" ${o.deliveredBy === e.name ? 'selected':''}>${escapeHtml(e.name)}</option>`).join('')}
+          </select>
+        </div>`).join('');
+    lista.querySelectorAll('[data-entorder]').forEach(sel =>
+      sel.addEventListener('change', () => atribuirEntregador(sel.dataset.entorder, sel.value)));
+  }
+
+  async function atribuirEntregador(code, nome){
+    try{
+      await db.collection('orders').doc(code).update({deliveredBy: nome || null});
+      showToast(nome ? `Entrega atribuída a ${nome} ✓` : 'Atribuição removida');
+    }catch(e){ alert('Não foi possível salvar.'); }
+  }
+
+  /* ================= PREVISÃO DE DEMANDA ================= */
+  // Estatística sobre o histórico real: média por dia da semana + tendência
+  // recente. Sem "achismo" — se faltar dado, o sistema avisa.
+  function calcularPrevisao(){
+    const dias = Object.values(dailyStats).filter(d => d.date);
+    if(dias.length < 7) return {erro: `Preciso de pelo menos 7 dias de histórico. Tenho ${dias.length}.`};
+
+    const porDiaSemana = {};
+    dias.forEach(d => {
+      const [y,m,dd] = d.date.split('-').map(Number);
+      const ds = new Date(y, m-1, dd).getDay();
+      if(!porDiaSemana[ds]) porDiaSemana[ds] = [];
+      porDiaSemana[ds].push({rev: Number(d.revenue)||0, n: Number(d.orderCount)||0, data: d.date});
+    });
+
+    // tendência: últimas 2 semanas vs 2 anteriores
+    const ord = dias.slice().sort((a,b) => a.date.localeCompare(b.date));
+    const rec = ord.slice(-14), ant = ord.slice(-28, -14);
+    const mediaRec = rec.length ? rec.reduce((s,d)=>s+(Number(d.revenue)||0),0)/rec.length : 0;
+    const mediaAnt = ant.length ? ant.reduce((s,d)=>s+(Number(d.revenue)||0),0)/ant.length : mediaRec;
+    const tendencia = mediaAnt > 0 ? (mediaRec/mediaAnt) : 1;
+
+    const nomes = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+    const prev = [];
+    for(let i = 1; i <= 7; i++){
+      const d = new Date(); d.setDate(d.getDate() + i);
+      const ds = d.getDay();
+      const hist = porDiaSemana[ds];
+      if(!hist || hist.length === 0) continue;
+      const mediaRev = hist.reduce((s,h)=>s+h.rev,0)/hist.length;
+      const mediaN = hist.reduce((s,h)=>s+h.n,0)/hist.length;
+      prev.push({
+        dia: nomes[ds],
+        data: d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}),
+        revenue: mediaRev * tendencia,
+        pedidos: Math.round(mediaN * tendencia),
+        amostras: hist.length
+      });
+    }
+    return {prev, tendencia, amostraTotal: dias.length};
+  }
+
+  function renderPrevisao(){
+    const box = document.getElementById('previsaoBox');
+    if(!box || !moduloAtivo('previsao')) return;
+    const r = calcularPrevisao();
+    if(r.erro){ box.innerHTML = `<div class="loading-row">${r.erro}<br><small style="opacity:.6;">A previsão fica melhor a cada semana de uso.</small></div>`; return; }
+    if(r.prev.length === 0){ box.innerHTML = '<div class="loading-row">Sem histórico suficiente pros próximos dias.</div>'; return; }
+
+    const dir = r.tendencia > 1.05 ? {t:'📈 em alta', c:'var(--green)'} :
+                r.tendencia < 0.95 ? {t:'📉 em queda', c:'var(--tomato)'} :
+                                     {t:'➡️ estável', c:'var(--mustard)'};
+    const maxRev = Math.max(...r.prev.map(p => p.revenue)) || 1;
+    box.innerHTML = `
+      <div class="prev-tend" style="color:${dir.c};">
+        Movimento ${dir.t} — ${Math.abs(Math.round((r.tendencia-1)*100))}% ${r.tendencia>=1?'acima':'abaixo'} das semanas anteriores
+      </div>
+      ${r.prev.map(p => `
+        <div class="prev-dia">
+          <div class="pd-nome"><strong>${p.dia}</strong><span>${p.data}</span></div>
+          <div class="pd-bar"><div class="pd-fill" style="width:${(p.revenue/maxRev)*100}%"></div></div>
+          <div class="pd-val">${money(p.revenue)}<span>~${p.pedidos} pedidos</span></div>
+        </div>`).join('')}
+      <div class="prev-nota">Baseado em ${r.amostraTotal} dias do seu histórico. Quanto mais tempo de uso, mais preciso.</div>`;
+  }
+
+  /* ================= RELATÓRIOS CSV ================= */
+  function baixarCSV(nome, linhas){
+    const csv = "\uFEFF" + linhas.map(l => l.map(v => {
+      const s = String(v ?? '');
+      return /[";\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+    }).join(';')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = nome + '-' + todayStr() + '.csv'; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast('Relatório baixado ✓');
+  }
+
+  document.getElementById('csvPedidos')?.addEventListener('click', () => {
+    const linhas = [['Data','Hora','Numero','Codigo','Cliente','Telefone','Tipo','Mesa','Itens','Subtotal','Taxa','Total','Pagamento','Status']];
+    orders.forEach(o => {
+      const d = new Date(o.createdAt);
+      linhas.push([
+        d.toLocaleDateString('pt-BR'), d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),
+        o.dailyNumber||'', o.code, o.customerName||'', o.phone||'',
+        o.orderType||'', o.table||'',
+        o.items.map(i => `${i.qty}x ${i.name}`).join(', '),
+        (Number(o.subtotal)||0).toFixed(2).replace('.',','),
+        (Number(o.deliveryFee)||0).toFixed(2).replace('.',','),
+        (Number(o.total)||0).toFixed(2).replace('.',','),
+        paymentLabel(o.payment), statusInfo(o.status).label
+      ]);
+    });
+    baixarCSV('pedidos', linhas);
+  });
+
+  document.getElementById('csvVendas')?.addEventListener('click', () => {
+    const linhas = [['Data','Pedidos','Faturamento','Ticket medio']];
+    Object.values(dailyStats).sort((a,b)=>a.date.localeCompare(b.date)).forEach(d => {
+      const n = Number(d.orderCount)||0, r = Number(d.revenue)||0;
+      linhas.push([d.date, n, r.toFixed(2).replace('.',','), (n? r/n:0).toFixed(2).replace('.',',')]);
+    });
+    baixarCSV('vendas-por-dia', linhas);
+  });
+
+  document.getElementById('csvProdutos')?.addEventListener('click', () => {
+    const acc = productsRange(30);
+    const linhas = [['Produto','Quantidade (30 dias)','Preco','Custo','Lucro unitario','Lucro total']];
+    Object.entries(acc).forEach(([key, qtd]) => {
+      const p = products.find(x => statsKey(x.name) === key);
+      const preco = p ? p.price : 0, custo = p ? (p.cost||0) : 0;
+      linhas.push([
+        p ? p.name : key.replace(/_/g,' '), qtd,
+        preco.toFixed(2).replace('.',','), custo.toFixed(2).replace('.',','),
+        (preco-custo).toFixed(2).replace('.',','),
+        ((preco-custo)*qtd).toFixed(2).replace('.',',')
+      ]);
+    });
+    baixarCSV('produtos-vendidos', linhas);
+  });
+
+  /* ================= MÓDULOS (liga/desliga) ================= */
+  const MODULOS = [
+    {key:'fidelidade',  icon:'🎁', nome:'Programa de fidelidade',
+     desc:'A cada X pedidos, o cliente ganha um brinde. O sistema conta pelo telefone.', tab:null},
+    {key:'clientes',    icon:'👥', nome:'Cadastro de clientes',
+     desc:'Junta os dados de quem já pediu: melhores clientes, quem sumiu, ticket médio.', tab:'clientes'},
+    {key:'horario',     icon:'🕒', nome:'Abrir e fechar no horário',
+     desc:'A loja abre e fecha sozinha conforme os horários cadastrados.', tab:null},
+    {key:'entregadores',icon:'🛵', nome:'Controle de entregadores',
+     desc:'Registra quem levou cada pedido e soma as taxas do turno.', tab:'entregas'},
+    {key:'autoprint',   icon:'🖨️', nome:'Imprimir comanda ao aceitar',
+     desc:'A comanda sai sozinha quando você aceita o pedido.', tab:null},
+    {key:'avaliacao',   icon:'⭐', nome:'Avaliação do cliente',
+     desc:'O cliente dá nota de 1 a 5 ao acompanhar o pedido entregue.', tab:null},
+    {key:'fiado',       icon:'📒', nome:'Fiado / conta do cliente',
+     desc:'Permite deixar na conta e acertar depois.', tab:null},
+    {key:'previsao',    icon:'📈', nome:'Previsão de demanda',
+     desc:'Estima o movimento dos próximos dias com base no seu histórico.', tab:null},
+    {key:'relatorios',  icon:'📊', nome:'Relatórios em CSV',
+     desc:'Exporta vendas e pedidos pra abrir no Excel ou mandar pro contador.', tab:null}
+  ];
+
+  let features = {};
+
+  function moduloAtivo(k){ return features[k] === true; }
+
+  function watchFeatures(){
+    db.collection('store').doc('features').onSnapshot((doc) => {
+      features = doc.exists ? doc.data() : {};
+      renderModulos();
+      aplicarModulos();
+    }, (err) => console.warn('features:', err));
+  }
+
+  function renderModulos(){
+    const box = document.getElementById('modulesList');
+    if(!box) return;
+    box.innerHTML = MODULOS.map(m => {
+      const on = moduloAtivo(m.key);
+      return `
+      <div class="mod-row ${on ? 'on' : ''}">
+        <div class="mod-ico">${m.icon}</div>
+        <div class="mod-txt">
+          <strong>${m.nome}</strong>
+          <span>${m.desc}</span>
+        </div>
+        <button class="mod-switch ${on ? 'on' : ''}" data-mod="${m.key}" title="${on ? 'Desligar' : 'Ligar'}">
+          <span class="knob"></span>
+        </button>
+      </div>`;
+    }).join('') + `
+      <div class="mod-extra" id="modExtra"></div>`;
+
+    box.querySelectorAll('[data-mod]').forEach(b =>
+      b.addEventListener('click', () => toggleModulo(b.dataset.mod)));
+    renderModuloConfig();
+  }
+
+  // configurações que só aparecem com o módulo ligado
+  function renderModuloConfig(){
+    const box = document.getElementById('modExtra');
+    if(!box) return;
+    let html = '';
+    if(moduloAtivo('fidelidade')){
+      html += `
+        <div class="admin-list">
+          <h3>🎁 Configuração da fidelidade</h3>
+          <div class="form-grid">
+            <div class="field"><label>Pedidos para ganhar o brinde</label><input type="number" id="fidQtd" min="2" value="${features.fidQtd || 10}"></div>
+            <div class="field"><label>O que ganha</label><input type="text" id="fidPremio" value="${escapeHtml(features.fidPremio || 'Um hambúrguer grátis')}"></div>
+          </div>
+          <button class="btn-primary" id="fidSaveBtn">Salvar</button>
+        </div>`;
+    }
+    if(moduloAtivo('fiado')){
+      html += `
+        <div class="admin-list">
+          <h3>📒 Limite do fiado</h3>
+          <div class="field"><label>Valor máximo por cliente (R$)</label><input type="number" step="0.01" id="fiadoLimite" value="${features.fiadoLimite || 100}"></div>
+          <button class="btn-primary" id="fiadoSaveBtn">Salvar</button>
+        </div>`;
+    }
+    box.innerHTML = html;
+    const fs = document.getElementById('fidSaveBtn');
+    if(fs) fs.addEventListener('click', async () => {
+      await db.collection('store').doc('features').set({
+        fidQtd: parseInt(document.getElementById('fidQtd').value) || 10,
+        fidPremio: document.getElementById('fidPremio').value.trim()
+      }, {merge:true});
+      showToast('Fidelidade configurada ✓');
+    });
+    const fis = document.getElementById('fiadoSaveBtn');
+    if(fis) fis.addEventListener('click', async () => {
+      await db.collection('store').doc('features').set({
+        fiadoLimite: parseFloat(document.getElementById('fiadoLimite').value) || 100
+      }, {merge:true});
+      showToast('Limite salvo ✓');
+    });
+  }
+
+  async function toggleModulo(key){
+    const novo = !moduloAtivo(key);
+    try{
+      await db.collection('store').doc('features').set({[key]: novo}, {merge:true});
+      const m = MODULOS.find(x => x.key === key);
+      showToast(`${m.icon} ${m.nome} ${novo ? 'ligado ✓' : 'desligado'}`);
+    }catch(e){ alert('Não foi possível alterar. Você precisa ser gerente.'); }
+  }
+
+  // mostra/esconde as abas dos módulos
+  function aplicarModulos(){
+    MODULOS.filter(m => m.tab).forEach(m => {
+      const btn = document.querySelector(`.admin-tab-btn[data-atab="${m.tab}"]`);
+      if(btn) btn.style.display = (moduloAtivo(m.key) && myPerms.includes(m.tab)) ? 'inline-flex' : 'none';
+    });
+    const prev = document.getElementById('previsaoCard');
+    if(prev) prev.style.display = moduloAtivo('previsao') ? 'block' : 'none';
+    const rel = document.getElementById('relatoriosBox');
+    if(rel) rel.style.display = moduloAtivo('relatorios') ? 'block' : 'none';
+  }
 
   /* ================= ADICIONAIS (aba própria) ================= */
   let editingAddonId = null;
@@ -4619,6 +5114,11 @@
       handledBy: currentEmployee ? currentEmployee.name : (order.handledBy || "Gerente")
     };
 
+    // Comanda sai sozinha ao aceitar, se o módulo estiver ligado
+    if(status === 'aceito' && order.status === 'recebido' && moduloAtivo('autoprint')){
+      setTimeout(() => printComanda(code), 300);
+    }
+
     // Baixa de estoque protegida por transação: dois aparelhos marcando
     // "entregue" ao mesmo tempo não descontam duas vezes.
     if(status === 'entregue' && !wasDelivered && !order.stockDeducted){
@@ -4658,10 +5158,10 @@
   }
 
   /* ---------------- FUNÇÕES E PERMISSÕES ---------------- */
-  const ALL_TABS = ['dashboard','cardapio','adicionais','pedidos','cozinha','tv','mesas','caixa','financeiro','estoque','equipe','promocao','loja'];
+  const ALL_TABS = ['dashboard','cardapio','adicionais','pedidos','cozinha','tv','mesas','caixa','clientes','entregas','financeiro','estoque','equipe','promocao','loja','modulos'];
   const TAB_LABEL = {
     dashboard:'📊 Dashboard', cardapio:'🍔 Cardápio', adicionais:'➕ Adicionais', pedidos:'📋 Pedidos', cozinha:'👨‍🍳 Cozinha', tv:'📺 Painel TV', mesas:'🪑 Mesas',
-    caixa:'💳 Caixa', financeiro:'💰 Financeiro', estoque:'📦 Estoque', equipe:'👥 Equipe',
+    caixa:'💳 Caixa', clientes:'👥 Clientes', entregas:'🛵 Entregas', financeiro:'💰 Financeiro', modulos:'🧩 Módulos', estoque:'📦 Estoque', equipe:'👥 Equipe',
     promocao:'📣 Promoção', loja:'🏪 Loja'
   };
   const ROLE_PRESETS = {
@@ -4848,6 +5348,9 @@
     document.getElementById('atabCardapio').style.display = tab === 'cardapio' ? 'block' : 'none';
     document.getElementById('atabPedidos').style.display = tab === 'pedidos' ? 'block' : 'none';
     document.getElementById('atabAdicionais').style.display = tab === 'adicionais' ? 'block' : 'none';
+    document.getElementById('atabModulos').style.display = tab === 'modulos' ? 'block' : 'none';
+    document.getElementById('atabClientes').style.display = tab === 'clientes' ? 'block' : 'none';
+    document.getElementById('atabEntregas').style.display = tab === 'entregas' ? 'block' : 'none';
     document.getElementById('atabCozinha').style.display = tab === 'cozinha' ? 'block' : 'none';
     document.getElementById('atabTv').style.display = tab === 'tv' ? 'block' : 'none';
     document.getElementById('atabMesas').style.display = tab === 'mesas' ? 'block' : 'none';
@@ -4859,6 +5362,9 @@
     document.getElementById('atabLoja').style.display = tab === 'loja' ? 'block' : 'none';
     if(tab === 'pedidos') renderAdminOrders();
     if(tab === 'adicionais') renderAddonTab();
+    if(tab === 'modulos') renderModulos();
+    if(tab === 'clientes') renderClientes();
+    if(tab === 'entregas') renderEntregas();
     if(tab === 'cozinha') renderKitchen();
     if(tab === 'mesas') renderTables();
     if(tab === 'caixa') renderCaixa();
@@ -5008,6 +5514,7 @@
     watchStoreInfo();
     watchEmployees();
     watchRegister();
+    watchFeatures();
     if(myPerms.includes('dashboard')) watchStats();
     // Só busca o financeiro se a pessoa tiver essa permissão
     if(myPerms.includes('financeiro')){
