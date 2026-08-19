@@ -380,6 +380,9 @@
   .qr-img img, .qr-img canvas{display:block;}
   .qr-hint{font-size:11px; color:#555; margin-top:10px;}
 
+  .box-info{background:rgba(76,175,109,0.1); border:1px solid rgba(76,175,109,0.35); color:var(--green); border-radius:10px; padding:12px 14px; font-size:13px; line-height:1.55; margin-top:10px;}
+  .box-info b{color:var(--cream);}
+
   /* ---------- MÓDULOS ---------- */
   .mod-row{display:flex; align-items:center; gap:16px; padding:16px 18px; border:1px solid var(--line); border-radius:14px; margin-bottom:12px; transition:border-color .2s;}
   .mod-row.on{border-color:rgba(76,175,109,0.45); background:rgba(76,175,109,0.05);}
@@ -1539,9 +1542,28 @@
           </div>
           <div class="admin-list">
             <h3>🛵 Taxa de entrega</h3>
-            <div class="form-grid">
-              <div class="field"><label>Valor da taxa (R$)</label><input type="number" step="0.01" id="lojaDeliveryFee" placeholder="Ex: 8.00"></div>
-              <div class="field"><label>Frete grátis acima de (R$)</label><input type="number" step="0.01" id="lojaFreeFrom" placeholder="Ex: 80.00 (0 = nunca)"></div>
+            <div class="field">
+              <label>Como funciona a sua entrega?</label>
+              <select id="lojaFeeMode">
+                <option value="fixa">Valor fixo — eu cobro sempre o mesmo</option>
+                <option value="combinar">A combinar pelo WhatsApp — uso Uber/99/Zoom, varia por corrida</option>
+                <option value="gratis">Entrega grátis sempre</option>
+              </select>
+            </div>
+            <div id="feeFixaCfg">
+              <div class="form-grid">
+                <div class="field"><label>Valor da taxa (R$)</label><input type="number" step="0.01" id="lojaDeliveryFee" placeholder="Ex: 8.00"></div>
+                <div class="field"><label>Frete grátis acima de (R$)</label><input type="number" step="0.01" id="lojaFreeFrom" placeholder="Ex: 80.00 (0 = nunca)"></div>
+              </div>
+            </div>
+            <div id="feeCombinarCfg" style="display:none;">
+              <div class="field">
+                <label>Aviso que o cliente vai ver</label>
+                <input type="text" id="lojaFeeMsg" placeholder="Ex: Combinamos o frete pelo WhatsApp ao confirmar">
+              </div>
+              <div class="box-info">
+                💬 No checkout aparece <b>"A combinar pelo WhatsApp"</b> em vez de um valor. O total mostra só os produtos. Na hora de receber, você lança a taxa real que o motorista cobrou.
+              </div>
             </div>
           </div>
           <div class="admin-list">
@@ -1663,6 +1685,10 @@
         <div id="payBillItems" class="pay-items"></div>
         <div class="pay-row"><span>Subtotal</span><span id="paySubtotal">R$ 0,00</span></div>
         <div class="pay-row" id="payFeeRow" style="display:none;"><span>Taxa de entrega</span><span id="payDeliveryFee">R$ 0,00</span></div>
+        <div class="pay-row" id="payFeePendingRow" style="display:none;">
+          <span>🛵 Frete cobrado (Uber/99)</span>
+          <input type="number" step="0.01" id="payFeeInput" placeholder="0,00" style="width:110px;text-align:right;padding:6px 10px;">
+        </div>
         <div class="pay-row">
           <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
             <input type="checkbox" id="payServiceChk" style="width:auto;"> Serviço 10%
@@ -2671,6 +2697,9 @@
       if(tv && !tv.value) tv.value = window.location.origin + "/chamada/";
       storeInfo = info;
       storeDeliveryFee = Number(info.deliveryFee) || 0;
+      document.getElementById('lojaFeeMode').value = info.feeMode || 'fixa';
+      document.getElementById('lojaFeeMsg').value = info.feeMsg || '';
+      aplicarFeeMode();
       document.getElementById('lojaDeliveryFee').value = (info.deliveryFee !== undefined && info.deliveryFee !== null) ? info.deliveryFee : "";
       document.getElementById('lojaFreeFrom').value = (info.freeFrom !== undefined && info.freeFrom !== null) ? info.freeFrom : "";
       selectedStoreOpen = info.isOpen !== false;
@@ -2689,6 +2718,8 @@
       ie: document.getElementById('lojaIe').value.trim(),
       prepTime: parseInt(document.getElementById('lojaPrepTime').value) || 25,
       deliveryTime: parseInt(document.getElementById('lojaDeliveryTime').value) || 20,
+      feeMode: document.getElementById('lojaFeeMode').value,
+      feeMsg: document.getElementById('lojaFeeMsg').value.trim(),
       deliveryFee: parseFloat(document.getElementById('lojaDeliveryFee').value) || 0,
       freeFrom: parseFloat(document.getElementById('lojaFreeFrom').value) || 0,
       hours1: document.getElementById('lojaHours1').value.trim(),
@@ -2842,6 +2873,13 @@
     area.innerHTML = '<div class="qr-print-wrap">' + grid.innerHTML + '</div>';
     doPrint('a4');
   }
+
+  function aplicarFeeMode(){
+    const m = document.getElementById('lojaFeeMode').value;
+    document.getElementById('feeFixaCfg').style.display = m === 'fixa' ? 'block' : 'none';
+    document.getElementById('feeCombinarCfg').style.display = m === 'combinar' ? 'block' : 'none';
+  }
+  document.getElementById('lojaFeeMode').addEventListener('change', aplicarFeeMode);
 
   /* ---------------- BACKUP ---------------- */
   document.getElementById('exportDataBtn').addEventListener('click', async () => {
@@ -3124,6 +3162,7 @@
           <span class="order-code">#${o.dailyNumber||'–'} · ${o.code}</span>
           <div class="order-meta">${escapeHtml(o.customerName)}${o.phone?' · '+escapeHtml(o.phone):''}</div>
           <div class="order-meta">${typeIcon(o)}${o.orderType==='entrega'&&o.address?' · '+escapeHtml(o.address):''}</div>
+          ${o.feePending ? '<div class="order-meta" style="color:var(--mustard);">💬 Frete a combinar — lance o valor ao receber</div>' : ''}
           <div class="order-extra">
             <span>💳 ${paymentLabel(o.payment)}</span>
             <span>🕒 ${new Date(o.createdAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · ${mins}min</span>
@@ -3614,6 +3653,7 @@
         items: o.items,
         subtotal: Number(o.subtotal) || (Number(o.total) - (Number(o.deliveryFee)||0)) || 0,
         deliveryFee: Number(o.deliveryFee) || 0,
+        feePending: o.feePending === true && o.orderType === 'entrega',
         orderCodes: [o.code]
       });
     });
@@ -3820,6 +3860,11 @@
     const feeRow = document.getElementById('payFeeRow');
     if(bill.deliveryFee > 0){ feeRow.style.display = 'flex'; document.getElementById('payDeliveryFee').textContent = money(bill.deliveryFee); }
     else feeRow.style.display = 'none';
+
+    // frete a combinar: o caixa lança o valor real que o motorista cobrou
+    const pendRow = document.getElementById('payFeePendingRow');
+    document.getElementById('payFeeInput').value = '';
+    pendRow.style.display = bill.feePending ? 'flex' : 'none';
     document.getElementById('payServiceChk').checked = (bill.type === 'mesa');
     document.getElementById('payDiscount').value = "";
     document.getElementById('payReceived').value = "";
@@ -3839,7 +3884,9 @@
 
   function billTotal(){
     if(!currentBill) return 0;
-    const base = currentBill.subtotal + currentBill.deliveryFee;
+    const freteLancado = currentBill.feePending
+      ? (parseFloat(document.getElementById('payFeeInput').value) || 0) : 0;
+    const base = currentBill.subtotal + currentBill.deliveryFee + freteLancado;
     const service = document.getElementById('payServiceChk').checked ? currentBill.subtotal * 0.1 : 0;
     const discount = parseFloat(document.getElementById('payDiscount').value) || 0;
     return Math.max(0, base + service - discount);
@@ -3904,7 +3951,7 @@
     selectedPayMethod = btn.dataset.paymethod;
     recalcPayment();
   }));
-  ['payServiceChk','payDiscount','payReceived'].forEach(id =>
+  ['payServiceChk','payDiscount','payReceived','payFeeInput'].forEach(id =>
     document.getElementById(id).addEventListener('input', recalcPayment));
   document.getElementById('payServiceChk').addEventListener('change', recalcPayment);
   ['splitCash','splitPix','splitDebit','splitCredit'].forEach(id =>
@@ -3950,8 +3997,11 @@
       const service = document.getElementById('payServiceChk').checked ? currentBill.subtotal * 0.1 : 0;
       const discount = parseFloat(document.getElementById('payDiscount').value) || 0;
       const now = new Date().toISOString();
+      const freteReal = currentBill.feePending
+        ? (parseFloat(document.getElementById('payFeeInput').value) || 0) : null;
       const payload = {
         paid: true, paidAt: now, paidTotal: total, paidLabel: currentBill.title,
+        ...(freteReal !== null ? {deliveryFee: freteReal, feePending: false} : {}),
         paymentMethods: methods, change, serviceFee: service, discount,
         paidBy: currentEmployee ? currentEmployee.name : '',
         tabClosed: true, status: 'entregue'

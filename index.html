@@ -404,6 +404,13 @@
   body.has-quickbar .whatsapp-fab{ bottom:96px; }
   body.has-quickbar{ padding-bottom:80px; }
 
+  .ck-combinar{color:var(--mustard); font-weight:700;}
+  .ck-aviso-frete{
+    background:rgba(240,180,41,0.1); border:1px solid rgba(240,180,41,0.35);
+    color:var(--mustard); border-radius:10px; padding:11px 13px;
+    font-size:12.5px; line-height:1.5; margin-top:12px;
+  }
+
   /* ---------- AVALIAÇÃO ---------- */
   .rate-box{background:var(--pitch); border:1px solid var(--line); border-radius:14px; padding:20px; margin-top:22px; text-align:center;}
   .rate-box strong{display:block; font-family:'Anton',sans-serif; font-size:17px; color:var(--ember); margin-bottom:4px;}
@@ -1243,7 +1250,7 @@
     const fee = currentDeliveryFee();
     const subRow = document.getElementById('cartSubRow');
     const feeRow = document.getElementById('cartFeeRow');
-    if(cart.length > 0 && selectedOrderType === 'entrega' && (deliveryFee > 0)){
+    if(cart.length > 0 && selectedOrderType === 'entrega' && deliveryFee > 0 && feeMode === 'fixa'){
       subRow.style.display = 'flex';
       feeRow.style.display = 'flex';
       document.getElementById('cartSubtotal').textContent = money(sub);
@@ -1353,15 +1360,22 @@
     const fee = currentDeliveryFee();
     let t = `<div class="ck-tot-row"><span>Subtotal</span><span>${money(sub)}</span></div>`;
     if(selectedOrderType === 'entrega'){
-      t += `<div class="ck-tot-row"><span>Taxa de entrega</span><span>${
-        fee === 0 ? '<span class="ck-free">Grátis 🎉</span>' : money(fee)
-      }</span></div>`;
-      if(fee > 0 && freeShippingFrom > 0){
-        const falta = freeShippingFrom - sub;
-        if(falta > 0) t += `<div class="ck-tot-row"><span class="ck-free">Faltam ${money(falta)} pra frete grátis</span><span></span></div>`;
+      if(taxaACombinar()){
+        t += `<div class="ck-tot-row"><span>Taxa de entrega</span><span class="ck-combinar">💬 A combinar</span></div>`;
+      }else{
+        t += `<div class="ck-tot-row"><span>Taxa de entrega</span><span>${
+          fee === 0 ? '<span class="ck-free">Grátis 🎉</span>' : money(fee)
+        }</span></div>`;
+        if(fee > 0 && freeShippingFrom > 0){
+          const falta = freeShippingFrom - sub;
+          if(falta > 0) t += `<div class="ck-tot-row"><span class="ck-free">Faltam ${money(falta)} pra frete grátis</span><span></span></div>`;
+        }
       }
     }
-    t += `<div class="ck-tot-row final"><span>Total</span><span>${money(cartTotal())}</span></div>`;
+    t += `<div class="ck-tot-row final"><span>Total ${taxaACombinar() ? '<small style="font-weight:400;font-size:11px;opacity:.6;">(sem frete)</small>' : ''}</span><span>${money(cartTotal())}</span></div>`;
+    if(taxaACombinar()){
+      t += `<div class="ck-aviso-frete">💬 ${escapeHtml(feeMsg)}</div>`;
+    }
     document.getElementById('ckTotals').innerHTML = t;
   }
 
@@ -1492,6 +1506,8 @@
   let storeClosedMsg = "";
   let deliveryFee = 0;
   let freeShippingFrom = 0;
+  let feeMode = 'fixa';
+  let feeMsg = '';
 
   function applyStoreStatus(){
     const banner = document.getElementById('closedBanner');
@@ -1512,8 +1528,14 @@
 
   function currentDeliveryFee(){
     if(selectedOrderType !== 'entrega') return 0;
+    if(feeMode === 'gratis') return 0;
+    // "a combinar": o valor entra depois, no acerto pelo WhatsApp
+    if(feeMode === 'combinar') return 0;
     if(freeShippingFrom > 0 && cartSubtotal() >= freeShippingFrom) return 0;
     return deliveryFee;
+  }
+  function taxaACombinar(){
+    return selectedOrderType === 'entrega' && feeMode === 'combinar';
   }
   function cartSubtotal(){ return cart.reduce((sum, c) => sum + c.price * c.qty, 0); }
   function watchStoreInfo(){
@@ -1532,6 +1554,8 @@
       storeClosedMsg = info.closedMsg || "No momento estamos fechados. Confira nossos horários abaixo.";
       deliveryFee = Number(info.deliveryFee) || 0;
       freeShippingFrom = Number(info.freeFrom) || 0;
+      feeMode = info.feeMode || 'fixa';
+      feeMsg = info.feeMsg || 'Combinamos o valor do frete pelo WhatsApp ao confirmar seu pedido.';
       applyStoreStatus();
       updateCartUI();
       const link = waLink(info.whatsapp, "Olá! Vim pelo site da O Markin Chef's Burguer 🍔");
@@ -1586,6 +1610,7 @@
         items: cart.map(c => ({name:c.name, price:c.price, qty:c.qty, forItem:c.forItem || ""})),
         subtotal: cartSubtotal(),
         deliveryFee: currentDeliveryFee(),
+        feePending: taxaACombinar(),
         total: cartTotal(),
         status: "recebido",
         tabClosed: selectedOrderType === 'mesa' ? false : true,
@@ -1648,7 +1673,10 @@
     lines.push("*ITENS:*");
     o.items.forEach(i => lines.push("• " + i.qty + "x " + i.name + (i.forItem ? " (no " + i.forItem + ")" : "") + " — " + money(i.price * i.qty)));
     lines.push("");
-    if(o.deliveryFee > 0){
+    if(o.feePending){
+      lines.push("Subtotal: " + money(o.subtotal));
+      lines.push("Taxa de entrega: *a combinar*");
+    }else if(o.deliveryFee > 0){
       lines.push("Subtotal: " + money(o.subtotal));
       lines.push("Taxa de entrega: " + money(o.deliveryFee));
     }
