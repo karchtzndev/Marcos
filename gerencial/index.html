@@ -380,6 +380,54 @@
   .qr-img img, .qr-img canvas{display:block;}
   .qr-hint{font-size:11px; color:#555; margin-top:10px;}
 
+  /* ---------- IMPORTAÇÃO EM MASSA ---------- */
+  .bulk-tool{border:1px solid var(--line); border-radius:14px; margin-bottom:22px; overflow:hidden;}
+  .bulk-tool summary{
+    padding:15px 18px; cursor:pointer; font-weight:700; font-size:14px;
+    background:var(--pitch); list-style:none; color:var(--mustard);
+  }
+  .bulk-tool summary::-webkit-details-marker{display:none;}
+  .bulk-tool summary:hover{color:var(--ember);}
+  .bulk-tool[open] summary{border-bottom:1px solid var(--line);}
+  .bulk-body{padding:18px;}
+  .bulk-hint{font-size:13px; color:rgba(242,233,218,0.6); margin-bottom:10px; line-height:1.5;}
+  .bulk-hint b{color:var(--mustard);}
+  .bulk-format{
+    background:var(--pitch); border:1px dashed var(--ember); border-radius:8px;
+    padding:10px 14px; font-family:monospace; font-size:13px; color:var(--ember);
+    margin-bottom:12px; text-align:center;
+  }
+  .bulk-example{
+    background:var(--pitch); border-radius:8px; padding:12px 14px;
+    font-family:monospace; font-size:11.5px; color:rgba(242,233,218,0.55);
+    line-height:1.7; margin-bottom:14px; overflow-x:auto;
+  }
+  #bulkText{
+    width:100%; background:var(--pitch); border:1px solid var(--line); border-radius:10px;
+    padding:12px 14px; color:var(--cream); font-family:monospace; font-size:13px;
+    resize:vertical; line-height:1.6;
+  }
+  #bulkText:focus{outline:none; border-color:var(--ember);}
+  .bulk-preview{margin-top:18px; background:var(--pitch); border:1px solid var(--line); border-radius:12px; padding:16px;}
+  .bp-head{font-family:'Anton',sans-serif; font-size:15px; color:var(--ember); margin-bottom:14px;}
+  .bp-sec{margin-bottom:16px;}
+  .bp-tag{
+    display:inline-block; border-radius:999px; padding:3px 11px; font-size:11px;
+    font-weight:700; letter-spacing:0.5px; margin-bottom:8px;
+  }
+  .bp-tag.new{background:rgba(76,175,109,0.18); color:var(--green);}
+  .bp-tag.upd{background:rgba(240,180,41,0.18); color:var(--mustard);}
+  .bp-tag.err{background:rgba(182,56,44,0.18); color:var(--tomato);}
+  .bp-row{
+    display:flex; justify-content:space-between; gap:12px; font-size:13px;
+    padding:6px 0; border-bottom:1px solid rgba(242,233,218,0.05);
+  }
+  .bp-row span:last-child{color:var(--mustard); white-space:nowrap;}
+  .bp-acao{
+    border-top:1px solid var(--line); padding-top:14px; margin-top:6px;
+    font-size:13px; color:rgba(242,233,218,0.75);
+  }
+
   /* ---------- ABA ADICIONAIS ---------- */
   .addon-intro{
     display:flex; gap:16px; align-items:flex-start; padding:18px 20px; margin-bottom:24px;
@@ -975,10 +1023,40 @@
 
         <!-- CARDÁPIO TAB -->
         <div id="atabCardapio" style="display:none;">
-          <div class="low-stock-banner" style="background:rgba(76,175,109,0.12); border-color:var(--green); color:var(--green); display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-            <span>📋 Cardápio do CB (22 itens: hambúrgueres, entradas, bebidas, adicionais e combo) pronto pra importar.</span>
-            <button class="btn-primary" id="importMenuBtn" style="flex-shrink:0;">Importar cardápio</button>
+          <!-- só aparece com o cardápio vazio -->
+          <div id="emptyMenuBanner" class="low-stock-banner" style="display:none; background:rgba(76,175,109,0.12); border-color:var(--green); color:var(--green); align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+            <span>📋 Cardápio vazio. Importe os 22 itens do cardápio do CB pra começar.</span>
+            <button class="btn-primary" id="importMenuBtn" style="flex-shrink:0;">Importar cardápio base</button>
           </div>
+
+          <details class="bulk-tool">
+            <summary>📥 Importar ou atualizar vários itens de uma vez</summary>
+            <div class="bulk-body">
+              <p class="bulk-hint">Cole a lista abaixo, um item por linha, separando com <b>|</b> (barra vertical):</p>
+              <div class="bulk-format">Nome | Preço | Categoria | Descrição | Emoji</div>
+              <p class="bulk-hint">Categoria pode ser: <b>burguers</b>, <b>entradas</b>, <b>bebidas</b>, <b>combo</b>. Descrição e emoji são opcionais.</p>
+              <div class="bulk-example">
+                Chef's Burguer | 35 | burguers | Pão brioche, 180g, cheddar | 🍔<br>
+                Batata Frita | 18 | entradas | Porção individual | 🍟<br>
+                Coca-Cola Lata | 6 | bebidas | 350ml gelada | 🥤
+              </div>
+              <textarea id="bulkText" rows="8" placeholder="Cole aqui a sua lista..."></textarea>
+              <div class="field" style="margin-top:12px;">
+                <label>O que fazer com o cardápio atual?</label>
+                <select id="bulkMode">
+                  <option value="add">Adicionar aos itens existentes</option>
+                  <option value="update">Atualizar preços dos que já existem e adicionar os novos</option>
+                  <option value="replace">Substituir tudo (apaga o cardápio atual)</option>
+                </select>
+              </div>
+              <div class="form-actions">
+                <button class="btn-primary" id="bulkPreviewBtn">Conferir antes de importar</button>
+                <button class="btn-ghost" id="bulkExportBtn">📤 Exportar cardápio atual</button>
+              </div>
+              <div id="bulkResult"></div>
+              <div class="error-msg" id="bulkError"></div>
+            </div>
+          </details>
           <input type="hidden" id="editingId">
           <div class="form-grid">
             <div class="field"><label>Nome do produto</label><input type="text" id="fName" placeholder="Ex: Cheddar Bacon"></div>
@@ -1328,6 +1406,16 @@
             <div class="field"><label>Mensagem quando fechada</label><input type="text" id="lojaClosedMsg" placeholder="Ex: Abrimos hoje às 18h!"></div>
           </div>
           <div class="admin-list">
+            <h3>🧾 Dados para o comprovante</h3>
+            <p style="font-size:13px; color:rgba(242,233,218,0.6); margin-bottom:14px;">Aparecem impressos no cupom entregue ao cliente.</p>
+            <div class="form-grid">
+              <div class="field"><label>Razão social</label><input type="text" id="lojaRazao" placeholder="Ex: Markin Comércio de Alimentos LTDA"></div>
+              <div class="field"><label>CNPJ</label><input type="text" id="lojaCnpj" placeholder="00.000.000/0001-00"></div>
+              <div class="field"><label>Inscrição Estadual</label><input type="text" id="lojaIe" placeholder="Opcional"></div>
+            </div>
+          </div>
+
+          <div class="admin-list">
             <h3>⏱️ Tempo estimado (mostrado ao cliente)</h3>
             <div class="form-grid">
               <div class="field"><label>Preparo (minutos)</label><input type="number" id="lojaPrepTime" placeholder="Ex: 25"></div>
@@ -1498,7 +1586,12 @@
         <div class="pay-total-row"><span>TOTAL A PAGAR</span><span id="payTotal">R$ 0,00</span></div>
       </div>
 
-      <div class="field" style="margin-top:20px;">
+      <div class="field" style="margin-top:18px;">
+        <label>CPF na nota (opcional)</label>
+        <input type="text" id="payCpf" placeholder="000.000.000-00" inputmode="numeric">
+      </div>
+
+      <div class="field" style="margin-top:6px;">
         <label>Formas de pagamento</label>
         <div class="pay-methods">
           <button type="button" class="pay-method-btn active" data-paymethod="dinheiro">💵 Dinheiro</button>
@@ -1728,6 +1821,8 @@
     // Adicionais têm aba própria (➕ Adicionais) — não poluem o cardápio
     const products = window.__menuOnly();
     if(products.length === 0){ list.innerHTML = '<div class="loading-row">Nenhum produto cadastrado ainda.</div>'; return; }
+    const emptyB = document.getElementById('emptyMenuBanner');
+    if(emptyB) emptyB.style.display = products.length === 0 ? 'flex' : 'none';
     const pausados = products.filter(p => p.active === false).length;
     const aviso = pausados > 0
       ? `<div class="paused-note">⏸️ ${pausados} item${pausados>1?'ns':''} pausado${pausados>1?'s':''} — não aparece${pausados>1?'m':''} no cardápio do cliente.</div>`
@@ -1912,11 +2007,153 @@
   });
 
   document.getElementById('importMenuBtn').addEventListener('click', async () => {
-    if(!confirm("Isso vai SUBSTITUIR todo o cardápio atual pelos 22 itens do cardápio novo. Continuar?")) return;
+    if(!confirm("Isso vai SUBSTITUIR todo o cardápio atual pelos 22 itens do cardápio do CB. Continuar?")) return;
     products = JSON.parse(JSON.stringify(defaultProducts));
     await saveProducts();
-    renderMenu(); renderAdminList();
+    renderMenu(); renderAdminList(); renderAddonTab();
     showToast("Cardápio importado ✓");
+  });
+
+  /* ---------------- IMPORTAÇÃO EM MASSA ---------------- */
+  const CAT_ALIAS = {
+    'burguers':'burguers','burguer':'burguers','hamburguer':'burguers','hamburgueres':'burguers',
+    'hambúrguer':'burguers','hambúrgueres':'burguers','lanche':'burguers','lanches':'burguers',
+    'entradas':'entradas','entrada':'entradas','porcao':'entradas','porção':'entradas','porcoes':'entradas',
+    'bebidas':'bebidas','bebida':'bebidas','drink':'bebidas','drinks':'bebidas',
+    'combo':'combo','combos':'combo',
+    'adicionais':'adicionais','adicional':'adicionais','extra':'adicionais','extras':'adicionais'
+  };
+  function normalizarCat(txt){
+    const k = String(txt||'').trim().toLowerCase();
+    return CAT_ALIAS[k] || null;
+  }
+  function parsePreco(txt){
+    // aceita 35 · 35,90 · R$ 35,90 · 35.90 · 1.250,00 · 1,250.00
+    let s = String(txt||'').replace(/r\$/i,'').replace(/\s/g,'').trim();
+    if(!s) return null;
+    const temVirgula = s.includes(','), temPonto = s.includes('.');
+    if(temVirgula && temPonto){
+      // o separador decimal é o que vier por último
+      s = (s.lastIndexOf(',') > s.lastIndexOf('.'))
+        ? s.replace(/\./g,'').replace(',','.')   // 1.250,00
+        : s.replace(/,/g,'');                    // 1,250.00
+    }else if(temVirgula){
+      s = s.replace(',','.');                    // 35,90
+    }else if(temPonto){
+      // só ponto: se sobram 3 dígitos depois, é separador de milhar (1.250)
+      const dec = s.split('.').pop();
+      if(dec.length === 3) s = s.replace(/\./g,'');
+      // senão é decimal mesmo (35.90) — mantém
+    }
+    const n = parseFloat(s);
+    return (isNaN(n) || n < 0) ? null : n;
+  }
+
+  function lerLista(texto){
+    const linhas = texto.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const ok = [], erros = [];
+    linhas.forEach((linha, i) => {
+      const partes = linha.split('|').map(x => x.trim());
+      const nome = partes[0];
+      const preco = parsePreco(partes[1]);
+      const cat = normalizarCat(partes[2]);
+      if(!nome){ erros.push(`Linha ${i+1}: sem nome`); return; }
+      if(preco === null){ erros.push(`Linha ${i+1}: "${nome}" — preço inválido`); return; }
+      if(!cat){ erros.push(`Linha ${i+1}: "${nome}" — categoria "${partes[2]||'(vazia)'}" não reconhecida`); return; }
+      ok.push({nome, preco, cat, desc: partes[3] || '', icon: partes[4] || ''});
+    });
+    return {ok, erros};
+  }
+
+  document.getElementById('bulkPreviewBtn').addEventListener('click', () => {
+    const texto = document.getElementById('bulkText').value;
+    const errEl = document.getElementById('bulkError');
+    const resEl = document.getElementById('bulkResult');
+    errEl.textContent = '';
+    if(!texto.trim()){ errEl.textContent = 'Cole a lista antes de continuar.'; resEl.innerHTML = ''; return; }
+
+    const {ok, erros} = lerLista(texto);
+    if(ok.length === 0){
+      resEl.innerHTML = '';
+      errEl.innerHTML = 'Nenhuma linha válida.<br>' + erros.join('<br>');
+      return;
+    }
+    const modo = document.getElementById('bulkMode').value;
+    const existentes = ok.filter(x => products.some(p => p.name.toLowerCase() === x.nome.toLowerCase()));
+    const novos = ok.filter(x => !products.some(p => p.name.toLowerCase() === x.nome.toLowerCase()));
+
+    resEl.innerHTML = `
+      <div class="bulk-preview">
+        <div class="bp-head">Conferência — ${ok.length} item(ns) lido(s)</div>
+        ${novos.length ? `<div class="bp-sec"><span class="bp-tag new">${novos.length} NOVO(S)</span>${
+          novos.map(x => `<div class="bp-row"><span>${x.icon||''} ${escapeHtml(x.nome)}</span><span>${money(x.preco)} · ${catLabel(x.cat)}</span></div>`).join('')
+        }</div>` : ''}
+        ${existentes.length ? `<div class="bp-sec"><span class="bp-tag upd">${existentes.length} JÁ EXISTE(M)</span>${
+          existentes.map(x => {
+            const atual = products.find(p => p.name.toLowerCase() === x.nome.toLowerCase());
+            const mudou = Number(atual.price) !== x.preco;
+            return `<div class="bp-row"><span>${x.icon||''} ${escapeHtml(x.nome)}</span><span>${
+              mudou ? `<s style="opacity:.5">${money(atual.price)}</s> → ${money(x.preco)}` : money(x.preco)
+            }</span></div>`;
+          }).join('')
+        }</div>` : ''}
+        ${erros.length ? `<div class="bp-sec"><span class="bp-tag err">${erros.length} COM PROBLEMA</span>${
+          erros.map(e => `<div class="bp-row" style="color:var(--tomato);">${escapeHtml(e)}</div>`).join('')
+        }</div>` : ''}
+        <div class="bp-acao">
+          <strong>${
+            modo === 'replace' ? '⚠️ O cardápio atual será APAGADO e substituído por estes itens.' :
+            modo === 'update'  ? 'Preços dos existentes serão atualizados e os novos adicionados.' :
+                                 'Apenas os novos serão adicionados. Os existentes ficam como estão.'
+          }</strong>
+          <button class="btn-primary" id="bulkConfirmBtn" style="margin-top:12px;">✅ Confirmar importação</button>
+        </div>
+      </div>`;
+
+    document.getElementById('bulkConfirmBtn').addEventListener('click', () => aplicarImportacao(ok, modo));
+  });
+
+  async function aplicarImportacao(itens, modo){
+    if(modo === 'replace' && !confirm('Isso APAGA o cardápio atual. Tem certeza?')) return;
+
+    if(modo === 'replace'){
+      // preserva os adicionais (têm aba própria)
+      const addons = products.filter(p => p.cat === 'adicionais');
+      products = addons.concat(itens.map((x, i) => ({
+        id: genId(), name: x.nome, cat: x.cat, price: x.preco, cost: 0,
+        icon: x.icon, tag: '', desc: x.desc, photo: '', active: true, recipe: []
+      })));
+    }else{
+      itens.forEach(x => {
+        const existente = products.find(p => p.name.toLowerCase() === x.nome.toLowerCase());
+        if(existente){
+          if(modo === 'update'){
+            existente.price = x.preco;
+            if(x.desc) existente.desc = x.desc;
+            if(x.icon) existente.icon = x.icon;
+          }
+        }else{
+          products.push({
+            id: genId(), name: x.nome, cat: x.cat, price: x.preco, cost: 0,
+            icon: x.icon, tag: '', desc: x.desc, photo: '', active: true, recipe: []
+          });
+        }
+      });
+    }
+    await saveProducts();
+    renderMenu(); renderAdminList(); renderAddonTab();
+    document.getElementById('bulkText').value = '';
+    document.getElementById('bulkResult').innerHTML = '';
+    showToast(`Cardápio atualizado ✓ (${itens.length} item(ns))`);
+  }
+
+  document.getElementById('bulkExportBtn').addEventListener('click', () => {
+    const linhas = products
+      .filter(p => p.cat !== 'adicionais')
+      .map(p => [p.name, String(p.price).replace('.',','), p.cat, p.desc || '', p.icon || ''].join(' | '));
+    document.getElementById('bulkText').value = linhas.join('\n');
+    document.getElementById('bulkResult').innerHTML = '';
+    showToast('Cardápio atual carregado — edite e importe de volta');
   });
 
   document.getElementById('menuTabs').addEventListener('click', (e) => {
@@ -2097,6 +2334,18 @@
              border-top:2px solid #000; margin-top:6px; padding-top:5px;}
     .p-notes{font-size:12px; font-weight:700; border:1px solid #000; padding:6px; margin-top:8px;}
     .p-foot{text-align:center; font-size:10px; margin-top:12px;}
+    .p-emp{text-align:center; font-size:9px; line-height:1.35;}
+    .p-doc{text-align:center; font-size:11px; font-weight:900; letter-spacing:1px; margin:4px 0 6px;}
+    .p-cols{display:flex; justify-content:space-between; font-size:9px; font-weight:900;
+            border-bottom:1px solid #000; padding-bottom:2px; margin-bottom:5px;}
+    .p-cols span:first-child{flex:1; text-align:left;}
+    .p-cols span:not(:first-child){width:22%; text-align:right;}
+    .p-cols2{font-size:10px; font-weight:900; margin-bottom:4px;}
+    .p-prod{margin-bottom:5px;}
+    .p-prod-nome{font-size:12px; font-weight:700; word-break:break-word;}
+    .p-prod-val{display:flex; justify-content:flex-end; gap:0; font-size:11px;}
+    .p-prod-val span{width:22%; text-align:right;}
+    .p-aviso{text-align:center; font-size:9px; border:1px solid #000; padding:5px; margin-top:8px; line-height:1.4;}
   `;
 
   const QR_CSS = `
@@ -2319,11 +2568,15 @@
       document.getElementById('lojaWhatsapp').value = info.whatsapp || "";
       document.getElementById('lojaInstagram').value = info.instagram || "";
       document.getElementById('lojaClosedMsg').value = info.closedMsg || "";
+      document.getElementById('lojaRazao').value = info.razao || "";
+      document.getElementById('lojaCnpj').value = info.cnpj || "";
+      document.getElementById('lojaIe').value = info.ie || "";
       document.getElementById('lojaPrepTime').value = info.prepTime || 25;
       document.getElementById('lojaDeliveryTime').value = info.deliveryTime || 20;
       if(!document.getElementById('qrBaseUrl').value) document.getElementById('qrBaseUrl').value = window.location.origin;
       const tv = document.getElementById('tvUrl');
       if(tv && !tv.value) tv.value = window.location.origin + "/chamada/";
+      storeInfo = info;
       storeDeliveryFee = Number(info.deliveryFee) || 0;
       document.getElementById('lojaDeliveryFee').value = (info.deliveryFee !== undefined && info.deliveryFee !== null) ? info.deliveryFee : "";
       document.getElementById('lojaFreeFrom').value = (info.freeFrom !== undefined && info.freeFrom !== null) ? info.freeFrom : "";
@@ -2338,6 +2591,9 @@
     const info = {
       isOpen: selectedStoreOpen,
       closedMsg: document.getElementById('lojaClosedMsg').value.trim(),
+      razao: document.getElementById('lojaRazao').value.trim(),
+      cnpj: document.getElementById('lojaCnpj').value.trim(),
+      ie: document.getElementById('lojaIe').value.trim(),
       prepTime: parseInt(document.getElementById('lojaPrepTime').value) || 25,
       deliveryTime: parseInt(document.getElementById('lojaDeliveryTime').value) || 20,
       deliveryFee: parseFloat(document.getElementById('lojaDeliveryFee').value) || 0,
@@ -3218,6 +3474,7 @@
   /* ================= CAIXA ================= */
   let register = {isOpen:false};
   let storeDeliveryFee = 0;
+  let storeInfo = {};
   let currentBill = null;
   let selectedPayMethod = 'dinheiro';
   let splitMode = false;
@@ -3465,6 +3722,7 @@
     document.getElementById('payServiceChk').checked = (bill.type === 'mesa');
     document.getElementById('payDiscount').value = "";
     document.getElementById('payReceived').value = "";
+    document.getElementById('payCpf').value = "";
     ['splitCash','splitPix','splitDebit','splitCredit'].forEach(id => document.getElementById(id).value = "");
     splitMode = false;
     document.getElementById('splitFields').style.display = 'none';
@@ -3613,7 +3871,8 @@
 
       closeOverlay('payOverlay');
       showToast("Pagamento recebido ✓" + (change > 0 ? " Troco: " + money(change) : ""));
-      if(confirm("Pagamento registrado!\n\nDeseja imprimir o comprovante?")) printReceipt(currentBill, total, methods, change, service, discount);
+      const cpf = document.getElementById('payCpf').value.trim();
+      if(confirm("Pagamento registrado!\n\nDeseja imprimir o comprovante?")) printReceipt(currentBill, total, methods, change, service, discount, cpf);
       currentBill = null;
     }catch(e){
       console.error(e);
@@ -3622,25 +3881,48 @@
     btn.disabled = false; btn.textContent = "✅ Confirmar pagamento";
   });
 
-  function printReceipt(bill, total, methods, change, service, discount){
+  function printReceipt(bill, total, methods, change, service, discount, cpf){
     const area = document.getElementById('printArea');
+    const qtdItens = bill.items.reduce((s,i) => s + Number(i.qty), 0);
+    const agora = new Date();
     area.innerHTML = `
       <div class="p-logo">O MARKIN</div>
-      <div class="p-sub">CHEF'S BURGUER — COMPROVANTE</div>
+      <div class="p-sub">CHEF'S BURGUER</div>
+      ${storeInfo.razao ? `<div class="p-emp">${escapeHtml(storeInfo.razao)}</div>` : ''}
+      ${storeInfo.cnpj ? `<div class="p-emp">CNPJ: ${escapeHtml(storeInfo.cnpj)}</div>` : ''}
+      ${storeInfo.ie ? `<div class="p-emp">IE: ${escapeHtml(storeInfo.ie)}</div>` : ''}
+      ${storeInfo.address ? `<div class="p-emp">${escapeHtml(storeInfo.address)}</div>` : ''}
+      ${storeInfo.whatsapp ? `<div class="p-emp">Tel: ${escapeHtml(storeInfo.whatsapp)}</div>` : ''}
       <div class="p-line"></div>
-      <div class="p-code">${escapeHtml(bill.title)} · ${new Date().toLocaleString('pt-BR')}</div>
+
+      <div class="p-doc">DOCUMENTO NÃO FISCAL</div>
+      <div class="p-code">${escapeHtml(bill.title)}<br>${agora.toLocaleString('pt-BR')}</div>
+      ${cpf ? `<div class="p-code"><strong>CPF: ${escapeHtml(cpf)}</strong></div>` : ''}
       <div class="p-line"></div>
-      ${bill.items.map(i => `<div class="p-item"><span>${i.qty}x ${escapeHtml(i.name)}</span><span>${money(i.price*i.qty)}</span></div>`).join('')}
+
+      <div class="p-cols"><span>ITEM</span><span>QTD</span><span>UNIT</span><span>TOTAL</span></div>
+      ${bill.items.map((i, n) => `
+        <div class="p-prod">
+          <div class="p-prod-nome">${String(n+1).padStart(3,'0')} ${escapeHtml(i.name)}</div>
+          <div class="p-prod-val"><span>${i.qty}</span><span>${money(i.price)}</span><span>${money(i.price*i.qty)}</span></div>
+        </div>`).join('')}
       <div class="p-line"></div>
+
+      <div class="p-row"><span>Qtd. total de itens:</span><span>${qtdItens}</span></div>
       <div class="p-row"><span>Subtotal:</span><span>${money(bill.subtotal)}</span></div>
-      ${bill.deliveryFee > 0 ? `<div class="p-row"><span>Entrega:</span><span>${money(bill.deliveryFee)}</span></div>` : ''}
+      ${bill.deliveryFee > 0 ? `<div class="p-row"><span>Taxa de entrega:</span><span>${money(bill.deliveryFee)}</span></div>` : ''}
       ${service > 0 ? `<div class="p-row"><span>Serviço 10%:</span><span>${money(service)}</span></div>` : ''}
       ${discount > 0 ? `<div class="p-row"><span>Desconto:</span><span>- ${money(discount)}</span></div>` : ''}
       <div class="p-total"><span>TOTAL</span><span>${money(total)}</span></div>
       <div class="p-line"></div>
-      ${methods.map(m => `<div class="p-row"><span>${payMethodLabel(m.method)}:</span><span>${money(m.amount)}</span></div>`).join('')}
-      ${change > 0 ? `<div class="p-row"><span>Troco:</span><span>${money(change)}</span></div>` : ''}
-      <div class="p-foot">Obrigado pela preferência! 🔥</div>
+
+      <div class="p-cols2">FORMA DE PAGAMENTO</div>
+      ${methods.map(m => `<div class="p-row"><span>${payMethodLabel(m.method)}</span><span>${money(m.amount)}</span></div>`).join('')}
+      ${change > 0 ? `<div class="p-row"><span>Troco</span><span>${money(change)}</span></div>` : ''}
+      <div class="p-line"></div>
+
+      <div class="p-aviso">Este documento não tem valor fiscal.<br>Solicite o cupom fiscal se precisar.</div>
+      <div class="p-foot">Obrigado pela preferência! 🔥<br>${storeInfo.instagram ? escapeHtml(storeInfo.instagram) : ''}</div>
     `;
     doPrint('cupom');
   }
