@@ -1465,6 +1465,22 @@
     ref.set(update, {merge:true}).catch(e => console.warn("stats:", e));
   }
 
+  // Mantém o cadastro do cliente atualizado (usado pela fidelidade)
+  function registrarCliente(order){
+    const tel = (order.phone || '').replace(/\D/g,'');
+    if(!tel) return;
+    const inc = firebase.firestore.FieldValue.increment;
+    db.collection('customers').doc(tel).set({
+      nome: order.customerName || '',
+      telefone: order.phone || '',
+      endereco: order.address || '',
+      pedidos: inc(1),
+      gasto: inc(Number(order.total) || 0),
+      ultimo: order.createdAt,
+      atualizadoEm: new Date().toISOString()
+    }, {merge:true}).catch(e => console.warn('cliente:', e));
+  }
+
   function generateOrderCode(){
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sem I,O,0,1 (confusão visual)
     let s = "";
@@ -1655,6 +1671,7 @@
       };
       await saveOrder(order);
       bumpDailyStats(order);
+      registrarCliente(order);
     }catch(e){
       console.error(e);
       btn.disabled = false; btn.textContent = "Confirmar pedido";

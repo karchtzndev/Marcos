@@ -383,6 +383,34 @@
   .box-info{background:rgba(76,175,109,0.1); border:1px solid rgba(76,175,109,0.35); color:var(--green); border-radius:10px; padding:12px 14px; font-size:13px; line-height:1.55; margin-top:10px;}
   .box-info b{color:var(--cream);}
 
+  /* ---------- ZERAR DADOS ---------- */
+  .danger-zone{border:1px solid rgba(182,56,44,0.35) !important; border-radius:14px; padding:18px !important; background:rgba(182,56,44,0.04);}
+  .danger-zone h3{color:var(--tomato) !important;}
+  .btn-danger{background:var(--tomato); color:var(--cream); border:none; border-radius:999px; padding:13px 26px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; transition:filter .2s;}
+  .btn-danger:hover:not(:disabled){filter:brightness(1.15);}
+  .btn-danger:disabled{opacity:0.4; cursor:not-allowed;}
+  .zerar-listas{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px;}
+  .zl-col strong{display:block; font-size:12px; letter-spacing:0.8px; text-transform:uppercase; margin-bottom:8px;}
+  .zl-apaga{color:var(--tomato);}
+  .zl-mantem{color:var(--green);}
+  .zl-col ul{list-style:none; margin:0; padding:0;}
+  .zl-col li{font-size:12.5px; color:rgba(242,233,218,0.6); padding:3px 0 3px 16px; position:relative;}
+  .zl-col li:before{position:absolute; left:0;}
+  .zl-col:first-child li:before{content:'✕'; color:var(--tomato);}
+  .zl-col:last-child li:before{content:'✓'; color:var(--green);}
+  @media(max-width:560px){ .zerar-listas{grid-template-columns:1fr;} }
+
+  .zerar-alerta{background:rgba(182,56,44,0.12); border:1px solid var(--tomato); border-radius:12px; padding:14px 16px; margin-bottom:18px;}
+  .zerar-alerta strong{display:block; color:var(--tomato); font-size:15px; margin-bottom:4px;}
+  .zerar-alerta p{font-size:13px; color:rgba(242,233,218,0.75); margin:0;}
+  .zerar-resumo{background:var(--pitch); border:1px solid var(--line); border-radius:12px; padding:14px 16px;}
+  .zr-row{display:flex; justify-content:space-between; font-size:13.5px; padding:6px 0; border-bottom:1px solid rgba(242,233,218,0.05);}
+  .zr-row span:last-child{color:var(--mustard); font-weight:700;}
+  .zr-row.total{border-bottom:none; border-top:1px solid var(--line); margin-top:6px; padding-top:10px; font-weight:700;}
+  .zr-row.total span:last-child{font-family:'Anton',sans-serif; font-size:17px; color:var(--tomato);}
+  .zr-prog{background:var(--pitch); border-radius:10px; padding:14px; text-align:center; font-size:13.5px; color:var(--mustard); margin-top:14px; line-height:1.6;}
+  .zr-prog.ok{color:var(--green); border:1px solid var(--green);}
+
   /* ---------- MÓDULOS ---------- */
   .mod-row{display:flex; align-items:center; gap:16px; padding:16px 18px; border:1px solid var(--line); border-radius:14px; margin-bottom:12px; transition:border-color .2s;}
   .mod-row.on{border-color:rgba(76,175,109,0.45); background:rgba(76,175,109,0.05);}
@@ -418,6 +446,9 @@
     .dia-nome{width:calc(100% - 44px);}
     .dia-horas{width:100%; margin-left:40px;}
   }
+
+  #managerView.carregando .admin-tabs{opacity:0; pointer-events:none;}
+  #managerView .admin-tabs{transition:opacity .18s;}
 
   .mod-grupo{font-family:'Anton',sans-serif; font-size:16px; color:var(--ember); margin:0 0 4px; letter-spacing:0.5px;}
   .mod-grupo-desc{font-size:12.5px; color:rgba(242,233,218,0.5); margin-bottom:14px;}
@@ -1609,6 +1640,37 @@
           <div class="error-msg" id="lojaError"></div>
           <p style="margin-top:16px; font-size:12px; color:rgba(242,233,218,0.5);">O número de WhatsApp aqui é usado pelo botão flutuante 💬 e pelo link do rodapé no app do cliente — eles abrem uma conversa direto com você.</p>
 
+          <div class="admin-list danger-zone" id="zerarBox">
+            <h3>🧹 Começar do zero</h3>
+            <p style="font-size:13px; color:rgba(242,233,218,0.65); margin-bottom:12px;">Apaga tudo que foi gerado nos testes — pedidos, faturamento, clientes, fechamentos de caixa e chamadas da TV. Use uma vez, antes de abrir de verdade.</p>
+            <div class="zerar-listas">
+              <div class="zl-col">
+                <strong class="zl-apaga">Vai apagar</strong>
+                <ul>
+                  <li>Todos os pedidos</li>
+                  <li>Faturamento e estatísticas</li>
+                  <li>Cadastro de clientes</li>
+                  <li>Fechamentos de caixa</li>
+                  <li>Chamadas da TV</li>
+                  <li>Numeração diária</li>
+                </ul>
+              </div>
+              <div class="zl-col">
+                <strong class="zl-mantem">Vai manter</strong>
+                <ul>
+                  <li>Cardápio e adicionais</li>
+                  <li>Estoque cadastrado</li>
+                  <li>Contas da equipe</li>
+                  <li>Dados e horários da loja</li>
+                  <li>Módulos ligados</li>
+                  <li>Financeiro lançado à mão</li>
+                </ul>
+              </div>
+            </div>
+            <button class="btn-danger" id="abrirZerarBtn">🧹 Zerar dados de teste</button>
+            <div class="error-msg" id="zerarMsg"></div>
+          </div>
+
           <div class="admin-list">
             <h3>💾 Backup dos dados</h3>
             <p style="font-size:13px; color:rgba(242,233,218,0.6); margin-bottom:14px;">Baixa um arquivo com cardápio, pedidos, estoque, financeiro e equipe. Guarde de vez em quando — se algo for apagado por engano, dá pra restaurar.</p>
@@ -1670,6 +1732,41 @@
 
       <button class="btn-primary" id="moConfirmBtn" style="width:100%; padding:16px; font-size:16px;">✅ Lançar pedido</button>
       <div class="error-msg" id="moError"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= ZERAR DADOS ================= -->
+<div class="overlay" id="zerarOverlay">
+  <div class="panel narrow">
+    <div class="panel-head"><h2 style="color:var(--tomato);">🧹 Zerar dados de teste</h2><button class="close-btn" data-close="zerarOverlay">✕</button></div>
+    <div class="panel-body">
+      <div class="zerar-alerta">
+        <strong>Isso não tem volta.</strong>
+        <p>Todo o histórico de pedidos, faturamento e clientes será apagado permanentemente.</p>
+      </div>
+
+      <div class="zerar-resumo" id="zerarResumo"></div>
+
+      <p style="font-size:13px; color:rgba(242,233,218,0.7); margin:18px 0 10px;">
+        Recomendo <b>baixar um backup antes</b> — mesmo sendo dado de teste, às vezes serve de referência.
+      </p>
+      <button class="btn-ghost" id="zerarBackupBtn" style="width:100%; margin-bottom:20px;">💾 Baixar backup agora</button>
+
+      <div class="field">
+        <label>1. Digite <b style="color:var(--tomato);">ZERAR</b> para confirmar</label>
+        <input type="text" id="zerarPalavra" placeholder="ZERAR" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>2. Sua senha de gerente</label>
+        <input type="password" id="zerarSenha" placeholder="••••••••" autocomplete="current-password">
+      </div>
+
+      <button class="btn-danger" id="zerarConfirmBtn" style="width:100%; padding:16px; font-size:15px;" disabled>
+        Apagar tudo permanentemente
+      </button>
+      <div class="error-msg" id="zerarError"></div>
+      <div id="zerarProgresso" style="display:none;"></div>
     </div>
   </div>
 </div>
@@ -2698,10 +2795,45 @@
     selectedStoreOpen = btn.dataset.storeopen === 'open';
     renderStoreStatusBanner(selectedStoreOpen);
   }));
+
+  // Fecha/abre agora, sem esperar salvar a página inteira. Marca como
+  // intervenção manual pra o automático não desfazer em seguida.
+  async function definirLojaAgora(aberta){
+    const h = horarioDeHoje();
+    const agora = new Date();
+    const min = agora.getHours()*60 + agora.getMinutes();
+    const minAj = (h && h.fim > 24*60 && min < h.inicio) ? min + 24*60 : min;
+    const deveria = h ? (minAj >= h.inicio && minAj < h.fim) : false;
+    try{
+      await db.collection('store').doc('info').set({
+        isOpen: aberta,
+        manualOverride: moduloAtivo('horario') ? {esperado: deveria, em: new Date().toISOString()} : null
+      }, {merge:true});
+      showToast(aberta ? '🔓 Loja aberta' : '🔒 Loja fechada');
+      if(moduloAtivo('horario') && aberta !== deveria){
+        showToast('O automático respeita sua decisão até o próximo horário');
+      }
+    }catch(e){ alert('Não foi possível alterar o status.'); }
+  }
   function renderStoreStatusBanner(isOpen){
-    document.getElementById('storeStatusBanner').innerHTML = isOpen
-      ? '<div class="low-stock-banner" style="background:rgba(76,175,109,0.12); border-color:var(--green); color:var(--green);">✅ Loja ABERTA — os clientes conseguem fazer pedidos normalmente.</div>'
-      : '<div class="low-stock-banner">🔒 Loja FECHADA — os clientes veem o cardápio, mas não conseguem finalizar pedidos.</div>';
+    const auto = moduloAtivo('horario');
+    const ov = storeInfo.manualOverride;
+    document.getElementById('storeStatusBanner').innerHTML = `
+      <div class="low-stock-banner" style="${isOpen
+        ? 'background:rgba(76,175,109,0.12); border-color:var(--green); color:var(--green);'
+        : ''} display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+        <span>${isOpen
+          ? '✅ Loja ABERTA — os clientes conseguem pedir normalmente.'
+          : '🔒 Loja FECHADA — os clientes veem o cardápio, mas não finalizam pedido.'}
+          ${auto && ov ? '<br><small style="opacity:.8;">Você definiu manualmente. O automático volta a agir no próximo horário.</small>' : ''}
+          ${auto && !ov ? '<br><small style="opacity:.8;">🕒 No automático, conforme os horários abaixo.</small>' : ''}
+        </span>
+        <button class="btn-primary" id="toggleLojaAgora" style="flex-shrink:0; padding:9px 18px; font-size:13px;">
+          ${isOpen ? '🔒 Fechar agora' : '🔓 Abrir agora'}
+        </button>
+      </div>`;
+    const b = document.getElementById('toggleLojaAgora');
+    if(b) b.addEventListener('click', () => definirLojaAgora(!isOpen));
   }
 
   function watchStoreInfo(){
@@ -3033,6 +3165,126 @@
       return `<b>${dias.join(', ')}</b> ${a} às ${f}`;
     }).join(' · ');
     el.innerHTML = `🕒 ${txt}<br><small style="opacity:.75;">Não esqueça de tocar em "Salvar dados da loja" no fim da página.</small>`;
+  }
+
+  /* ---------------- ZERAR DADOS DE TESTE ---------------- */
+  document.getElementById('abrirZerarBtn').addEventListener('click', async () => {
+    if(currentRole !== 'gerente'){
+      const m = document.getElementById('zerarMsg');
+      m.style.color = 'var(--tomato)';
+      m.textContent = 'Só o gerente pode zerar os dados.';
+      return;
+    }
+    document.getElementById('zerarPalavra').value = '';
+    document.getElementById('zerarSenha').value = '';
+    document.getElementById('zerarError').textContent = '';
+    document.getElementById('zerarProgresso').style.display = 'none';
+    document.getElementById('zerarConfirmBtn').disabled = true;
+    document.getElementById('zerarResumo').innerHTML = '<div class="loading-row">Contando o que existe...</div>';
+    openOverlay('zerarOverlay');
+    contarParaZerar();
+  });
+
+  async function contarParaZerar(){
+    const cols = [
+      {c:'orders',    nome:'Pedidos'},
+      {c:'stats',     nome:'Dias de faturamento'},
+      {c:'customers', nome:'Clientes'},
+      {c:'closings',  nome:'Fechamentos de caixa'},
+      {c:'calls',     nome:'Chamadas na TV'}
+    ];
+    const linhas = [];
+    for(const col of cols){
+      try{
+        const snap = await db.collection(col.c).get();
+        linhas.push({nome: col.nome, n: snap.size});
+      }catch(e){ linhas.push({nome: col.nome, n: '?'}); }
+    }
+    const total = linhas.reduce((s,l) => s + (typeof l.n === 'number' ? l.n : 0), 0);
+    document.getElementById('zerarResumo').innerHTML = total === 0
+      ? '<div class="loading-row">Nada para apagar — já está zerado. 🎉</div>'
+      : linhas.map(l => `<div class="zr-row"><span>${l.nome}</span><span>${l.n}</span></div>`).join('') +
+        `<div class="zr-row total"><span>Total de registros</span><span>${total}</span></div>`;
+  }
+
+  function validarZerar(){
+    const ok = document.getElementById('zerarPalavra').value.trim().toUpperCase() === 'ZERAR'
+            && document.getElementById('zerarSenha').value.length >= 6;
+    document.getElementById('zerarConfirmBtn').disabled = !ok;
+  }
+  ['zerarPalavra','zerarSenha'].forEach(id =>
+    document.getElementById(id).addEventListener('input', validarZerar));
+
+  document.getElementById('zerarBackupBtn').addEventListener('click', () => {
+    document.getElementById('exportDataBtn').click();
+  });
+
+  document.getElementById('zerarConfirmBtn').addEventListener('click', async () => {
+    const senha = document.getElementById('zerarSenha').value;
+    const errEl = document.getElementById('zerarError');
+    const prog = document.getElementById('zerarProgresso');
+    const btn = document.getElementById('zerarConfirmBtn');
+    errEl.textContent = '';
+
+    // Confirma que é mesmo o gerente na frente do aparelho
+    btn.disabled = true; btn.textContent = 'Verificando senha...';
+    try{
+      const cred = firebase.auth.EmailAuthProvider.credential(auth.currentUser.email, senha);
+      await auth.currentUser.reauthenticateWithCredential(cred);
+    }catch(e){
+      btn.disabled = false; btn.textContent = 'Apagar tudo permanentemente';
+      errEl.textContent = e.code === 'auth/too-many-requests'
+        ? 'Muitas tentativas. Aguarde alguns minutos.'
+        : 'Senha incorreta.';
+      return;
+    }
+
+    if(!confirm('ÚLTIMA CONFIRMAÇÃO\n\nApagar todo o histórico de pedidos, faturamento e clientes?\n\nIsso não pode ser desfeito.')){
+      btn.disabled = false; btn.textContent = 'Apagar tudo permanentemente';
+      return;
+    }
+
+    prog.style.display = 'block';
+    btn.textContent = 'Apagando...';
+    const cols = ['orders','stats','customers','closings','calls'];
+    let apagados = 0;
+
+    try{
+      for(const col of cols){
+        prog.innerHTML = `<div class="zr-prog">🧹 Limpando ${col}...</div>`;
+        apagados += await apagarColecao(col);
+      }
+      // contador diário e caixa
+      prog.innerHTML = '<div class="zr-prog">🧹 Zerando contador e caixa...</div>';
+      await db.collection('counters').doc('daily').set({date: todayStr(), count: 0}).catch(()=>{});
+      await db.collection('store').doc('register').set({isOpen:false}).catch(()=>{});
+
+      prog.innerHTML = `<div class="zr-prog ok">✅ Pronto! ${apagados} registro(s) apagado(s).<br>O sistema está limpo para a abertura.</div>`;
+      showToast('Dados zerados ✓');
+      setTimeout(() => {
+        closeOverlay('zerarOverlay');
+        window.location.reload();
+      }, 2500);
+    }catch(e){
+      console.error(e);
+      errEl.textContent = 'Erro ao apagar: ' + (e.message || 'tente novamente');
+      btn.disabled = false; btn.textContent = 'Apagar tudo permanentemente';
+    }
+  });
+
+  // Apaga em lotes de 400 (limite do Firestore é 500 por batch)
+  async function apagarColecao(nome){
+    let total = 0;
+    while(true){
+      const snap = await db.collection(nome).limit(400).get();
+      if(snap.empty) break;
+      const batch = db.batch();
+      snap.docs.forEach(d => batch.delete(d.ref));
+      await batch.commit();
+      total += snap.size;
+      if(snap.size < 400) break;
+    }
+    return total;
   }
 
   /* ---------------- BACKUP ---------------- */
@@ -4380,9 +4632,12 @@
     return {inicio, fim};
   }
 
+  // O automático NÃO desfaz comando manual. Se você fechar a loja no meio do
+  // expediente (acabou a carne), ele respeita até o próximo horário de virada.
   async function checarHorarioAuto(){
     if(!moduloAtivo('horario')) return;
     if(currentRole !== 'gerente' && !myPerms.includes('loja')) return;
+
     const h = horarioDeHoje();
     const agora = new Date();
     const min = agora.getHours()*60 + agora.getMinutes();
@@ -4390,18 +4645,42 @@
     const deveEstarAberta = h ? (minAjust >= h.inicio && minAjust < h.fim) : false;
     const estaAberta = storeInfo.isOpen !== false;
     if(deveEstarAberta === estaAberta) return;
+
+    // Houve intervenção manual? Só volta a mandar na próxima virada de estado.
+    if(storeInfo.manualOverride){
+      const ov = storeInfo.manualOverride;
+      // a intervenção vale enquanto o "deveria" continuar igual a quando ela ocorreu
+      if(ov.esperado === deveEstarAberta) return;
+    }
+
+    // Evita que vários aparelhos escrevam ao mesmo tempo: quem chegar primeiro
+    // grava, os outros veem o estado já atualizado e desistem.
+    const marca = deveEstarAberta ? 'abrir' : 'fechar';
+    const chave = todayStr() + ':' + marca;
+    if(ultimaAcaoAuto === chave) return;
+    ultimaAcaoAuto = chave;
+
     try{
-      await db.collection('store').doc('info').set({isOpen: deveEstarAberta}, {merge:true});
+      await db.runTransaction(async (tx) => {
+        const ref = db.collection('store').doc('info');
+        const snap = await tx.get(ref);
+        const atual = snap.exists ? snap.data() : {};
+        if((atual.isOpen !== false) === deveEstarAberta) return; // outro já fez
+        if(atual.autoMark === chave) return;                     // já processado
+        tx.set(ref, {isOpen: deveEstarAberta, autoMark: chave, manualOverride: null}, {merge:true});
+      });
       showToast(deveEstarAberta ? '🔓 Loja aberta automaticamente' : '🔒 Loja fechada automaticamente');
     }catch(e){ console.warn('horário auto:', e); }
   }
+  let ultimaAcaoAuto = null;
   setInterval(checarHorarioAuto, 60000);
 
   /* ================= FIDELIDADE ================= */
   function pedidosDoCliente(telefone){
     const tel = (telefone||'').replace(/\D/g,'');
     if(!tel) return 0;
-    return orders.filter(o => (o.phone||'').replace(/\D/g,'') === tel && o.status !== 'cancelado').length;
+    const cl = clientes[tel];
+    return cl ? (Number(cl.pedidos)||0) : 0;
   }
   function statusFidelidade(telefone){
     if(!moduloAtivo('fidelidade')) return null;
@@ -4413,21 +4692,67 @@
   }
 
   /* ================= CLIENTES ================= */
+  // Coleção própria acumulada a cada pedido. Antes eu contava a partir de
+  // "orders", que carrega só o turno — a fidelidade nunca chegava a 10 e os
+  // números de cliente descreviam apenas a noite atual.
+  let clientes = {};   // {telefone: {nome, pedidos, gasto, ultimo, ...}}
+
+  let clientesUnsub = null;
+  function watchClientes(){
+    const precisa = moduloAtivo('clientes') || moduloAtivo('fidelidade');
+    if(!precisa){
+      if(clientesUnsub){ clientesUnsub(); clientesUnsub = null; clientes = {}; }
+      return;
+    }
+    if(clientesUnsub) return; // já escutando
+    clientesUnsub = db.collection('customers').onSnapshot((snap) => {
+      clientes = {};
+      snap.docs.forEach(d => clientes[d.id] = Object.assign({tel: d.id}, d.data()));
+      const t = currentTab();
+      if(t === 'clientes') renderClientes();
+      if(t === 'pedidos') renderAdminOrders();
+    }, (err) => console.warn('customers:', err));
+  }
+
+  // Atualiza o cadastro do cliente quando um pedido é criado
+  function registrarCliente(order){
+    const tel = (order.phone || '').replace(/\D/g,'');
+    if(!tel) return; // sem telefone não dá pra identificar
+    const inc = firebase.firestore.FieldValue.increment;
+    db.collection('customers').doc(tel).set({
+      nome: order.customerName || '',
+      telefone: order.phone || '',
+      endereco: order.address || '',
+      pedidos: inc(1),
+      gasto: inc(Number(order.total) || 0),
+      ultimo: order.createdAt,
+      atualizadoEm: new Date().toISOString()
+    }, {merge:true}).catch(e => console.warn('cliente:', e));
+  }
+
+  // Desfaz a contagem quando o pedido é cancelado
+  function estornarCliente(order){
+    const tel = (order.phone || '').replace(/\D/g,'');
+    if(!tel) return;
+    const inc = firebase.firestore.FieldValue.increment;
+    db.collection('customers').doc(tel).set({
+      pedidos: inc(-1),
+      gasto: inc(-(Number(order.total) || 0))
+    }, {merge:true}).catch(()=>{});
+  }
+
   function agruparClientes(){
-    const mapa = {};
-    orders.forEach(o => {
-      if(o.status === 'cancelado') return;
-      const tel = (o.phone || '').replace(/\D/g,'');
-      const chave = tel || ('nome:' + (o.customerName||'').toLowerCase());
-      if(!chave || chave === 'nome:') return;
-      if(!mapa[chave]) mapa[chave] = {nome:o.customerName||'', telefone:o.phone||'', pedidos:0, gasto:0, ultimo:o.createdAt, endereco:o.address||''};
-      const cl = mapa[chave];
-      cl.pedidos++;
-      cl.gasto += Number(o.total)||0;
-      if(new Date(o.createdAt) > new Date(cl.ultimo)){ cl.ultimo = o.createdAt; cl.nome = o.customerName||cl.nome; }
-      if(o.address) cl.endereco = o.address;
-    });
-    return Object.values(mapa).sort((a,b) => b.gasto - a.gasto);
+    return Object.values(clientes)
+      .filter(c => (Number(c.pedidos)||0) > 0)
+      .map(c => ({
+        nome: c.nome || '',
+        telefone: c.telefone || c.tel || '',
+        pedidos: Number(c.pedidos)||0,
+        gasto: Number(c.gasto)||0,
+        ultimo: c.ultimo || new Date().toISOString(),
+        endereco: c.endereco || ''
+      }))
+      .sort((a,b) => b.gasto - a.gasto);
   }
 
   function renderClientes(){
@@ -4678,6 +5003,7 @@
   const AREA_KEYS = AREAS.map(a => a.key);
 
     let features = {};
+  let featuresCarregado = false;
 
   function moduloAtivo(k){ return features[k] === true; }
   // áreas do painel vêm ligadas por padrão (só desligam se você mandar)
@@ -4690,9 +5016,18 @@
   function watchFeatures(){
     db.collection('store').doc('features').onSnapshot((doc) => {
       features = doc.exists ? doc.data() : {};
+      const primeiraVez = !featuresCarregado;
+      featuresCarregado = true;
+      document.getElementById('managerView').classList.remove('carregando');
       renderModulos();
       aplicarModulos();
-    }, (err) => console.warn('features:', err));
+      watchClientes();           // liga ou desliga conforme os módulos
+      if(primeiraVez) applyRolePermissions();
+    }, (err) => {
+      console.warn('features:', err);
+      featuresCarregado = true;
+      document.getElementById('managerView').classList.remove('carregando');
+    });
   }
 
   function renderModulos(){
@@ -4731,10 +5066,19 @@
     renderModuloConfig();
   }
 
+  const AREAS_SENSIVEIS = {
+    loja: 'Você perde o acesso aos horários, taxa de entrega, QR das mesas e backup.',
+    equipe: 'Você perde a tela de criar contas e alterar permissões.',
+    caixa: 'Ninguém consegue receber pagamentos nem fechar o turno.'
+  };
+
   async function toggleArea(key){
     const a = AREAS.find(x => x.key === key);
     if(!a || a.fixo) return;
     const novo = !areaAtiva(key);
+    if(!novo && AREAS_SENSIVEIS[key]){
+      if(!confirm(`Desligar "${a.nome}"?\n\n${AREAS_SENSIVEIS[key]}\n\nVocê pode religar aqui nos Módulos quando quiser.`)) return;
+    }
     try{
       await db.collection('store').doc('features').set({['area_' + key]: novo}, {merge:true});
       showToast(`${a.icon} ${a.nome} ${novo ? 'ligada ✓' : 'desligada'}`);
@@ -4812,7 +5156,11 @@
       if(p) p.click();
     }
     const prev = document.getElementById('previsaoCard');
-    if(prev) prev.style.display = moduloAtivo('previsao') ? 'block' : 'none';
+    if(prev){
+      const on = moduloAtivo('previsao');
+      prev.style.display = on ? 'block' : 'none';
+      if(on) renderPrevisao();   // desenha na hora, sem precisar trocar de aba
+    }
     const rel = document.getElementById('relatoriosBox');
     if(rel) rel.style.display = moduloAtivo('relatorios') ? 'block' : 'none';
   }
@@ -5279,6 +5627,7 @@
       await Promise.race([write, new Promise(res => setTimeout(res, 2500))]);
 
       bumpDailyStats(order);
+      registrarCliente(order);
       moCart = [];
       closeOverlay('manualOverlay');
       showToast("Pedido #" + dailyNumber + " lançado ✓");
@@ -5366,6 +5715,7 @@
       db.collection('stats').doc(day).set({
         orderCount: inc(-1), revenue: inc(-(Number(order.total)||0)), canceled: inc(1)
       }, {merge:true}).catch(()=>{});
+      estornarCliente(order);
       showToast("Pedido cancelado");
     }catch(e){ alert("Não foi possível cancelar."); }
   }
@@ -5653,11 +6003,17 @@
       btn.style.display = (temPerm && areaOk && modOk) ? 'inline-flex' : 'none';
     });
     // abre a primeira aba liberada
-    const first = ALL_TABS.find(t => myPerms.includes(t));
-    if(first){
-      const btn = document.querySelector(`.admin-tab-btn[data-atab="${first}"]`);
-      if(btn) btn.click();
-    }
+    // abre a primeira aba que está permitida E ligada nos Módulos
+    const disponivel = t => {
+      if(!myPerms.includes(t)) return false;
+      if(AREAS.some(a => a.key === t)) return areaAtiva(t);
+      const m = MODULOS.find(x => x.tab === t);
+      if(m) return moduloAtivo(m.key);
+      return true;
+    };
+    const first = ALL_TABS.find(disponivel) || 'pedidos';
+    const btn = document.querySelector(`.admin-tab-btn[data-atab="${first}"]`);
+    if(btn) btn.click();
     const who = document.getElementById('whoAmI');
     const logoutBtn = document.getElementById('logoutBtn');
     const icons = {gerente:'👔', subgerente:'🧑‍💼', caixa:'💳', balconista:'🧑‍🍳', garcom:'🍽️', cozinha:'👨‍🍳', entregador:'🛵'};
@@ -5758,6 +6114,7 @@
       currentRole = profile.role || 'funcionario';
       myPerms = permsOf(profile);
       currentEmployee = {id: user.uid, name: profile.name || user.email};
+      document.getElementById('managerView').classList.add('carregando');
       if(!listenersStarted){ startDataListeners(); listenersStarted = true; }
       showView('manager');
       applyRolePermissions();
