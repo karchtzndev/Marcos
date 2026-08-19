@@ -188,11 +188,27 @@
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(37,211,102,0.5);}70%{box-shadow:0 0 0 14px rgba(37,211,102,0);}100%{box-shadow:0 0 0 0 rgba(37,211,102,0);}}
 
   /* ---------- OVERLAYS (shared) ---------- */
-  .overlay{position:fixed; inset:0; background:rgba(8,6,4,0.82); backdrop-filter:blur(4px); z-index:100; display:none; align-items:center; justify-content:center; padding:20px;}
-  .overlay.open{display:flex;}
-  .panel{background:var(--char); border:1px solid var(--line); border-radius:20px; width:100%; max-width:920px; max-height:88vh; overflow-y:auto;}
+  /* A rolagem acontece no OVERLAY, não dentro do painel.
+     No iPhone, centralizar com flex e rolar dentro do painel ao mesmo
+     tempo travava o gesto de arrastar. */
+  .overlay{
+    position:fixed; inset:0; background:rgba(8,6,4,0.82); backdrop-filter:blur(4px);
+    z-index:100; display:none; padding:20px;
+    overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
+  }
+  .overlay.open{display:block;}
+  .panel{
+    background:var(--char); border:1px solid var(--line); border-radius:20px;
+    width:100%; max-width:920px; margin:0 auto;
+    /* sem max-height/overflow: quem rola é o overlay */
+  }
   .panel.narrow{max-width:480px;}
-  .panel-head{display:flex; align-items:center; justify-content:space-between; padding:24px 30px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--char); z-index:2;}
+  .panel-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 26px; border-bottom:1px solid var(--line);
+    position:sticky; top:-20px; background:var(--char); z-index:2;
+    border-radius:20px 20px 0 0;
+  }
   .panel-head h2{font-family:'Anton',sans-serif; font-size:20px; color:var(--ember);}
   .close-btn{background:none; border:none; color:var(--cream); font-size:22px; cursor:pointer; opacity:0.6;}
   .close-btn:hover{opacity:1;}
@@ -864,14 +880,34 @@
   function escapeHtml(str){ return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function money(n){ return "R$ " + Number(n).toFixed(2).replace('.',','); }
 
+  // Trava o fundo enquanto um modal está aberto: sem isso o iPhone rola
+  // a página de trás em vez do conteúdo do modal.
+  let scrollTravado = 0;
+  function travarFundo(){
+    scrollTravado = window.scrollY;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollTravado}px`;
+    document.body.style.width = '100%';
+  }
+  function destravarFundo(){
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    window.scrollTo(0, scrollTravado);
+  }
+
   function openOverlay(id){
-    document.getElementById(id).classList.add('open');
+    if(!document.querySelector('.overlay.open')) travarFundo();
+    const ov = document.getElementById(id);
+    ov.classList.add('open');
+    ov.scrollTop = 0;
     const bar = document.getElementById('quickBar');
     if(bar) bar.style.visibility = 'hidden';
   }
   function closeOverlay(id){
     document.getElementById(id).classList.remove('open');
     const anyOpen = document.querySelector('.overlay.open');
+    if(!anyOpen) destravarFundo();
     const bar = document.getElementById('quickBar');
     if(bar && !anyOpen) bar.style.visibility = 'visible';
   }

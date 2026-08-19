@@ -166,11 +166,27 @@
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(37,211,102,0.5);}70%{box-shadow:0 0 0 14px rgba(37,211,102,0);}100%{box-shadow:0 0 0 0 rgba(37,211,102,0);}}
 
   /* ---------- OVERLAYS (shared) ---------- */
-  .overlay{position:fixed; inset:0; background:rgba(8,6,4,0.82); backdrop-filter:blur(4px); z-index:100; display:none; align-items:center; justify-content:center; padding:20px;}
-  .overlay.open{display:flex;}
-  .panel{background:var(--char); border:1px solid var(--line); border-radius:20px; width:100%; max-width:920px; max-height:88vh; overflow-y:auto;}
+  /* A rolagem acontece no OVERLAY, não dentro do painel.
+     No iPhone, centralizar com flex e rolar dentro do painel ao mesmo
+     tempo travava o gesto de arrastar. */
+  .overlay{
+    position:fixed; inset:0; background:rgba(8,6,4,0.82); backdrop-filter:blur(4px);
+    z-index:100; display:none; padding:20px;
+    overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
+  }
+  .overlay.open{display:block;}
+  .panel{
+    background:var(--char); border:1px solid var(--line); border-radius:20px;
+    width:100%; max-width:920px; margin:0 auto;
+    /* sem max-height/overflow: quem rola é o overlay */
+  }
   .panel.narrow{max-width:480px;}
-  .panel-head{display:flex; align-items:center; justify-content:space-between; padding:24px 30px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--char); z-index:2;}
+  .panel-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 26px; border-bottom:1px solid var(--line);
+    position:sticky; top:-20px; background:var(--char); z-index:2;
+    border-radius:20px 20px 0 0;
+  }
   .panel-head h2{font-family:'Anton',sans-serif; font-size:20px; color:var(--ember);}
   .close-btn{background:none; border:none; color:var(--cream); font-size:22px; cursor:pointer; opacity:0.6;}
   .close-btn:hover{opacity:1;}
@@ -370,6 +386,34 @@
   .kc-notes{background:rgba(240,180,41,0.12); border-radius:10px; padding:10px; font-size:14px; color:var(--mustard); margin-bottom:12px;}
   .kc-btn{background:var(--ember); color:var(--pitch); border:none; border-radius:12px; padding:16px; font-size:16px; font-weight:700; cursor:pointer; letter-spacing:0.5px;}
   .kc-btn:hover{background:var(--mustard);}
+
+  /* ---------- ACESSO AO PAINEL DA TV ---------- */
+  .tv-link{
+    display:inline-flex; align-items:center; gap:6px; text-decoration:none;
+    background:rgba(76,175,109,0.15); color:var(--green); border:1px solid var(--green);
+    border-radius:999px; padding:7px 14px; font-size:13px; font-weight:700; transition:all .2s;
+  }
+  .tv-link:hover{background:var(--green); color:#062814;}
+  @media(max-width:640px){ .tv-lbl{display:none;} .tv-link{padding:7px 11px;} }
+
+  .tv-hero{
+    text-align:center; padding:36px 24px; border:1px solid var(--line); border-radius:18px;
+    background:linear-gradient(160deg, rgba(229,118,46,0.1), transparent 70%); margin-bottom:24px;
+  }
+  .tv-hero-icon{font-size:56px; margin-bottom:12px;}
+  .tv-hero h2{font-family:'Anton',sans-serif; font-size:26px; color:var(--ember); margin-bottom:10px;}
+  .tv-hero p{font-size:14px; color:rgba(242,233,218,0.65); max-width:520px; margin:0 auto 22px; line-height:1.6;}
+  .tv-open{display:inline-block; text-decoration:none; padding:16px 38px; font-size:16px;}
+
+  .tv-steps{display:flex; flex-direction:column; gap:14px;}
+  .tv-step{display:flex; gap:14px; align-items:flex-start;}
+  .tv-step > span{
+    flex-shrink:0; width:30px; height:30px; border-radius:50%; background:var(--ember);
+    color:var(--pitch); display:flex; align-items:center; justify-content:center;
+    font-family:'Anton',sans-serif; font-size:15px;
+  }
+  .tv-step strong{display:block; font-size:14px; margin-bottom:3px;}
+  .tv-step p{font-size:13px; color:rgba(242,233,218,0.55); line-height:1.5;}
 
   .call-btn{background:var(--green); color:#062814; border:none; padding:8px 14px; border-radius:999px; font-size:12px; font-weight:700; cursor:pointer;}
   .call-btn:hover{filter:brightness(1.12);}
@@ -795,6 +839,7 @@
       <div style="display:flex; align-items:center; gap:12px;">
         <a href="/" class="back-to-site" title="Ir para o site">🍔</a>
         <span id="whoAmI" style="font-size:12px; color:rgba(242,233,218,0.55); display:none;"></span>
+        <a href="../chamada/" target="_blank" class="tv-link" id="tvLink" style="display:none;" title="Abrir painel de chamada na TV">📺 <span class="tv-lbl">TV</span></a>
         <button class="btn-ghost" id="soundToggleBtn" style="display:none; padding:8px 14px; font-size:14px;" title="Ligar/desligar som de pedido novo">🔔</button>
         <button class="btn-ghost" id="logoutBtn" style="display:none; padding:8px 16px; font-size:12px;">Sair</button>
         <button class="close-btn" data-close="adminOverlay">✕</button>
@@ -823,6 +868,7 @@
           <button class="admin-tab-btn" data-atab="cardapio">Cardápio</button>
           <button class="admin-tab-btn" data-atab="pedidos">Pedidos <span id="pendingBadge"></span></button>
           <button class="admin-tab-btn" data-atab="cozinha">👨‍🍳 Cozinha <span id="kitchenBadge"></span></button>
+          <button class="admin-tab-btn" data-atab="tv">📺 Painel TV</button>
           <button class="admin-tab-btn" data-atab="mesas">🪑 Mesas <span id="openTablesBadge"></span></button>
           <button class="admin-tab-btn" data-atab="caixa">💳 Caixa <span id="caixaBadge"></span></button>
           <button class="admin-tab-btn" data-atab="financeiro">Financeiro</button>
@@ -936,6 +982,35 @@
         <!-- COZINHA TAB -->
         <div id="atabCozinha" style="display:none;">
           <div class="kitchen-grid" id="kitchenGrid"><div class="loading-row">Carregando...</div></div>
+        </div>
+
+        <!-- PAINEL TV TAB -->
+        <div id="atabTv" style="display:none;">
+          <div class="tv-hero">
+            <div class="tv-hero-icon">📺</div>
+            <h2>Painel de chamada</h2>
+            <p>Abra este endereço na TV ou tablet do salão. Quando você tocar em <strong>📢 Chamar na TV</strong> num pedido, ele aparece em tela cheia com aviso sonoro.</p>
+            <a href="../chamada/" target="_blank" class="btn-primary tv-open">📺 Abrir painel agora</a>
+          </div>
+
+          <div class="admin-list">
+            <h3>Endereço para a TV</h3>
+            <div class="field">
+              <input type="text" id="tvUrl" readonly style="font-size:14px;">
+            </div>
+            <button class="btn-ghost" id="copyTvUrl">📋 Copiar endereço</button>
+            <p style="font-size:12px; color:rgba(242,233,218,0.5); margin-top:12px;">Abra este link no navegador da TV (ou numa Smart TV, use o navegador nativo). Toque em "▶ INICIAR PAINEL" uma vez — o navegador exige isso pra liberar o som.</p>
+          </div>
+
+          <div class="admin-list">
+            <h3>Como funciona</h3>
+            <div class="tv-steps">
+              <div class="tv-step"><span>1</span><div><strong>Pedido fica pronto</strong><p>Você toca em 📢 Chamar na TV, no painel ou na aba Cozinha.</p></div></div>
+              <div class="tv-step"><span>2</span><div><strong>Aparece na tela</strong><p>Número gigante, nome do cliente e o destino, com toque sonoro e flash.</p></div></div>
+              <div class="tv-step"><span>3</span><div><strong>Vai pra lateral</strong><p>Depois de 14 segundos entra em "Últimos chamados" e o próximo da fila aparece.</p></div></div>
+              <div class="tv-step"><span>4</span><div><strong>Nada se perde</strong><p>Se vários ficarem prontos juntos, entram numa fila e aparecem um de cada vez.</p></div></div>
+            </div>
+          </div>
         </div>
 
         <!-- MESAS TAB -->
@@ -1081,6 +1156,7 @@
               <label class="perm-chk"><input type="checkbox" data-perm="cardapio"> 🍔 Cardápio</label>
               <label class="perm-chk"><input type="checkbox" data-perm="pedidos"> 📋 Pedidos</label>
               <label class="perm-chk"><input type="checkbox" data-perm="cozinha"> 👨‍🍳 Cozinha</label>
+              <label class="perm-chk"><input type="checkbox" data-perm="tv"> 📺 Painel TV</label>
               <label class="perm-chk"><input type="checkbox" data-perm="mesas"> 🪑 Mesas</label>
               <label class="perm-chk"><input type="checkbox" data-perm="caixa"> 💳 Caixa</label>
               <label class="perm-chk"><input type="checkbox" data-perm="financeiro"> 💰 Financeiro</label>
@@ -1143,19 +1219,6 @@
               <div class="field"><label>Entrega (minutos)</label><input type="number" id="lojaDeliveryTime" placeholder="Ex: 20"></div>
             </div>
           </div>
-          <div class="admin-list">
-            <h3>📺 Painel de chamada (TV)</h3>
-            <p style="font-size:13px; color:rgba(242,233,218,0.6); margin-bottom:14px;">Abra este endereço na TV ou tablet do salão. Quando você tocar em "📢 Chamar na TV" num pedido, ele aparece em tela cheia com aviso sonoro. Se dois saírem juntos, entram numa fila — nenhum é sobrescrito.</p>
-            <div class="field">
-              <label>Endereço para abrir na TV</label>
-              <input type="text" id="tvUrl" readonly style="font-size:13px;">
-            </div>
-            <div class="form-actions">
-              <a href="../chamada/" target="_blank" class="btn-primary" style="text-decoration:none; display:inline-block;">📺 Abrir painel agora</a>
-              <button class="btn-ghost" id="copyTvUrl">📋 Copiar endereço</button>
-            </div>
-          </div>
-
           <div class="admin-list">
             <h3>🪑 QR Code das mesas</h3>
             <p style="font-size:13px; color:rgba(242,233,218,0.6); margin-bottom:14px;">Gera um QR pra cada mesa. O cliente escaneia e o número da mesa já vem preenchido — acaba o risco de pedido ir pra mesa errada.</p>
@@ -1253,6 +1316,10 @@
         <div class="form-grid">
           <div class="field"><label>Produto</label><select id="moProduct"></select></div>
           <div class="field"><label>Quantidade</label><input type="number" id="moQty" value="1" min="1"></div>
+        </div>
+        <div class="field" id="moLinkField" style="display:none;">
+          <label>Vincular a qual lanche?</label>
+          <select id="moLinkTo"></select>
         </div>
         <button class="btn-ghost" id="moAddItemBtn">+ Adicionar item</button>
         <div id="moItemsList" style="margin-top:16px;"></div>
@@ -1464,8 +1531,32 @@
   function escapeHtml(str){ return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function money(n){ return "R$ " + Number(n).toFixed(2).replace('.',','); }
 
-  function openOverlay(id){ document.getElementById(id).classList.add('open'); }
-  function closeOverlay(id){ document.getElementById(id).classList.remove('open'); }
+  // Trava o fundo enquanto um modal está aberto: sem isso o iPhone rola
+  // a página de trás em vez do conteúdo do modal.
+  let scrollTravado = 0;
+  function travarFundo(){
+    scrollTravado = window.scrollY;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollTravado}px`;
+    document.body.style.width = '100%';
+  }
+  function destravarFundo(){
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    window.scrollTo(0, scrollTravado);
+  }
+
+  function openOverlay(id){
+    if(!document.querySelector('.overlay.open')) travarFundo();
+    const ov = document.getElementById(id);
+    ov.classList.add('open');
+    ov.scrollTop = 0;
+  }
+  function closeOverlay(id){
+    document.getElementById(id).classList.remove('open');
+    if(!document.querySelector('.overlay.open')) destravarFundo();
+  }
   document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => closeOverlay(btn.dataset.close)));
   document.querySelectorAll('.overlay').forEach(ov => ov.addEventListener('click', (e) => { if(e.target === ov) closeOverlay(ov.id); }));
 
@@ -3732,22 +3823,55 @@
   }));
 
   function renderMoProducts(){
-    document.getElementById('moProduct').innerHTML = products.map(p =>
-      `<option value="${p.id}">${p.icon || ''} ${escapeHtml(p.name)} — ${money(p.price)}</option>`).join('');
+    // agrupa por categoria pra facilitar achar
+    const cats = ['burguers','adicionais','entradas','bebidas','combo'];
+    const usadas = cats.filter(cat => products.some(p => p.cat === cat));
+    const outros = products.filter(p => !cats.includes(p.cat));
+    let html = usadas.map(cat =>
+      `<optgroup label="${catLabel(cat)}">` +
+      products.filter(p => p.cat === cat).map(p =>
+        `<option value="${p.id}">${p.icon || ''} ${escapeHtml(p.name)} — ${money(p.price)}</option>`).join('') +
+      `</optgroup>`).join('');
+    if(outros.length) html += `<optgroup label="Outros">` + outros.map(p =>
+      `<option value="${p.id}">${p.icon || ''} ${escapeHtml(p.name)} — ${money(p.price)}</option>`).join('') + `</optgroup>`;
+    document.getElementById('moProduct').innerHTML = html;
+    atualizarMoLink();
   }
+
+  // Se o produto escolhido for um adicional, oferece vincular a um lanche
+  function atualizarMoLink(){
+    const pid = document.getElementById('moProduct').value;
+    const p = products.find(x => x.id === pid);
+    const field = document.getElementById('moLinkField');
+    const sel = document.getElementById('moLinkTo');
+    const lanches = moCart.filter(i => i.cat === 'burguers');
+    if(p && p.cat === 'adicionais' && lanches.length > 0){
+      sel.innerHTML = '<option value="">— item avulso —</option>' +
+        lanches.map(l => `<option value="${escapeHtml(l.name)}">no ${escapeHtml(l.name)}</option>`).join('');
+      field.style.display = 'block';
+    }else{
+      field.style.display = 'none';
+      sel.innerHTML = '';
+    }
+  }
+  document.getElementById('moProduct').addEventListener('change', atualizarMoLink);
   function renderMoItems(){
     const box = document.getElementById('moItemsList');
     box.innerHTML = moCart.length === 0
       ? '<div class="loading-row">Nenhum item ainda.</div>'
       : moCart.map((i, idx) => `
-        <div class="prod-row">
-          <div class="pi">${i.icon || '🍔'}</div>
-          <div class="pn"><strong>${i.qty}x ${escapeHtml(i.name)}</strong><span>${money(i.price)} un.</span></div>
+        <div class="prod-row" style="${i.forItem ? 'margin-left:22px; border-left:2px solid var(--mustard);' : ''}">
+          <div class="pi">${i.icon || (i.forItem ? '➕' : '🍔')}</div>
+          <div class="pn"><strong>${i.forItem ? '+ ' : ''}${i.qty}x ${escapeHtml(i.name)}</strong><span>${money(i.price)} un.${i.forItem ? ' · no ' + escapeHtml(i.forItem) : ''}</span></div>
           <div class="pp">${money(i.price * i.qty)}</div>
           <div class="row-actions"><button class="icon-btn danger" data-morm="${idx}">🗑</button></div>
         </div>`).join('');
     box.querySelectorAll('[data-morm]').forEach(b => b.addEventListener('click', () => {
-      moCart.splice(Number(b.dataset.morm), 1); renderMoItems();
+      const rm = moCart[Number(b.dataset.morm)];
+      moCart.splice(Number(b.dataset.morm), 1);
+      // se removeu um lanche, solta os adicionais dele
+      if(rm && rm.cat === 'burguers') moCart.forEach(i => { if(i.forItem === rm.name) i.forItem = ""; });
+      renderMoItems(); atualizarMoLink();
     }));
     document.getElementById('moTotal').textContent = money(moCart.reduce((s,i)=>s+i.price*i.qty,0));
   }
@@ -3755,11 +3879,14 @@
     const pid = document.getElementById('moProduct').value;
     const qty = parseInt(document.getElementById('moQty').value) || 1;
     const p = products.find(x => x.id === pid); if(!p) return;
-    const ex = moCart.find(i => i.productId === pid);
+    const forItem = (p.cat === 'adicionais') ? (document.getElementById('moLinkTo').value || "") : "";
+    const chave = pid + "|" + forItem;
+    const ex = moCart.find(i => (i.productId + "|" + (i.forItem||"")) === chave);
     if(ex) ex.qty += qty;
-    else moCart.push({productId:p.id, name:p.name, price:p.price, icon:p.icon, qty});
+    else moCart.push({productId:p.id, cat:p.cat, name:p.name, price:p.price, icon:p.icon, qty, forItem});
     document.getElementById('moQty').value = 1;
     renderMoItems();
+    atualizarMoLink();
   });
 
   document.getElementById('moConfirmBtn').addEventListener('click', async () => {
@@ -3788,7 +3915,7 @@
         customerName: name, phone, address, table, orderType: moType,
         payment: document.getElementById('moPayment').value,
         notes: document.getElementById('moNotes').value.trim(),
-        items: moCart.map(i => ({name:i.name, price:i.price, qty:i.qty, forItem:""})),
+        items: moCart.map(i => ({name:i.name, price:i.price, qty:i.qty, forItem:i.forItem || ""})),
         subtotal, deliveryFee: fee, total: subtotal + fee,
         status: 'aceito',
         tabClosed: moType === 'mesa' ? false : true,
@@ -3946,19 +4073,19 @@
   }
 
   /* ---------------- FUNÇÕES E PERMISSÕES ---------------- */
-  const ALL_TABS = ['dashboard','cardapio','pedidos','cozinha','mesas','caixa','financeiro','estoque','equipe','promocao','loja'];
+  const ALL_TABS = ['dashboard','cardapio','pedidos','cozinha','tv','mesas','caixa','financeiro','estoque','equipe','promocao','loja'];
   const TAB_LABEL = {
-    dashboard:'📊 Dashboard', cardapio:'🍔 Cardápio', pedidos:'📋 Pedidos', cozinha:'👨‍🍳 Cozinha', mesas:'🪑 Mesas',
+    dashboard:'📊 Dashboard', cardapio:'🍔 Cardápio', pedidos:'📋 Pedidos', cozinha:'👨‍🍳 Cozinha', tv:'📺 Painel TV', mesas:'🪑 Mesas',
     caixa:'💳 Caixa', financeiro:'💰 Financeiro', estoque:'📦 Estoque', equipe:'👥 Equipe',
     promocao:'📣 Promoção', loja:'🏪 Loja'
   };
   const ROLE_PRESETS = {
     gerente:     {label:'Gerente',     perms: ALL_TABS.slice()},
-    subgerente:  {label:'Subgerente',  perms: ['dashboard','cardapio','pedidos','cozinha','mesas','caixa','financeiro','estoque','promocao','loja']},
-    caixa:       {label:'Caixa',       perms: ['pedidos','mesas','caixa']},
-    balconista:  {label:'Balconista',  perms: ['pedidos','cozinha','mesas','caixa','estoque']},
+    subgerente:  {label:'Subgerente',  perms: ['dashboard','cardapio','pedidos','cozinha','tv','mesas','caixa','financeiro','estoque','promocao','loja']},
+    caixa:       {label:'Caixa',       perms: ['pedidos','tv','mesas','caixa']},
+    balconista:  {label:'Balconista',  perms: ['pedidos','cozinha','tv','mesas','caixa','estoque']},
     garcom:      {label:'Garçom',      perms: ['pedidos','mesas']},
-    cozinha:     {label:'Cozinha',     perms: ['cozinha','pedidos','estoque']},
+    cozinha:     {label:'Cozinha',     perms: ['cozinha','tv','pedidos','estoque']},
     entregador:  {label:'Entregador',  perms: ['pedidos']},
     custom:      {label:'Personalizado', perms: []}
   };
@@ -4136,6 +4263,7 @@
     document.getElementById('atabCardapio').style.display = tab === 'cardapio' ? 'block' : 'none';
     document.getElementById('atabPedidos').style.display = tab === 'pedidos' ? 'block' : 'none';
     document.getElementById('atabCozinha').style.display = tab === 'cozinha' ? 'block' : 'none';
+    document.getElementById('atabTv').style.display = tab === 'tv' ? 'block' : 'none';
     document.getElementById('atabMesas').style.display = tab === 'mesas' ? 'block' : 'none';
     document.getElementById('atabCaixa').style.display = tab === 'caixa' ? 'block' : 'none';
     document.getElementById('atabFinanceiro').style.display = tab === 'financeiro' ? 'block' : 'none';
@@ -4171,6 +4299,10 @@
     who.style.display = 'inline';
     logoutBtn.style.display = 'inline-block';
     document.getElementById('soundToggleBtn').style.display = 'inline-block';
+    const tvL = document.getElementById('tvLink');
+    if(tvL) tvL.style.display = myPerms.includes('tv') ? 'inline-flex' : 'none';
+    const tvU = document.getElementById('tvUrl');
+    if(tvU) tvU.value = window.location.origin + "/chamada/";
     initAudio();
   }
 
