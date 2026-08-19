@@ -685,9 +685,9 @@
     <div class="loc-grid">
       <div class="loc-card">
         <h3>Funcionamento</h3>
-        <div class="hours-row"><span>Segunda a Quinta</span><span id="infoHours1">18h – 23h</span></div>
-        <div class="hours-row"><span>Sexta e Sábado</span><span id="infoHours2">18h – 00h30</span></div>
-        <div class="hours-row"><span>Domingo</span><span id="infoHours3">18h – 22h30</span></div>
+        <div id="infoHorarios">
+          <div class="hours-row"><span>Quarta a Domingo</span><span>19h – 23h</span></div>
+        </div>
       </div>
       <div class="loc-card">
         <h3>Contato & Endereço</h3>
@@ -1509,6 +1509,44 @@
   let feeMode = 'fixa';
   let feeMsg = '';
 
+  // Monta a lista de horários agrupando dias com o mesmo expediente
+  function renderHorariosCliente(horarios){
+    const box = document.getElementById('infoHorarios');
+    if(!box) return;
+    const nomes = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+    const padrao = {0:{aberto:true,abre:'19:00',fecha:'23:00'},1:{aberto:false},2:{aberto:false},
+                    3:{aberto:true,abre:'19:00',fecha:'23:00'},4:{aberto:true,abre:'19:00',fecha:'23:00'},
+                    5:{aberto:true,abre:'19:00',fecha:'23:00'},6:{aberto:true,abre:'19:00',fecha:'23:00'}};
+    const h = horarios || padrao;
+    const fmt = t => String(t||'').replace(':00','h').replace(':','h');
+
+    // sequências de dias consecutivos com o mesmo horário
+    const linhas = [];
+    let atual = null;
+    for(let i = 0; i < 7; i++){
+      const ordem = [1,2,3,4,5,6,0][i]; // começa na segunda
+      const d = h[ordem] || h[String(ordem)] || {aberto:false};
+      if(d.aberto !== true){ atual = null; continue; }
+      const chave = d.abre + '|' + d.fecha;
+      if(atual && atual.chave === chave){
+        atual.dias.push(ordem);
+      }else{
+        atual = {chave, dias:[ordem], abre:d.abre, fecha:d.fecha};
+        linhas.push(atual);
+      }
+    }
+    if(linhas.length === 0){
+      box.innerHTML = '<div class="hours-row"><span>Consulte pelo WhatsApp</span><span>—</span></div>';
+      return;
+    }
+    box.innerHTML = linhas.map(l => {
+      const rotulo = l.dias.length === 1
+        ? nomes[l.dias[0]]
+        : `${nomes[l.dias[0]]} a ${nomes[l.dias[l.dias.length-1]]}`;
+      return `<div class="hours-row"><span>${rotulo}</span><span>${fmt(l.abre)} – ${fmt(l.fecha)}</span></div>`;
+    }).join('');
+  }
+
   function applyStoreStatus(){
     const banner = document.getElementById('closedBanner');
     if(storeIsOpen){
@@ -1541,9 +1579,7 @@
   function watchStoreInfo(){
     db.collection('store').doc('info').onSnapshot((doc) => {
       const info = doc.exists ? doc.data() : {};
-      if(info.hours1) document.getElementById('infoHours1').textContent = info.hours1;
-      if(info.hours2) document.getElementById('infoHours2').textContent = info.hours2;
-      if(info.hours3) document.getElementById('infoHours3').textContent = info.hours3;
+      renderHorariosCliente(info.horarios);
       if(info.address) document.getElementById('infoAddress').textContent = info.address;
       if(info.instagram) document.getElementById('infoInstagram').textContent = info.instagram;
 

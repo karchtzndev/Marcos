@@ -396,6 +396,33 @@
   .mod-switch .knob{position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%; background:#fff; transition:transform .25s;}
   .mod-switch.on .knob{transform:translateX(24px);}
   .mod-extra{margin-top:8px;}
+  /* ---------- HORÁRIOS POR DIA ---------- */
+  .dia-atalhos{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;}
+  .atalho{background:var(--pitch); border:1px solid var(--line); border-radius:999px; padding:8px 15px; color:rgba(242,233,218,0.75); font-size:12.5px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .2s;}
+  .atalho:hover{border-color:var(--green); color:var(--green);}
+  .atalho.off:hover{border-color:var(--tomato); color:var(--tomato);}
+
+  .dia-row{display:flex; align-items:center; gap:14px; padding:14px; border:1px solid var(--line); border-radius:12px; margin-bottom:9px; transition:all .2s; cursor:pointer; user-select:none;}
+  .dia-row:hover{border-color:rgba(76,175,109,0.5); background:rgba(76,175,109,0.05);}
+  .dia-row.on{border-color:rgba(76,175,109,0.4); background:rgba(76,175,109,0.04);}
+  .dia-check{width:26px; height:26px; border-radius:7px; border:2px solid var(--line); background:transparent; color:var(--pitch); font-size:15px; font-weight:900; flex-shrink:0; display:flex; align-items:center; justify-content:center; padding:0; transition:all .2s;}
+  .dia-check.on{background:var(--green); border-color:var(--green);}
+  .dia-nome{flex-grow:1; font-size:14px; font-weight:700; min-width:0;}
+  .dia-horas{display:flex; align-items:center; gap:8px; flex-shrink:0; cursor:default;}
+  .dia-horas input[type="time"]{background:var(--pitch); border:1px solid var(--line); border-radius:8px; padding:7px 10px; color:var(--cream); font-family:inherit; font-size:13px; width:auto;}
+  .dia-horas input[type="time"]:focus{outline:none; border-color:var(--ember);}
+  .dia-horas span{font-size:12px; color:rgba(242,233,218,0.45);}
+  .dia-fechado{font-size:11.5px; color:rgba(242,233,218,0.32); font-style:italic; flex-shrink:0;}
+  @media(max-width:560px){
+    .dia-row{flex-wrap:wrap;}
+    .dia-nome{width:calc(100% - 44px);}
+    .dia-horas{width:100%; margin-left:40px;}
+  }
+
+  .mod-grupo{font-family:'Anton',sans-serif; font-size:16px; color:var(--ember); margin:0 0 4px; letter-spacing:0.5px;}
+  .mod-grupo-desc{font-size:12.5px; color:rgba(242,233,218,0.5); margin-bottom:14px;}
+  .mod-fixo{font-size:10px; background:rgba(242,233,218,0.1); color:rgba(242,233,218,0.55); border-radius:999px; padding:2px 8px; font-weight:400; margin-left:6px; vertical-align:middle;}
+  .mod-lock{font-size:17px; opacity:0.3; flex-shrink:0; width:54px; text-align:center;}
 
   /* clientes */
   .cli-rank{width:30px; height:30px; border-radius:50%; background:rgba(229,118,46,0.16); color:var(--ember); display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:13px; flex-shrink:0;}
@@ -1568,9 +1595,9 @@
           </div>
           <div class="admin-list">
             <h3>🕒 Horário de funcionamento</h3>
-            <div class="field"><label>Segunda a Quinta</label><input type="text" id="lojaHours1" placeholder="Ex: 18h – 23h"></div>
-            <div class="field"><label>Sexta e Sábado</label><input type="text" id="lojaHours2" placeholder="Ex: 18h – 00h30"></div>
-            <div class="field"><label>Domingo</label><input type="text" id="lojaHours3" placeholder="Ex: 18h – 22h30"></div>
+            <p style="font-size:13px; color:rgba(242,233,218,0.6); margin-bottom:16px;">Marque os dias que você abre e defina o horário de cada um. É isso que o site mostra ao cliente — e o que o módulo <b style="color:var(--mustard);">🕒 Abrir e fechar no horário</b> usa para abrir e fechar sozinho.</p>
+            <div id="horarioDias"></div>
+            <div class="box-info" id="horarioResumo" style="margin-top:14px;"></div>
           </div>
           <div class="admin-list">
             <h3>📍 Contato & Endereço</h3>
@@ -2680,9 +2707,7 @@
   function watchStoreInfo(){
     db.collection('store').doc('info').onSnapshot((doc) => {
       const info = doc.exists ? doc.data() : {};
-      document.getElementById('lojaHours1').value = info.hours1 || "";
-      document.getElementById('lojaHours2').value = info.hours2 || "";
-      document.getElementById('lojaHours3').value = info.hours3 || "";
+      renderHorarios(info.horarios);
       document.getElementById('lojaAddress').value = info.address || "";
       document.getElementById('lojaWhatsapp').value = info.whatsapp || "";
       document.getElementById('lojaInstagram').value = info.instagram || "";
@@ -2722,9 +2747,7 @@
       feeMsg: document.getElementById('lojaFeeMsg').value.trim(),
       deliveryFee: parseFloat(document.getElementById('lojaDeliveryFee').value) || 0,
       freeFrom: parseFloat(document.getElementById('lojaFreeFrom').value) || 0,
-      hours1: document.getElementById('lojaHours1').value.trim(),
-      hours2: document.getElementById('lojaHours2').value.trim(),
-      hours3: document.getElementById('lojaHours3').value.trim(),
+      horarios: lerHorarios(),
       address: document.getElementById('lojaAddress').value.trim(),
       whatsapp: document.getElementById('lojaWhatsapp').value.trim(),
       instagram: document.getElementById('lojaInstagram').value.trim()
@@ -2880,6 +2903,137 @@
     document.getElementById('feeCombinarCfg').style.display = m === 'combinar' ? 'block' : 'none';
   }
   document.getElementById('lojaFeeMode').addEventListener('change', aplicarFeeMode);
+
+  /* ---------------- HORÁRIOS POR DIA ---------------- */
+  const DIAS_SEM = [
+    {n:0, nome:'Domingo',       curto:'Dom'},
+    {n:1, nome:'Segunda-feira', curto:'Seg'},
+    {n:2, nome:'Terça-feira',   curto:'Ter'},
+    {n:3, nome:'Quarta-feira',  curto:'Qua'},
+    {n:4, nome:'Quinta-feira',  curto:'Qui'},
+    {n:5, nome:'Sexta-feira',   curto:'Sex'},
+    {n:6, nome:'Sábado',        curto:'Sáb'}
+  ];
+  // padrão do Markin: quarta a domingo, 19h às 23h
+  const HORARIO_PADRAO = {
+    0:{aberto:true,  abre:'19:00', fecha:'23:00'},
+    1:{aberto:false, abre:'19:00', fecha:'23:00'},
+    2:{aberto:false, abre:'19:00', fecha:'23:00'},
+    3:{aberto:true,  abre:'19:00', fecha:'23:00'},
+    4:{aberto:true,  abre:'19:00', fecha:'23:00'},
+    5:{aberto:true,  abre:'19:00', fecha:'23:00'},
+    6:{aberto:true,  abre:'19:00', fecha:'23:00'}
+  };
+
+  function renderHorarios(salvos){
+    const h = Object.assign({}, HORARIO_PADRAO, salvos || {});
+    const box = document.getElementById('horarioDias');
+    if(!box) return;
+
+    box.innerHTML = `
+      <div class="dia-atalhos">
+        <button type="button" class="atalho" data-preset="todos">Todos os dias</button>
+        <button type="button" class="atalho" data-preset="quaDom">Qua a Dom</button>
+        <button type="button" class="atalho" data-preset="segSex">Seg a Sex</button>
+        <button type="button" class="atalho" data-preset="fds">Fim de semana</button>
+        <button type="button" class="atalho off" data-preset="nenhum">Limpar</button>
+      </div>
+    ` + DIAS_SEM.map(d => {
+      const cfg = h[d.n] || HORARIO_PADRAO[d.n];
+      const on = cfg.aberto === true;
+      return `
+      <div class="dia-row ${on ? 'on' : ''}" data-diarow="${d.n}" data-diatoggle="${d.n}">
+        <span class="dia-check ${on ? 'on' : ''}">${on ? '✓' : ''}</span>
+        <span class="dia-nome">${d.nome}</span>
+        <div class="dia-horas" style="${on ? '' : 'display:none;'}">
+          <input type="time" data-diaabre="${d.n}" value="${cfg.abre || '19:00'}">
+          <span>até</span>
+          <input type="time" data-diafecha="${d.n}" value="${cfg.fecha || '23:00'}">
+        </div>
+        <span class="dia-fechado" style="${on ? 'display:none;' : ''}">fechado — toque para abrir</span>
+      </div>`;
+    }).join('');
+
+    // a LINHA INTEIRA liga e desliga o dia
+    box.querySelectorAll('[data-diatoggle]').forEach(row => {
+      row.addEventListener('click', (e) => {
+        // clicar no campo de hora não deve desligar o dia
+        if(e.target.closest('.dia-horas')) return;
+        setDia(row.dataset.diatoggle, !row.classList.contains('on'));
+      });
+    });
+
+    box.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => {
+      const mapa = {
+        todos:  [0,1,2,3,4,5,6],
+        quaDom: [3,4,5,6,0],
+        segSex: [1,2,3,4,5],
+        fds:    [5,6,0],
+        nenhum: []
+      };
+      const ativos = mapa[b.dataset.preset] || [];
+      DIAS_SEM.forEach(d => setDia(d.n, ativos.includes(d.n)));
+      showToast(b.dataset.preset === 'nenhum' ? 'Todos os dias desmarcados' : 'Dias atualizados ✓');
+    }));
+
+    box.querySelectorAll('input[type="time"]').forEach(i => {
+      i.addEventListener('change', atualizarResumoHorario);
+      i.addEventListener('click', e => e.stopPropagation());
+    });
+    atualizarResumoHorario();
+  }
+
+  function setDia(n, ligado){
+    const box = document.getElementById('horarioDias');
+    const row = box.querySelector(`[data-diarow="${n}"]`);
+    if(!row) return;
+    row.classList.toggle('on', ligado);
+    const chk = row.querySelector('.dia-check');
+    chk.classList.toggle('on', ligado);
+    chk.textContent = ligado ? '✓' : '';
+    row.querySelector('.dia-horas').style.display = ligado ? 'flex' : 'none';
+    row.querySelector('.dia-fechado').style.display = ligado ? 'none' : 'inline';
+    atualizarResumoHorario();
+  }
+
+  function lerHorarios(){
+    const box = document.getElementById('horarioDias');
+    const out = {};
+    if(!box) return out;
+    DIAS_SEM.forEach(d => {
+      const chk = box.querySelector(`[data-diarow="${d.n}"]`);
+      const ab = box.querySelector(`[data-diaabre="${d.n}"]`);
+      const fe = box.querySelector(`[data-diafecha="${d.n}"]`);
+      out[d.n] = {
+        aberto: chk ? chk.classList.contains('on') : false,
+        abre: ab ? ab.value : '19:00',
+        fecha: fe ? fe.value : '23:00'
+      };
+    });
+    return out;
+  }
+
+  function atualizarResumoHorario(){
+    const h = lerHorarios();
+    const abertos = DIAS_SEM.filter(d => h[d.n] && h[d.n].aberto);
+    const el = document.getElementById('horarioResumo');
+    if(!el) return;
+    if(abertos.length === 0){
+      el.innerHTML = '⚠️ Nenhum dia marcado — com o horário automático ligado, a loja ficaria sempre fechada.';
+      return;
+    }
+    // agrupa dias com o mesmo horário
+    const grupos = {};
+    abertos.forEach(d => {
+      const k = h[d.n].abre + '-' + h[d.n].fecha;
+      (grupos[k] = grupos[k] || []).push(d.curto);
+    });
+    const txt = Object.entries(grupos).map(([k, dias]) => {
+      const [a, f] = k.split('-');
+      return `<b>${dias.join(', ')}</b> ${a} às ${f}`;
+    }).join(' · ');
+    el.innerHTML = `🕒 ${txt}<br><small style="opacity:.75;">Não esqueça de tocar em "Salvar dados da loja" no fim da página.</small>`;
+  }
 
   /* ---------------- BACKUP ---------------- */
   document.getElementById('exportDataBtn').addEventListener('click', async () => {
@@ -4215,12 +4369,15 @@
   // Abre e fecha a loja sozinho conforme os horários cadastrados.
   // Qua-Dom 19h-23h por padrão; lê de storeInfo.hours* se preenchido.
   function horarioDeHoje(){
-    const d = new Date();
-    const ds = d.getDay(); // 0=dom
-    // dias de funcionamento: qua(3) a dom(0)
-    const abre = [0,3,4,5,6].includes(ds);
-    if(!abre) return null;
-    return {inicio: 19*60, fim: 23*60 + 30};
+    const cfg = (storeInfo.horarios) || HORARIO_PADRAO;
+    const ds = new Date().getDay();
+    const dia = cfg[ds] || cfg[String(ds)];
+    if(!dia || dia.aberto !== true) return null;
+    const [ha, ma] = (dia.abre || '19:00').split(':').map(Number);
+    const [hf, mf] = (dia.fecha || '23:00').split(':').map(Number);
+    let inicio = ha*60 + ma, fim = hf*60 + mf;
+    if(fim <= inicio) fim += 24*60; // fecha depois da meia-noite
+    return {inicio, fim};
   }
 
   async function checarHorarioAuto(){
@@ -4229,7 +4386,8 @@
     const h = horarioDeHoje();
     const agora = new Date();
     const min = agora.getHours()*60 + agora.getMinutes();
-    const deveEstarAberta = h ? (min >= h.inicio && min < h.fim) : false;
+    const minAjust = (h && h.fim > 24*60 && min < h.inicio) ? min + 24*60 : min;
+    const deveEstarAberta = h ? (minAjust >= h.inicio && minAjust < h.fim) : false;
     const estaAberta = storeInfo.isOpen !== false;
     if(deveEstarAberta === estaAberta) return;
     try{
@@ -4478,6 +4636,24 @@
   });
 
   /* ================= MÓDULOS (liga/desliga) ================= */
+  // Áreas do painel — ligadas por padrão
+  const AREAS = [
+    {key:'dashboard',  icon:'📊', nome:'Dashboard',   desc:'Faturamento, mais vendidos e indicadores do dia.'},
+    {key:'cardapio',   icon:'🍔', nome:'Cardápio',    desc:'Cadastro de produtos, preços, fotos e ficha técnica.'},
+    {key:'adicionais', icon:'➕', nome:'Adicionais',  desc:'Itens da tela "Quer turbinar?" que aparece ao escolher o lanche.'},
+    {key:'pedidos',    icon:'📋', nome:'Pedidos',     desc:'Onde os pedidos chegam e avançam. É o centro da operação.', fixo:true},
+    {key:'cozinha',    icon:'👨‍🍳', nome:'Cozinha',    desc:'Tela grande com a fila de produção.'},
+    {key:'tv',         icon:'📺', nome:'Painel TV',   desc:'Chamada do pedido pronto na TV do salão.'},
+    {key:'mesas',      icon:'🪑', nome:'Mesas',       desc:'Comandas que acumulam as rodadas de cada mesa.'},
+    {key:'caixa',      icon:'💳', nome:'Caixa',       desc:'Abertura, recebimento, troco e fechamento do turno.'},
+    {key:'financeiro', icon:'💰', nome:'Financeiro',  desc:'Entradas, saídas e custos fixos.'},
+    {key:'estoque',    icon:'📦', nome:'Estoque',     desc:'Controle de insumos com alerta de estoque baixo.'},
+    {key:'equipe',     icon:'👥', nome:'Equipe',      desc:'Contas de acesso e permissões.'},
+    {key:'promocao',   icon:'📣', nome:'Promoção',    desc:'Aviso em pop-up no app do cliente.'},
+    {key:'loja',       icon:'🏪', nome:'Loja',        desc:'Horários, taxa de entrega, QR das mesas e backup.'}
+  ];
+
+  // Recursos extras — desligados por padrão
   const MODULOS = [
     {key:'fidelidade',  icon:'🎁', nome:'Programa de fidelidade',
      desc:'A cada X pedidos, o cliente ganha um brinde. O sistema conta pelo telefone.', tab:null},
@@ -4499,9 +4675,17 @@
      desc:'Exporta vendas e pedidos pra abrir no Excel ou mandar pro contador.', tab:null}
   ];
 
-  let features = {};
+  const AREA_KEYS = AREAS.map(a => a.key);
+
+    let features = {};
 
   function moduloAtivo(k){ return features[k] === true; }
+  // áreas do painel vêm ligadas por padrão (só desligam se você mandar)
+  function areaAtiva(k){
+    const a = AREAS.find(x => x.key === k);
+    if(a && a.fixo) return true;
+    return features['area_' + k] !== false;
+  }
 
   function watchFeatures(){
     db.collection('store').doc('features').onSnapshot((doc) => {
@@ -4514,25 +4698,47 @@
   function renderModulos(){
     const box = document.getElementById('modulesList');
     if(!box) return;
-    box.innerHTML = MODULOS.map(m => {
-      const on = moduloAtivo(m.key);
+    const linha = (m, isArea) => {
+      const on = isArea ? areaAtiva(m.key) : moduloAtivo(m.key);
       return `
       <div class="mod-row ${on ? 'on' : ''}">
         <div class="mod-ico">${m.icon}</div>
         <div class="mod-txt">
-          <strong>${m.nome}</strong>
+          <strong>${m.nome}${m.fixo ? ' <span class="mod-fixo">sempre ativo</span>' : ''}</strong>
           <span>${m.desc}</span>
         </div>
-        <button class="mod-switch ${on ? 'on' : ''}" data-mod="${m.key}" title="${on ? 'Desligar' : 'Ligar'}">
-          <span class="knob"></span>
-        </button>
+        ${m.fixo
+          ? '<div class="mod-lock">🔒</div>'
+          : `<button class="mod-switch ${on ? 'on' : ''}" data-${isArea?'area':'mod'}="${m.key}"><span class="knob"></span></button>`}
       </div>`;
-    }).join('') + `
+    };
+
+    box.innerHTML = `
+      <h3 class="mod-grupo">Áreas do painel</h3>
+      <p class="mod-grupo-desc">Desligue o que sua operação não usa — a aba some do menu.</p>
+      ${AREAS.map(a => linha(a, true)).join('')}
+
+      <h3 class="mod-grupo" style="margin-top:30px;">Recursos extras</h3>
+      <p class="mod-grupo-desc">Funções opcionais. Ligue conforme a necessidade aparecer.</p>
+      ${MODULOS.map(m => linha(m, false)).join('')}
+
       <div class="mod-extra" id="modExtra"></div>`;
 
     box.querySelectorAll('[data-mod]').forEach(b =>
       b.addEventListener('click', () => toggleModulo(b.dataset.mod)));
+    box.querySelectorAll('[data-area]').forEach(b =>
+      b.addEventListener('click', () => toggleArea(b.dataset.area)));
     renderModuloConfig();
+  }
+
+  async function toggleArea(key){
+    const a = AREAS.find(x => x.key === key);
+    if(!a || a.fixo) return;
+    const novo = !areaAtiva(key);
+    try{
+      await db.collection('store').doc('features').set({['area_' + key]: novo}, {merge:true});
+      showToast(`${a.icon} ${a.nome} ${novo ? 'ligada ✓' : 'desligada'}`);
+    }catch(e){ alert('Não foi possível alterar. Você precisa ser gerente.'); }
   }
 
   // configurações que só aparecem com o módulo ligado
@@ -4588,10 +4794,23 @@
 
   // mostra/esconde as abas dos módulos
   function aplicarModulos(){
+    // áreas do painel
+    AREAS.forEach(a => {
+      const btn = document.querySelector(`.admin-tab-btn[data-atab="${a.key}"]`);
+      if(btn) btn.style.display = (areaAtiva(a.key) && myPerms.includes(a.key)) ? 'inline-flex' : 'none';
+    });
+    // abas que vêm de recursos extras
     MODULOS.filter(m => m.tab).forEach(m => {
       const btn = document.querySelector(`.admin-tab-btn[data-atab="${m.tab}"]`);
       if(btn) btn.style.display = (moduloAtivo(m.key) && myPerms.includes(m.tab)) ? 'inline-flex' : 'none';
     });
+    // se a aba aberta foi desligada, volta pra Pedidos
+    const atual = currentTab();
+    const aInfo = AREAS.find(a => a.key === atual);
+    if(aInfo && !areaAtiva(atual)){
+      const p = document.querySelector('.admin-tab-btn[data-atab="pedidos"]');
+      if(p) p.click();
+    }
     const prev = document.getElementById('previsaoCard');
     if(prev) prev.style.display = moduloAtivo('previsao') ? 'block' : 'none';
     const rel = document.getElementById('relatoriosBox');
@@ -5427,7 +5646,11 @@
 
   function applyRolePermissions(){
     document.querySelectorAll('.admin-tab-btn').forEach(btn => {
-      btn.style.display = myPerms.includes(btn.dataset.atab) ? 'inline-flex' : 'none';
+      const t = btn.dataset.atab;
+      const temPerm = myPerms.includes(t);
+      const areaOk = AREAS.some(a => a.key === t) ? areaAtiva(t) : true;
+      const modOk = MODULOS.some(m => m.tab === t) ? moduloAtivo(MODULOS.find(m => m.tab === t).key) : true;
+      btn.style.display = (temPerm && areaOk && modOk) ? 'inline-flex' : 'none';
     });
     // abre a primeira aba liberada
     const first = ALL_TABS.find(t => myPerms.includes(t));
