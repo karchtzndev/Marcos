@@ -404,6 +404,39 @@
   body.has-quickbar .whatsapp-fab{ bottom:96px; }
   body.has-quickbar{ padding-bottom:80px; }
 
+  /* ---------- RESUMO NO CHECKOUT ---------- */
+  .ck-summary{
+    background:var(--pitch); border:1px solid var(--line); border-radius:14px;
+    padding:16px 18px; margin-bottom:22px;
+  }
+  .ck-summary-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding-bottom:12px; margin-bottom:12px; border-bottom:1px solid var(--line);
+  }
+  .ck-summary-head strong{font-family:'Anton',sans-serif; font-size:16px; color:var(--ember); letter-spacing:0.5px;}
+  .ck-edit{
+    background:none; border:none; color:var(--mustard); font-size:12px;
+    font-weight:700; cursor:pointer; padding:4px 8px; font-family:inherit;
+  }
+  .ck-edit:hover{text-decoration:underline;}
+  .ck-item{display:flex; justify-content:space-between; gap:10px; padding:6px 0; font-size:14px;}
+  .ck-item .ck-q{color:var(--ember); font-weight:700; flex-shrink:0;}
+  .ck-item .ck-n{flex-grow:1; min-width:0;}
+  .ck-item .ck-p{color:var(--cream); font-weight:700; white-space:nowrap;}
+  .ck-addon{
+    display:flex; justify-content:space-between; gap:10px; font-size:13px;
+    padding:3px 0 3px 16px; margin-left:6px; border-left:2px solid var(--mustard);
+    color:var(--mustard);
+  }
+  .ck-totals{border-top:1px dashed var(--line); margin-top:12px; padding-top:12px;}
+  .ck-tot-row{display:flex; justify-content:space-between; font-size:13px; color:rgba(242,233,218,0.65); padding:3px 0;}
+  .ck-tot-row.final{
+    font-size:16px; color:var(--cream); font-weight:700; padding-top:10px; margin-top:6px;
+    border-top:1px solid var(--line);
+  }
+  .ck-tot-row.final span:last-child{font-family:'Anton',sans-serif; font-size:22px; color:var(--mustard);}
+  .ck-free{color:var(--green); font-weight:700;}
+
   /* ---------- TURBINAR O LANCHE ---------- */
   .extras-head{display:flex; align-items:center; gap:14px; padding-bottom:16px; margin-bottom:16px; border-bottom:1px solid var(--line);}
   .extras-icon{width:56px; height:56px; border-radius:14px; background:rgba(229,118,46,0.15); display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0; overflow:hidden;}
@@ -584,7 +617,6 @@
       <div class="tab" data-cat="burguers">Hambúrgueres</div>
       <div class="tab" data-cat="entradas">Entradas</div>
       <div class="tab" data-cat="bebidas">Bebidas</div>
-      <div class="tab" data-cat="adicionais">Adicionais</div>
       <div class="tab" data-cat="combo">Combo</div>
     </div>
 
@@ -710,6 +742,17 @@
     <div class="panel-head"><h2>Finalizar pedido</h2><button class="close-btn" data-close="checkoutOverlay">✕</button></div>
     <div class="panel-body">
       <div id="welcomeBackHint" style="display:none; background:rgba(76,175,109,0.12); border:1px solid var(--green); color:var(--green); border-radius:10px; padding:10px 14px; font-size:13px; margin-bottom:16px;"></div>
+
+      <!-- Resumo do pedido: o cliente confere antes de confirmar -->
+      <div class="ck-summary">
+        <div class="ck-summary-head">
+          <strong>Seu pedido</strong>
+          <button type="button" class="ck-edit" id="ckEditCart">✏️ alterar</button>
+        </div>
+        <div id="ckItems"></div>
+        <div class="ck-totals" id="ckTotals"></div>
+      </div>
+
       <div class="field"><label>Seu nome</label><input type="text" id="ckName" placeholder="Nome completo"></div>
       <div class="field" id="ckPhoneField"><label>WhatsApp</label><input type="text" id="ckPhone" placeholder="(00) 00000-0000"></div>
       <div class="field">
@@ -943,10 +986,17 @@
   }
   function catLabel(cat){ return {burguers:"Hambúrgueres", entradas:"Entradas", bebidas:"Bebidas", adicionais:"Adicionais", combo:"Combo"}[cat] || cat; }
 
+  // O cliente só vê o que está ativo. Adicionais não aparecem soltos —
+  // são oferecidos ao escolher o lanche.
+  function visibleProducts(){
+    return products.filter(p => p.active !== false && p.cat !== 'adicionais');
+  }
+
   function renderMenu(){
     const grid = document.getElementById('menuGrid');
-    document.getElementById('statCount').textContent = products.length + "+";
-    const list = activeCategory === "todos" ? products : products.filter(p => p.cat === activeCategory);
+    const visiveis = visibleProducts();
+    document.getElementById('statCount').textContent = visiveis.length + "+";
+    const list = activeCategory === "todos" ? visiveis : visiveis.filter(p => p.cat === activeCategory);
     if(list.length === 0){ grid.innerHTML = '<div class="empty-state">Nenhum produto nessa categoria ainda. Volte em breve! 👨‍🍳</div>'; return; }
     grid.innerHTML = list.map(p => {
       const qty = cart.filter(c => c.productId === p.id).reduce((s,c) => s + c.qty, 0);
@@ -991,7 +1041,7 @@
     return p.cat === 'burguers' && !/não é possível colocar adicionais/i.test(p.desc || '');
   }
   function adicionaisDisponiveis(){
-    return products.filter(x => x.cat === 'adicionais');
+    return products.filter(x => x.cat === 'adicionais' && x.active !== false);
   }
 
   function addToCart(productId){
@@ -1009,12 +1059,11 @@
       return;
     }
 
-    // ADICIONAL avulso: vincula ao lanche existente
+    // ADICIONAL: só chega aqui pelo carrinho (o cardápio não os exibe soltos)
     if(p.cat === 'adicionais'){
       const burgers = burgersInCart();
       if(burgers.length === 0){
-        pushToCart(p, "");
-        showToast("Adicione o lanche e depois vincule no carrinho 🛒");
+        showToast("Escolha um lanche primeiro 🍔");
         return;
       }
       openAddonPicker(p, burgers);
@@ -1220,6 +1269,7 @@
     document.getElementById('ckTableField').style.display = selectedOrderType === 'mesa' ? 'block' : 'none';
     document.getElementById('ckPhoneField').style.display = selectedOrderType === 'mesa' ? 'none' : 'block';
     updateCartUI();
+    renderCheckoutSummary();
   }));
 
   document.getElementById('openCart').addEventListener('click', () => { updateCartUI(); openOverlay('cartOverlay'); });
@@ -1228,12 +1278,14 @@
     if(!storeIsOpen){ alert("A loja está fechada no momento. " + storeClosedMsg); return; }
     if(cart.length === 0) return;
     openOverlay('checkoutOverlay');
+    renderCheckoutSummary();
     autofillCustomer();
   });
   document.getElementById('goCheckout').addEventListener('click', () => {
     if(!storeIsOpen){ alert("A loja está fechada no momento. " + storeClosedMsg); return; }
     if(cart.length === 0){ alert("Seu carrinho está vazio."); return; }
     closeOverlay('cartOverlay'); openOverlay('checkoutOverlay');
+    renderCheckoutSummary();
     autofillCustomer();
   });
 
@@ -1252,6 +1304,61 @@
     const badge = document.getElementById('tableBadge');
     if(badge){ badge.textContent = "🪑 Você está na Mesa " + mesa; badge.style.display = 'block'; }
   }
+
+  // Monta o resumo do pedido no checkout, com adicionais aninhados
+  function renderCheckoutSummary(){
+    const box = document.getElementById('ckItems');
+    if(!box) return;
+    const principais = cart.filter(i => !i.forItem);
+    const addons = cart.filter(i => i.forItem);
+
+    let html = '';
+    principais.forEach(p => {
+      html += `<div class="ck-item">
+                 <span class="ck-q">${p.qty}x</span>
+                 <span class="ck-n">${escapeHtml(p.name)}</span>
+                 <span class="ck-p">${money(p.price * p.qty)}</span>
+               </div>`;
+      addons.filter(a => a.forItem === p.name).forEach(a => {
+        html += `<div class="ck-addon">
+                   <span>+ ${a.qty}x ${escapeHtml(a.name)}</span>
+                   <span>${money(a.price * a.qty)}</span>
+                 </div>`;
+      });
+    });
+    // adicionais avulsos (sem lanche correspondente)
+    addons.filter(a => !principais.some(p => p.name === a.forItem)).forEach(a => {
+      html += `<div class="ck-item">
+                 <span class="ck-q">${a.qty}x</span>
+                 <span class="ck-n">${escapeHtml(a.name)}</span>
+                 <span class="ck-p">${money(a.price * a.qty)}</span>
+               </div>`;
+    });
+    box.innerHTML = html || '<div style="font-size:13px; color:rgba(242,233,218,0.4);">Carrinho vazio</div>';
+
+    // totais
+    const sub = cartSubtotal();
+    const fee = currentDeliveryFee();
+    let t = `<div class="ck-tot-row"><span>Subtotal</span><span>${money(sub)}</span></div>`;
+    if(selectedOrderType === 'entrega'){
+      t += `<div class="ck-tot-row"><span>Taxa de entrega</span><span>${
+        fee === 0 ? '<span class="ck-free">Grátis 🎉</span>' : money(fee)
+      }</span></div>`;
+      if(fee > 0 && freeShippingFrom > 0){
+        const falta = freeShippingFrom - sub;
+        if(falta > 0) t += `<div class="ck-tot-row"><span class="ck-free">Faltam ${money(falta)} pra frete grátis</span><span></span></div>`;
+      }
+    }
+    t += `<div class="ck-tot-row final"><span>Total</span><span>${money(cartTotal())}</span></div>`;
+    document.getElementById('ckTotals').innerHTML = t;
+  }
+
+  // "alterar" leva de volta ao carrinho
+  document.getElementById('ckEditCart').addEventListener('click', () => {
+    closeOverlay('checkoutOverlay');
+    updateCartUI();
+    openOverlay('cartOverlay');
+  });
 
   function autofillCustomer(){
     try{

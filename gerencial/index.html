@@ -192,8 +192,25 @@
   .close-btn:hover{opacity:1;}
   .panel-body{padding:30px;}
 
-  .back-to-site{color:rgba(242,233,218,0.35); font-size:17px; text-decoration:none; padding:6px; transition:color .2s;}
-  .back-to-site:hover{color:var(--ember);}
+  .panel-logo{
+    display:flex; align-items:center; gap:12px; text-decoration:none;
+    padding:4px 10px 4px 4px; border-radius:999px; transition:background .2s;
+  }
+  .panel-logo:hover{background:rgba(229,118,46,0.12);}
+  .panel-logo img{
+    width:42px; height:42px; border-radius:50%; object-fit:cover;
+    border:2px solid var(--ember); flex-shrink:0;
+  }
+  .pl-txt strong{
+    display:block; font-family:'Anton',sans-serif; font-size:19px;
+    color:var(--ember); line-height:1.1;
+  }
+  .pl-txt small{
+    display:block; font-size:11px; color:rgba(242,233,218,0.45);
+    transition:color .2s;
+  }
+  .panel-logo:hover .pl-txt small{color:var(--mustard);}
+  @media(max-width:560px){ .pl-txt small{display:none;} .pl-txt strong{font-size:16px;} }
   .login-box{max-width:320px; margin:20px auto; text-align:center;}
   .login-mascot{width:110px; height:110px; border-radius:50%; object-fit:cover; box-shadow:0 0 0 4px var(--pitch), 0 0 0 6px var(--ember); margin:0 auto 20px;}
   .login-box p{color:rgba(242,233,218,0.6); font-size:14px; margin-bottom:18px;}
@@ -362,6 +379,58 @@
   .qr-img{display:flex; justify-content:center;}
   .qr-img img, .qr-img canvas{display:block;}
   .qr-hint{font-size:11px; color:#555; margin-top:10px;}
+
+  /* ---------- ABA ADICIONAIS ---------- */
+  .addon-intro{
+    display:flex; gap:16px; align-items:flex-start; padding:18px 20px; margin-bottom:24px;
+    background:linear-gradient(160deg, rgba(229,118,46,0.1), transparent 70%);
+    border:1px solid var(--line); border-radius:16px;
+  }
+  .ai-icon{
+    width:46px; height:46px; border-radius:12px; background:rgba(229,118,46,0.18);
+    display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;
+  }
+  .addon-intro strong{display:block; font-family:'Anton',sans-serif; font-size:17px; color:var(--ember); margin-bottom:4px;}
+  .addon-intro p{font-size:13px; color:rgba(242,233,218,0.6); line-height:1.55;}
+  .addon-intro b{color:var(--mustard);}
+
+  .ad-order{display:flex; flex-direction:column; gap:3px; flex-shrink:0; margin-right:2px;}
+  .ord-btn{
+    width:26px; height:22px; border-radius:6px; border:1px solid var(--line);
+    background:var(--pitch); color:rgba(242,233,218,0.7); font-size:11px; cursor:pointer; padding:0;
+  }
+  .ord-btn:hover:not(:disabled){border-color:var(--ember); color:var(--ember);}
+  .ord-btn:disabled{opacity:0.25; cursor:default;}
+
+  /* prévia da tela do cliente */
+  .addon-preview{max-width:420px;}
+  .prev-frame{background:var(--pitch); border:1px solid var(--line); border-radius:16px; padding:18px;}
+  .prev-head{display:flex; align-items:center; gap:12px; padding-bottom:14px; margin-bottom:14px; border-bottom:1px solid var(--line);}
+  .prev-ico{width:46px; height:46px; border-radius:12px; background:rgba(229,118,46,0.15); display:flex; align-items:center; justify-content:center; font-size:22px;}
+  .prev-head strong{display:block; font-family:'Anton',sans-serif; font-size:17px;}
+  .prev-head span{font-size:13px; color:var(--mustard); font-weight:700;}
+  .prev-hint{font-size:12px; color:rgba(242,233,218,0.5); margin-bottom:14px;}
+  .prev-row{display:flex; align-items:center; gap:11px; padding:11px 13px; border:1px solid var(--line); border-radius:11px; margin-bottom:8px;}
+  .prev-emoji{font-size:18px;}
+  .prev-info{flex-grow:1; min-width:0;}
+  .prev-info strong{display:block; font-size:13px;}
+  .prev-info span{font-size:12px; color:var(--mustard);}
+  .prev-step{background:var(--char); border-radius:99px; padding:5px 12px; font-size:13px; font-weight:700; color:rgba(242,233,218,0.6); flex-shrink:0;}
+
+  /* ---------- ITEM PAUSADO ---------- */
+  .prod-off{opacity:0.5;}
+  .prod-off .prod-thumb, .prod-off .pi{filter:grayscale(1);}
+  .paused-badge{
+    display:inline-block; background:rgba(240,180,41,0.18); color:var(--mustard);
+    border-radius:999px; padding:2px 9px; font-size:10px; font-weight:700;
+    letter-spacing:0.5px; margin-left:6px; vertical-align:middle;
+  }
+  .paused-note{
+    background:rgba(240,180,41,0.1); border:1px solid rgba(240,180,41,0.35);
+    color:var(--mustard); border-radius:10px; padding:10px 14px;
+    font-size:13px; margin-bottom:14px;
+  }
+  .icon-btn.on{border-color:var(--green); color:var(--green);}
 
   .prod-thumb{width:44px; height:44px; border-radius:10px; object-fit:cover; flex-shrink:0;}
 
@@ -835,9 +904,14 @@
 <div class="overlay" id="adminOverlay">
   <div class="panel">
     <div class="panel-head">
-      <h2>⚙️ Painel do Chef</h2>
+      <a href="/" class="panel-logo" title="Voltar para o site">
+        <img src="mascot.jpg" alt="O Markin">
+        <div class="pl-txt">
+          <strong>Painel do Chef</strong>
+          <small>↩ voltar ao site</small>
+        </div>
+      </a>
       <div style="display:flex; align-items:center; gap:12px;">
-        <a href="/" class="back-to-site" title="Ir para o site">🍔</a>
         <span id="whoAmI" style="font-size:12px; color:rgba(242,233,218,0.55); display:none;"></span>
         <a href="../chamada/" target="_blank" class="tv-link" id="tvLink" style="display:none;" title="Abrir painel de chamada na TV">📺 <span class="tv-lbl">TV</span></a>
         <button class="btn-ghost" id="soundToggleBtn" style="display:none; padding:8px 14px; font-size:14px;" title="Ligar/desligar som de pedido novo">🔔</button>
@@ -867,6 +941,7 @@
           <button class="admin-tab-btn active" data-atab="dashboard">📊 Dashboard</button>
           <button class="admin-tab-btn" data-atab="cardapio">Cardápio</button>
           <button class="admin-tab-btn" data-atab="pedidos">Pedidos <span id="pendingBadge"></span></button>
+          <button class="admin-tab-btn" data-atab="adicionais">➕ Adicionais <span id="addonBadge"></span></button>
           <button class="admin-tab-btn" data-atab="cozinha">👨‍🍳 Cozinha <span id="kitchenBadge"></span></button>
           <button class="admin-tab-btn" data-atab="tv">📺 Painel TV</button>
           <button class="admin-tab-btn" data-atab="mesas">🪑 Mesas <span id="openTablesBadge"></span></button>
@@ -912,7 +987,7 @@
                 <option value="burguers">Hambúrgueres</option>
                 <option value="entradas">Entradas</option>
                 <option value="bebidas">Bebidas</option>
-                <option value="adicionais">Adicionais</option>
+                
                 <option value="combo">Combo</option>
               </select>
             </div>
@@ -982,6 +1057,45 @@
         <!-- COZINHA TAB -->
         <div id="atabCozinha" style="display:none;">
           <div class="kitchen-grid" id="kitchenGrid"><div class="loading-row">Carregando...</div></div>
+        </div>
+
+        <!-- ADICIONAIS TAB -->
+        <div id="atabAdicionais" style="display:none;">
+          <div class="addon-intro">
+            <div class="ai-icon">➕</div>
+            <div>
+              <strong>Adicionais do "Quer turbinar?"</strong>
+              <p>Estes itens aparecem quando o cliente escolhe um lanche. Eles <b>não</b> ficam soltos no cardápio.</p>
+            </div>
+          </div>
+
+          <div class="admin-list" style="margin-top:0; border-top:none; padding-top:0;">
+            <h3 id="addonFormTitle">Novo adicional</h3>
+            <input type="hidden" id="adId">
+            <div class="form-grid">
+              <div class="field"><label>Nome</label><input type="text" id="adName" placeholder="Ex: Adicional Bacon"></div>
+              <div class="field"><label>Preço (R$)</label><input type="number" step="0.01" id="adPrice" placeholder="Ex: 4.00"></div>
+              <div class="field"><label>Custo (R$)</label><input type="number" step="0.01" id="adCost" placeholder="Opcional"></div>
+              <div class="field"><label>Emoji</label><input type="text" id="adIcon" placeholder="Ex: 🥓" maxlength="4"></div>
+            </div>
+            <div class="field"><label>Descrição curta</label><input type="text" id="adDesc" placeholder="Ex: Fatias de bacon artesanal extra."></div>
+            <div class="form-actions">
+              <button class="btn-primary" id="adSaveBtn">Adicionar</button>
+              <button class="btn-ghost" id="adCancelBtn" style="display:none;">Cancelar edição</button>
+            </div>
+            <div class="error-msg" id="adError"></div>
+          </div>
+
+          <div class="admin-list">
+            <h3>Adicionais cadastrados</h3>
+            <p style="font-size:12px; color:rgba(242,233,218,0.5); margin-bottom:14px;">Use ↑ ↓ para mudar a ordem em que aparecem para o cliente.</p>
+            <div id="addonList"><div class="loading-row">Carregando...</div></div>
+          </div>
+
+          <div class="admin-list">
+            <h3>👀 Como o cliente vê</h3>
+            <div class="addon-preview" id="addonPreview"></div>
+          </div>
         </div>
 
         <!-- PAINEL TV TAB -->
@@ -1154,6 +1268,7 @@
             <div class="perm-grid">
               <label class="perm-chk"><input type="checkbox" data-perm="dashboard"> 📊 Dashboard</label>
               <label class="perm-chk"><input type="checkbox" data-perm="cardapio"> 🍔 Cardápio</label>
+              <label class="perm-chk"><input type="checkbox" data-perm="adicionais"> ➕ Adicionais</label>
               <label class="perm-chk"><input type="checkbox" data-perm="pedidos"> 📋 Pedidos</label>
               <label class="perm-chk"><input type="checkbox" data-perm="cozinha"> 👨‍🍳 Cozinha</label>
               <label class="perm-chk"><input type="checkbox" data-perm="tv"> 📺 Painel TV</label>
@@ -1578,6 +1693,7 @@
       }
       renderMenu();
       renderAdminList();
+      renderAddonTab();
     }, (err) => {
       console.error("Erro ao ler cardápio:", err);
       products = defaultProducts;
@@ -1609,22 +1725,35 @@
 
   function renderAdminList(){
     const list = document.getElementById('adminProductList');
+    // Adicionais têm aba própria (➕ Adicionais) — não poluem o cardápio
+    const products = window.__menuOnly();
     if(products.length === 0){ list.innerHTML = '<div class="loading-row">Nenhum produto cadastrado ainda.</div>'; return; }
-    list.innerHTML = products.map(p => `
-      <div class="prod-row">
+    const pausados = products.filter(p => p.active === false).length;
+    const aviso = pausados > 0
+      ? `<div class="paused-note">⏸️ ${pausados} item${pausados>1?'ns':''} pausado${pausados>1?'s':''} — não aparece${pausados>1?'m':''} no cardápio do cliente.</div>`
+      : '';
+    list.innerHTML = aviso + products.map(p => {
+      const off = p.active === false;
+      return `
+      <div class="prod-row${off ? ' prod-off' : ''}">
         ${p.photo ? `<img src="${p.photo}" class="prod-thumb" alt="">` : `<div class="pi">${p.icon || '🍔'}</div>`}
-        <div class="pn"><strong>${escapeHtml(p.name)}</strong><span>${catLabel(p.cat)}${p.tag ? ' · ' + escapeHtml(p.tag) : ''}${p.cost ? ' · custo ' + money(p.cost) + ' · margem ' + Math.round(((p.price - p.cost)/p.price)*100) + '%' : ''}</span></div>
+        <div class="pn">
+          <strong>${escapeHtml(p.name)}${off ? ' <span class="paused-badge">PAUSADO</span>' : ''}</strong>
+          <span>${catLabel(p.cat)}${p.tag ? ' · ' + escapeHtml(p.tag) : ''}${p.cost ? ' · custo ' + money(p.cost) + ' · margem ' + Math.round(((p.price - p.cost)/p.price)*100) + '%' : ''}</span>
+        </div>
         <div class="pp">${money(p.price)}</div>
         <div class="row-actions">
+          <button class="icon-btn ${off ? 'on' : ''}" data-toggle="${p.id}" title="${off ? 'Voltar ao cardápio' : 'Pausar (some do cardápio)'}">${off ? '▶️' : '⏸️'}</button>
           <button class="icon-btn" data-recipe="${p.id}" title="Ficha técnica (ingredientes)">🧾</button>
           <button class="icon-btn" data-edit="${p.id}" title="Editar">✎</button>
           <button class="icon-btn danger" data-del="${p.id}" title="Excluir">🗑</button>
         </div>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
     list.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => startEdit(btn.dataset.edit)));
     list.querySelectorAll('[data-del]').forEach(btn => btn.addEventListener('click', () => deleteProduct(btn.dataset.del)));
     list.querySelectorAll('[data-recipe]').forEach(btn => btn.addEventListener('click', () => openRecipeEditor(btn.dataset.recipe)));
+    list.querySelectorAll('[data-toggle]').forEach(btn => btn.addEventListener('click', () => toggleProduct(btn.dataset.toggle)));
   }
 
   function clearForm(){
@@ -1663,6 +1792,18 @@
     document.getElementById('formError').textContent = "";
     document.querySelector('#adminOverlay .panel').scrollTop = 0;
   }
+  // Pausa o item sem apagar: some do cardápio do cliente, mas continua
+  // cadastrado com preço, custo, foto e ficha técnica intactos.
+  async function toggleProduct(id){
+    const p = products.find(x => x.id === id); if(!p) return;
+    p.active = (p.active === false);
+    await saveProducts();
+    renderMenu(); renderAdminList();
+    showToast(p.active === false
+      ? `⏸️ ${p.name} pausado — saiu do cardápio`
+      : `▶️ ${p.name} voltou ao cardápio`);
+  }
+
   async function deleteProduct(id){
     if(!confirm("Excluir este produto do cardápio?")) return;
     products = products.filter(p => p.id !== id);
@@ -1686,10 +1827,10 @@
       if(idx > -1){
         const prev = products[idx] || {};
         const photo = pendingPhoto !== null ? pendingPhoto : (prev.photo || "");
-        products[idx] = {id: editingId, name, cat, price, cost, icon, tag, desc, photo, recipe: prev.recipe || []};
+        products[idx] = {id: editingId, name, cat, price, cost, icon, tag, desc, photo, active: prev.active !== false, recipe: prev.recipe || []};
       }
     }else{
-      products.push({id: genId(), name, cat, price, cost, icon, tag, desc, photo: pendingPhoto || "", recipe: []});
+      products.push({id: genId(), name, cat, price, cost, icon, tag, desc, photo: pendingPhoto || "", active: true, recipe: []});
     }
     if(menuSizeBytes() > MENU_SAFE_BYTES){
       document.getElementById('formError').textContent =
@@ -3627,6 +3768,167 @@
     }
   }
 
+  // Produtos do cardápio (tudo menos adicionais)
+  window.__menuOnly = function(){ return products.filter(p => p.cat !== 'adicionais'); };
+
+  /* ================= ADICIONAIS (aba própria) ================= */
+  let editingAddonId = null;
+
+  function addonsOrdenados(){
+    return products
+      .filter(p => p.cat === 'adicionais')
+      .sort((a,b) => (a.order ?? 999) - (b.order ?? 999));
+  }
+
+  function renderAddonTab(){
+    const lista = addonsOrdenados();
+    const ativos = lista.filter(a => a.active !== false).length;
+    const badge = document.getElementById('addonBadge');
+    if(badge) badge.textContent = ativos > 0 ? `(${ativos})` : '';
+
+    const box = document.getElementById('addonList');
+    if(!box) return;
+    if(lista.length === 0){
+      box.innerHTML = '<div class="loading-row">Nenhum adicional ainda. Cadastre acima.</div>';
+      renderAddonPreview();
+      return;
+    }
+    box.innerHTML = lista.map((a, i) => {
+      const off = a.active === false;
+      const margem = a.cost ? Math.round(((a.price - a.cost)/a.price)*100) : null;
+      return `
+      <div class="prod-row${off ? ' prod-off' : ''}">
+        <div class="ad-order">
+          <button class="ord-btn" data-adup="${a.id}" ${i===0?'disabled':''}>↑</button>
+          <button class="ord-btn" data-addown="${a.id}" ${i===lista.length-1?'disabled':''}>↓</button>
+        </div>
+        <div class="pi">${a.icon || '➕'}</div>
+        <div class="pn">
+          <strong>${escapeHtml(a.name)}${off ? ' <span class="paused-badge">PAUSADO</span>' : ''}</strong>
+          <span>${a.desc ? escapeHtml(a.desc) : 'sem descrição'}${margem !== null ? ` · custo ${money(a.cost)} · margem ${margem}%` : ''}</span>
+        </div>
+        <div class="pp">${money(a.price)}</div>
+        <div class="row-actions">
+          <button class="icon-btn ${off ? 'on' : ''}" data-adtoggle="${a.id}" title="${off ? 'Reativar' : 'Pausar'}">${off ? '▶️' : '⏸️'}</button>
+          <button class="icon-btn" data-adedit="${a.id}" title="Editar">✎</button>
+          <button class="icon-btn danger" data-addel="${a.id}" title="Excluir">🗑</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    box.querySelectorAll('[data-adedit]').forEach(b => b.addEventListener('click', () => startEditAddon(b.dataset.adedit)));
+    box.querySelectorAll('[data-addel]').forEach(b => b.addEventListener('click', () => deleteAddon(b.dataset.addel)));
+    box.querySelectorAll('[data-adtoggle]').forEach(b => b.addEventListener('click', () => toggleProduct(b.dataset.adtoggle)));
+    box.querySelectorAll('[data-adup]').forEach(b => b.addEventListener('click', () => moveAddon(b.dataset.adup, -1)));
+    box.querySelectorAll('[data-addown]').forEach(b => b.addEventListener('click', () => moveAddon(b.dataset.addown, 1)));
+    renderAddonPreview();
+  }
+
+  // Mostra exatamente o que o cliente vê na tela "Quer turbinar?"
+  function renderAddonPreview(){
+    const box = document.getElementById('addonPreview');
+    if(!box) return;
+    const ativos = addonsOrdenados().filter(a => a.active !== false);
+    if(ativos.length === 0){
+      box.innerHTML = '<div class="loading-row">Nenhum adicional ativo — a tela "Quer turbinar?" não vai aparecer para o cliente.</div>';
+      return;
+    }
+    box.innerHTML = `
+      <div class="prev-frame">
+        <div class="prev-head">
+          <div class="prev-ico">🍔</div>
+          <div><strong>Bugue do Papai</strong><span>R$ 31,00</span></div>
+        </div>
+        <p class="prev-hint">Toque no + pra incluir. Se não quiser nada, é só seguir sem extras.</p>
+        ${ativos.map(a => `
+          <div class="prev-row">
+            <span class="prev-emoji">${a.icon || '➕'}</span>
+            <div class="prev-info"><strong>${escapeHtml(a.name)}</strong><span>+ ${money(a.price)}</span></div>
+            <div class="prev-step">− 0 +</div>
+          </div>`).join('')}
+      </div>`;
+  }
+
+  function clearAddonForm(){
+    editingAddonId = null;
+    ['adName','adPrice','adCost','adIcon','adDesc'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('addonFormTitle').textContent = 'Novo adicional';
+    document.getElementById('adSaveBtn').textContent = 'Adicionar';
+    document.getElementById('adCancelBtn').style.display = 'none';
+    document.getElementById('adError').textContent = '';
+  }
+
+  function startEditAddon(id){
+    const a = products.find(x => x.id === id); if(!a) return;
+    editingAddonId = id;
+    document.getElementById('adName').value = a.name || '';
+    document.getElementById('adPrice').value = a.price ?? '';
+    document.getElementById('adCost').value = a.cost ?? '';
+    document.getElementById('adIcon').value = a.icon || '';
+    document.getElementById('adDesc').value = a.desc || '';
+    document.getElementById('addonFormTitle').textContent = 'Editando: ' + a.name;
+    document.getElementById('adSaveBtn').textContent = 'Salvar alterações';
+    document.getElementById('adCancelBtn').style.display = 'inline-block';
+    document.getElementById('atabAdicionais').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  document.getElementById('adCancelBtn').addEventListener('click', clearAddonForm);
+
+  document.getElementById('adSaveBtn').addEventListener('click', async () => {
+    const name = document.getElementById('adName').value.trim();
+    const price = parseFloat(document.getElementById('adPrice').value);
+    const cost = parseFloat(document.getElementById('adCost').value) || 0;
+    const icon = document.getElementById('adIcon').value.trim();
+    const desc = document.getElementById('adDesc').value.trim();
+    const err = document.getElementById('adError');
+
+    if(!name){ err.textContent = 'Informe o nome do adicional.'; return; }
+    if(isNaN(price) || price < 0){ err.textContent = 'Informe um preço válido.'; return; }
+    err.textContent = '';
+
+    if(editingAddonId){
+      const idx = products.findIndex(x => x.id === editingAddonId);
+      if(idx > -1){
+        const prev = products[idx];
+        products[idx] = Object.assign({}, prev, {name, price, cost, icon, desc});
+      }
+    }else{
+      const maxOrder = addonsOrdenados().reduce((m,a) => Math.max(m, a.order ?? 0), 0);
+      products.push({
+        id: genId(), name, cat: 'adicionais', price, cost, icon, desc,
+        tag: '', photo: '', active: true, order: maxOrder + 1, recipe: []
+      });
+    }
+    await saveProducts();
+    renderAddonTab(); renderAdminList(); renderMenu();
+    showToast(editingAddonId ? 'Adicional atualizado ✓' : 'Adicional criado ✓');
+    clearAddonForm();
+  });
+
+  async function deleteAddon(id){
+    const a = products.find(x => x.id === id); if(!a) return;
+    if(!confirm(`Excluir "${a.name}" de vez?\n\nSe é falta temporária, use o ⏸️ pausar — assim você não perde o cadastro.`)) return;
+    products = products.filter(x => x.id !== id);
+    await saveProducts();
+    renderAddonTab(); renderAdminList(); renderMenu();
+    showToast('Adicional excluído');
+  }
+
+  async function moveAddon(id, delta){
+    const lista = addonsOrdenados();
+    const i = lista.findIndex(a => a.id === id);
+    const j = i + delta;
+    if(i < 0 || j < 0 || j >= lista.length) return;
+    // troca a posição e regrava a ordem de todos
+    [lista[i], lista[j]] = [lista[j], lista[i]];
+    lista.forEach((a, idx) => {
+      const ref = products.find(p => p.id === a.id);
+      if(ref) ref.order = idx + 1;
+    });
+    await saveProducts();
+    renderAddonTab();
+  }
+
   /* ---------------- FICHA TÉCNICA (RECEITA) ---------------- */
   function openRecipeEditor(productId){
     const p = products.find(x => x.id === productId); if(!p) return;
@@ -3823,18 +4125,19 @@
   }));
 
   function renderMoProducts(){
-    // agrupa por categoria pra facilitar achar
+    // só itens ativos — pausados não entram em pedido novo
+    const ativos = products.filter(p => p.active !== false);
     const cats = ['burguers','adicionais','entradas','bebidas','combo'];
-    const usadas = cats.filter(cat => products.some(p => p.cat === cat));
-    const outros = products.filter(p => !cats.includes(p.cat));
+    const usadas = cats.filter(cat => ativos.some(p => p.cat === cat));
+    const outros = ativos.filter(p => !cats.includes(p.cat));
     let html = usadas.map(cat =>
       `<optgroup label="${catLabel(cat)}">` +
-      products.filter(p => p.cat === cat).map(p =>
+      ativos.filter(p => p.cat === cat).map(p =>
         `<option value="${p.id}">${p.icon || ''} ${escapeHtml(p.name)} — ${money(p.price)}</option>`).join('') +
       `</optgroup>`).join('');
     if(outros.length) html += `<optgroup label="Outros">` + outros.map(p =>
       `<option value="${p.id}">${p.icon || ''} ${escapeHtml(p.name)} — ${money(p.price)}</option>`).join('') + `</optgroup>`;
-    document.getElementById('moProduct').innerHTML = html;
+    document.getElementById('moProduct').innerHTML = html || '<option value="">Nenhum item ativo no cardápio</option>';
     atualizarMoLink();
   }
 
@@ -4073,15 +4376,15 @@
   }
 
   /* ---------------- FUNÇÕES E PERMISSÕES ---------------- */
-  const ALL_TABS = ['dashboard','cardapio','pedidos','cozinha','tv','mesas','caixa','financeiro','estoque','equipe','promocao','loja'];
+  const ALL_TABS = ['dashboard','cardapio','adicionais','pedidos','cozinha','tv','mesas','caixa','financeiro','estoque','equipe','promocao','loja'];
   const TAB_LABEL = {
-    dashboard:'📊 Dashboard', cardapio:'🍔 Cardápio', pedidos:'📋 Pedidos', cozinha:'👨‍🍳 Cozinha', tv:'📺 Painel TV', mesas:'🪑 Mesas',
+    dashboard:'📊 Dashboard', cardapio:'🍔 Cardápio', adicionais:'➕ Adicionais', pedidos:'📋 Pedidos', cozinha:'👨‍🍳 Cozinha', tv:'📺 Painel TV', mesas:'🪑 Mesas',
     caixa:'💳 Caixa', financeiro:'💰 Financeiro', estoque:'📦 Estoque', equipe:'👥 Equipe',
     promocao:'📣 Promoção', loja:'🏪 Loja'
   };
   const ROLE_PRESETS = {
     gerente:     {label:'Gerente',     perms: ALL_TABS.slice()},
-    subgerente:  {label:'Subgerente',  perms: ['dashboard','cardapio','pedidos','cozinha','tv','mesas','caixa','financeiro','estoque','promocao','loja']},
+    subgerente:  {label:'Subgerente',  perms: ['dashboard','cardapio','adicionais','pedidos','cozinha','tv','mesas','caixa','financeiro','estoque','promocao','loja']},
     caixa:       {label:'Caixa',       perms: ['pedidos','tv','mesas','caixa']},
     balconista:  {label:'Balconista',  perms: ['pedidos','cozinha','tv','mesas','caixa','estoque']},
     garcom:      {label:'Garçom',      perms: ['pedidos','mesas']},
@@ -4262,6 +4565,7 @@
     document.getElementById('atabDashboard').style.display = tab === 'dashboard' ? 'block' : 'none';
     document.getElementById('atabCardapio').style.display = tab === 'cardapio' ? 'block' : 'none';
     document.getElementById('atabPedidos').style.display = tab === 'pedidos' ? 'block' : 'none';
+    document.getElementById('atabAdicionais').style.display = tab === 'adicionais' ? 'block' : 'none';
     document.getElementById('atabCozinha').style.display = tab === 'cozinha' ? 'block' : 'none';
     document.getElementById('atabTv').style.display = tab === 'tv' ? 'block' : 'none';
     document.getElementById('atabMesas').style.display = tab === 'mesas' ? 'block' : 'none';
@@ -4272,6 +4576,7 @@
     document.getElementById('atabPromocao').style.display = tab === 'promocao' ? 'block' : 'none';
     document.getElementById('atabLoja').style.display = tab === 'loja' ? 'block' : 'none';
     if(tab === 'pedidos') renderAdminOrders();
+    if(tab === 'adicionais') renderAddonTab();
     if(tab === 'cozinha') renderKitchen();
     if(tab === 'mesas') renderTables();
     if(tab === 'caixa') renderCaixa();

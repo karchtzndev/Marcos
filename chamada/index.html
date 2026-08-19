@@ -46,7 +46,10 @@
   }
   .brand{
     position:absolute; top:32px; left:40px; display:flex; align-items:center; gap:16px;
+    text-decoration:none; color:inherit; padding:8px 14px 8px 8px; border-radius:999px;
+    transition:background .2s;
   }
+  .brand:hover{background:rgba(229,118,46,0.12);}
   .brand img{width:64px; height:64px; border-radius:50%; border:3px solid var(--ember); object-fit:cover;}
   .brand-txt small{display:block; font-size:12px; letter-spacing:4px; color:var(--mustard); font-weight:700;}
   .brand-txt strong{font-family:'Anton',sans-serif; font-size:26px; color:var(--cream); line-height:1;}
@@ -164,13 +167,13 @@
 
 <div class="tv">
   <div class="stage">
-    <div class="brand">
+    <a href="../gerencial/" class="brand" title="Voltar ao painel">
       <img src="mascot.jpg" alt="">
       <div class="brand-txt">
         <small>O MARKIN</small>
         <strong>Chef's Burguer</strong>
       </div>
-    </div>
+    </a>
     <div class="clock" id="clock">--:--</div>
 
     <div id="stageContent">
