@@ -383,6 +383,27 @@
   .box-info{background:rgba(76,175,109,0.1); border:1px solid rgba(76,175,109,0.35); color:var(--green); border-radius:10px; padding:12px 14px; font-size:13px; line-height:1.55; margin-top:10px;}
   .box-info b{color:var(--cream);}
 
+  /* ---------- TURBINAR (pedido manual) ---------- */
+  .extras-head{display:flex; align-items:center; gap:14px; padding-bottom:16px; margin-bottom:16px; border-bottom:1px solid var(--line);}
+  .extras-icon{width:56px; height:56px; border-radius:14px; background:rgba(229,118,46,0.15); display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0; overflow:hidden;}
+  .extras-icon img{width:100%; height:100%; object-fit:cover;}
+  .extras-head strong{display:block; font-family:'Anton',sans-serif; font-size:19px; color:var(--cream);}
+  .extras-head span{font-size:14px; color:var(--mustard); font-weight:700;}
+  .extras-hint{font-size:13px; color:rgba(242,233,218,0.55); margin-bottom:16px;}
+  .extra-row{display:flex; align-items:center; gap:12px; padding:13px 14px; border:1px solid var(--line); border-radius:12px; margin-bottom:10px; transition:border-color .2s;}
+  .extra-row.picked{border-color:var(--ember); background:rgba(229,118,46,0.08);}
+  .extra-row .ex-ico{font-size:20px; flex-shrink:0;}
+  .extra-row .ex-info{flex-grow:1; min-width:0;}
+  .extra-row .ex-info strong{display:block; font-size:14px; font-weight:700;}
+  .extra-row .ex-info span{font-size:13px; color:var(--mustard);}
+  .ex-step{display:flex; align-items:center; gap:6px; background:var(--pitch); border-radius:999px; padding:4px; flex-shrink:0;}
+  .ex-step button{width:32px; height:32px; border-radius:50%; border:none; background:var(--char); color:var(--cream); font-size:18px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center;}
+  .ex-step button:hover{background:var(--ember); color:var(--pitch);}
+  .ex-step span{min-width:22px; text-align:center; font-weight:700; font-size:14px;}
+  .extras-total{display:flex; justify-content:space-between; align-items:center; padding:16px 0; margin-top:6px; border-top:1px solid var(--line);}
+  .extras-total span{font-size:14px; color:rgba(242,233,218,0.7);}
+  .extras-total strong{font-family:'Anton',sans-serif; font-size:24px; color:var(--mustard);}
+
   /* ---------- ZERAR DADOS ---------- */
   .danger-zone{border:1px solid rgba(182,56,44,0.35) !important; border-radius:14px; padding:18px !important; background:rgba(182,56,44,0.04);}
   .danger-zone h3{color:var(--tomato) !important;}
@@ -1732,6 +1753,24 @@
 
       <button class="btn-primary" id="moConfirmBtn" style="width:100%; padding:16px; font-size:16px;">✅ Lançar pedido</button>
       <div class="error-msg" id="moError"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= TURBINAR (pedido manual) ================= -->
+<div class="overlay" id="moExtrasOverlay">
+  <div class="panel narrow">
+    <div class="panel-head"><h2>Quer turbinar?</h2><button class="close-btn" data-close="moExtrasOverlay">✕</button></div>
+    <div class="panel-body">
+      <div class="extras-head">
+        <div class="extras-icon" id="moExIcon">🍔</div>
+        <div><strong id="moExName"></strong><span id="moExPrice"></span></div>
+      </div>
+      <p class="extras-hint">Pergunte ao cliente se quer algum extra. Se não, é só pular.</p>
+      <div id="moExList"></div>
+      <div class="extras-total"><span>Total do lanche</span><strong id="moExTotal">R$ 0,00</strong></div>
+      <button class="btn-primary" id="moExConfirm" style="width:100%; padding:15px; font-size:15px;">Adicionar ao pedido</button>
+      <button class="btn-ghost" id="moExSkip" style="width:100%; margin-top:10px;">Sem extras</button>
     </div>
   </div>
 </div>
@@ -5572,19 +5611,105 @@
     }));
     document.getElementById('moTotal').textContent = money(moCart.reduce((s,i)=>s+i.price*i.qty,0));
   }
+  function moPush(p, qty, forItem){
+    const chave = p.id + "|" + (forItem||"");
+    const ex = moCart.find(i => (i.productId + "|" + (i.forItem||"")) === chave);
+    if(ex) ex.qty += qty;
+    else moCart.push({productId:p.id, cat:p.cat, name:p.name, price:p.price, icon:p.icon, qty, forItem: forItem||""});
+  }
+
   document.getElementById('moAddItemBtn').addEventListener('click', () => {
     const pid = document.getElementById('moProduct').value;
     const qty = parseInt(document.getElementById('moQty').value) || 1;
     const p = products.find(x => x.id === pid); if(!p) return;
+
+    // Lanche que aceita extras: abre a tela de turbinar, igual ao app do cliente
+    const extras = products.filter(x => x.cat === 'adicionais' && x.active !== false);
+    const aceita = p.cat === 'burguers' && !/não é possível colocar adicionais/i.test(p.desc || '');
+    if(aceita && extras.length > 0){
+      abrirMoExtras(p, qty, extras);
+      return;
+    }
+
     const forItem = (p.cat === 'adicionais') ? (document.getElementById('moLinkTo').value || "") : "";
-    const chave = pid + "|" + forItem;
-    const ex = moCart.find(i => (i.productId + "|" + (i.forItem||"")) === chave);
-    if(ex) ex.qty += qty;
-    else moCart.push({productId:p.id, cat:p.cat, name:p.name, price:p.price, icon:p.icon, qty, forItem});
+    moPush(p, qty, forItem);
     document.getElementById('moQty').value = 1;
     renderMoItems();
     atualizarMoLink();
   });
+
+  /* ---------- TURBINAR NO PEDIDO MANUAL ---------- */
+  let moExCtx = null;
+
+  function abrirMoExtras(produto, qty, extras){
+    moExCtx = {produto, qty, escolhas:{}};
+    document.getElementById('moExName').textContent = produto.name + (qty > 1 ? ` (${qty}x)` : '');
+    document.getElementById('moExPrice').textContent = money(produto.price * qty);
+    const ico = document.getElementById('moExIcon');
+    ico.innerHTML = produto.photo ? `<img src="${produto.photo}" alt="">` : (produto.icon || '🍔');
+
+    document.getElementById('moExList').innerHTML = extras.map(e => `
+      <div class="extra-row" data-moexrow="${e.id}">
+        <span class="ex-ico">${e.icon || '➕'}</span>
+        <div class="ex-info"><strong>${escapeHtml(e.name)}</strong><span>+ ${money(e.price)}</span></div>
+        <div class="ex-step">
+          <button data-moexdec="${e.id}">−</button>
+          <span id="moexq-${e.id}">0</span>
+          <button data-moexinc="${e.id}">+</button>
+        </div>
+      </div>`).join('');
+
+    document.querySelectorAll('[data-moexinc]').forEach(b =>
+      b.addEventListener('click', () => moStepExtra(b.dataset.moexinc, 1)));
+    document.querySelectorAll('[data-moexdec]').forEach(b =>
+      b.addEventListener('click', () => moStepExtra(b.dataset.moexdec, -1)));
+    atualizarMoExTotal();
+    openOverlay('moExtrasOverlay');
+  }
+
+  function moStepExtra(id, delta){
+    if(!moExCtx) return;
+    const atual = moExCtx.escolhas[id] || 0;
+    const novo = Math.max(0, atual + delta);
+    if(novo === 0) delete moExCtx.escolhas[id];
+    else moExCtx.escolhas[id] = novo;
+    document.getElementById('moexq-' + id).textContent = novo;
+    const row = document.querySelector(`[data-moexrow="${id}"]`);
+    if(row) row.classList.toggle('picked', novo > 0);
+    atualizarMoExTotal();
+  }
+
+  function atualizarMoExTotal(){
+    if(!moExCtx) return;
+    let total = moExCtx.produto.price * moExCtx.qty;
+    Object.entries(moExCtx.escolhas).forEach(([id, q]) => {
+      const e = products.find(x => x.id === id);
+      if(e) total += e.price * q;
+    });
+    document.getElementById('moExTotal').textContent = money(total);
+    const n = Object.values(moExCtx.escolhas).reduce((s,q) => s+q, 0);
+    document.getElementById('moExConfirm').textContent =
+      n > 0 ? `Adicionar com ${n} extra${n>1?'s':''}` : 'Adicionar ao pedido';
+  }
+
+  function moConfirmarExtras(comExtras){
+    if(!moExCtx) return;
+    const {produto, qty, escolhas} = moExCtx;
+    moPush(produto, qty, "");
+    if(comExtras){
+      Object.entries(escolhas).forEach(([id, q]) => {
+        const e = products.find(x => x.id === id);
+        if(e) moPush(e, q, produto.name);
+      });
+    }
+    closeOverlay('moExtrasOverlay');
+    moExCtx = null;
+    document.getElementById('moQty').value = 1;
+    renderMoItems();
+    atualizarMoLink();
+  }
+  document.getElementById('moExConfirm').addEventListener('click', () => moConfirmarExtras(true));
+  document.getElementById('moExSkip').addEventListener('click', () => moConfirmarExtras(false));
 
   document.getElementById('moConfirmBtn').addEventListener('click', async () => {
     const name = document.getElementById('moName').value.trim();
