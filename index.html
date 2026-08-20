@@ -411,6 +411,24 @@
     font-size:12.5px; line-height:1.5; margin-top:12px;
   }
 
+  /* ---------- ENDEREÇO E CEP ---------- */
+  .opt{font-size:11px; color:rgba(242,233,218,0.4); text-transform:none; letter-spacing:0;}
+  .cep-row{display:flex; gap:8px;}
+  .cep-row input{flex-grow:1;}
+  .cep-row button{
+    background:var(--ember); color:var(--pitch); border:none; border-radius:10px;
+    padding:0 20px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap;
+  }
+  .cep-row button:hover{background:var(--mustard);}
+  .cep-row button:disabled{opacity:0.5; cursor:default;}
+  .cep-msg{font-size:12px; margin-top:7px; min-height:16px;}
+  .cep-msg.ok{color:var(--green);}
+  .cep-msg.erro{color:var(--tomato);}
+  .cep-msg.load{color:var(--mustard);}
+  .form-grid-2{display:grid; grid-template-columns:2fr 1fr; gap:12px;}
+  .form-grid-2 .field{margin-bottom:0;}
+  @media(max-width:420px){ .form-grid-2{grid-template-columns:1fr;} }
+
   /* ---------- AVALIAÇÃO ---------- */
   .rate-box{background:var(--pitch); border:1px solid var(--line); border-radius:14px; padding:20px; margin-top:22px; text-align:center;}
   .rate-box strong{display:block; font-family:'Anton',sans-serif; font-size:17px; color:var(--ember); margin-bottom:4px;}
@@ -782,7 +800,26 @@
           <button type="button" class="type-btn" data-ordertype="mesa">🪑 Mesa</button>
         </div>
       </div>
-      <div class="field" id="ckAddressField"><label>Endereço de entrega</label><textarea id="ckAddress" placeholder="Rua, número, bairro, ponto de referência"></textarea></div>
+      <div id="ckAddressField">
+        <div class="field">
+          <label>CEP <span class="opt">(opcional — preenche o endereço)</span></label>
+          <div class="cep-row">
+            <input type="text" id="ckCep" placeholder="00000-000" inputmode="numeric" maxlength="9">
+            <button type="button" id="ckCepBtn">Buscar</button>
+          </div>
+          <div class="cep-msg" id="ckCepMsg"></div>
+        </div>
+        <div class="form-grid-2">
+          <div class="field"><label>Rua</label><input type="text" id="ckRua" placeholder="Nome da rua"></div>
+          <div class="field"><label>Número</label><input type="text" id="ckNumero" placeholder="Ex: 120" inputmode="numeric"></div>
+        </div>
+        <div class="form-grid-2">
+          <div class="field"><label>Bairro</label><input type="text" id="ckBairro" placeholder="Bairro"></div>
+          <div class="field"><label>Complemento</label><input type="text" id="ckComplemento" placeholder="Apto, bloco, casa"></div>
+        </div>
+        <div class="field"><label>Ponto de referência</label><input type="text" id="ckReferencia" placeholder="Ex: portão azul, ao lado da farmácia"></div>
+        <textarea id="ckAddress" style="display:none;"></textarea>
+      </div>
       <div class="field" id="ckTableField" style="display:none;">
         <label>Número da mesa</label>
         <input type="number" id="ckTable" placeholder="Ex: 7" min="1">
@@ -1386,16 +1423,85 @@
     openOverlay('cartOverlay');
   });
 
+  /* ---------- BUSCA DE CEP ---------- */
+  // ViaCEP é gratuito e não precisa de chave. Se falhar, o cliente
+  // simplesmente digita o endereço na mão — o CEP nunca é obrigatório.
+  const cepInput = document.getElementById('ckCep');
+  cepInput.addEventListener('input', () => {
+    let v = cepInput.value.replace(/\D/g,'').slice(0,8);
+    if(v.length > 5) v = v.slice(0,5) + '-' + v.slice(5);
+    cepInput.value = v;
+    if(v.replace(/\D/g,'').length === 8) buscarCep();
+  });
+  document.getElementById('ckCepBtn').addEventListener('click', buscarCep);
+
+  async function buscarCep(){
+    const cep = cepInput.value.replace(/\D/g,'');
+    const msg = document.getElementById('ckCepMsg');
+    const btn = document.getElementById('ckCepBtn');
+    if(cep.length !== 8){
+      msg.className = 'cep-msg erro';
+      msg.textContent = 'Digite os 8 números do CEP.';
+      return;
+    }
+    msg.className = 'cep-msg load';
+    msg.textContent = 'Buscando...';
+    btn.disabled = true;
+    try{
+      const r = await Promise.race([
+        fetch(`https://viacep.com.br/ws/${cep}/json/`),
+        new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 6000))
+      ]);
+      const d = await r.json();
+      if(d.erro){
+        msg.className = 'cep-msg erro';
+        msg.textContent = 'CEP não encontrado. Preencha o endereço abaixo.';
+      }else{
+        if(d.logradouro) document.getElementById('ckRua').value = d.logradouro;
+        if(d.bairro)     document.getElementById('ckBairro').value = d.bairro;
+        msg.className = 'cep-msg ok';
+        msg.textContent = `✓ ${d.logradouro || ''}${d.bairro ? ' — ' + d.bairro : ''}${d.localidade ? ', ' + d.localidade : ''}`;
+        document.getElementById('ckNumero').focus();
+      }
+    }catch(e){
+      msg.className = 'cep-msg erro';
+      msg.textContent = 'Não deu pra buscar agora. Preencha o endereço abaixo.';
+    }
+    btn.disabled = false;
+  }
+
+  // Junta os campos num endereço único (é o que a cozinha e o entregador leem)
+  function montarEndereco(){
+    const rua  = document.getElementById('ckRua').value.trim();
+    const num  = document.getElementById('ckNumero').value.trim();
+    const bai  = document.getElementById('ckBairro').value.trim();
+    const comp = document.getElementById('ckComplemento').value.trim();
+    const ref  = document.getElementById('ckReferencia').value.trim();
+    const cep  = document.getElementById('ckCep').value.trim();
+    let txt = rua;
+    if(num) txt += (txt ? ', ' : '') + num;
+    if(comp) txt += (txt ? ' — ' : '') + comp;
+    if(bai) txt += (txt ? ' — ' : '') + bai;
+    if(ref) txt += (txt ? ' (' : '(') + ref + ')';
+    if(cep) txt += (txt ? ' · CEP ' : 'CEP ') + cep;
+    return txt.trim();
+  }
+
   function autofillCustomer(){
     try{
       const saved = JSON.parse(localStorage.getItem('omarkin_customer') || 'null');
       if(!saved) return;
       const nameEl = document.getElementById('ckName');
       const phoneEl = document.getElementById('ckPhone');
-      const addrEl = document.getElementById('ckAddress');
       if(!nameEl.value && saved.name) nameEl.value = saved.name;
       if(!phoneEl.value && saved.phone) phoneEl.value = saved.phone;
-      if(!addrEl.value && saved.address) addrEl.value = saved.address;
+      // reaproveita o endereço salvo, se os campos estiverem vazios
+      if(saved.endereco){
+        const e = saved.endereco;
+        const set = (id, v) => { const el = document.getElementById(id); if(el && !el.value && v) el.value = v; };
+        set('ckCep', e.cep); set('ckRua', e.rua); set('ckNumero', e.numero);
+        set('ckBairro', e.bairro); set('ckComplemento', e.complemento); set('ckReferencia', e.referencia);
+      }
       const mesa = sessionStorage.getItem('omarkin_mesa');
       const tableEl = document.getElementById('ckTable');
       if(mesa && !tableEl.value) tableEl.value = mesa;
@@ -1637,14 +1743,17 @@
   document.getElementById('confirmOrderBtn').addEventListener('click', async () => {
     const name = document.getElementById('ckName').value.trim();
     const phone = document.getElementById('ckPhone').value.trim();
-    const address = document.getElementById('ckAddress').value.trim();
+    const address = selectedOrderType === 'entrega' ? montarEndereco() : '';
     const payment = document.getElementById('ckPayment').value;
     const notes = document.getElementById('ckNotes').value.trim();
     const table = document.getElementById('ckTable').value.trim();
     const errEl = document.getElementById('checkoutError');
     if(!name){ errEl.textContent = "Preencha seu nome."; return; }
     if(selectedOrderType !== 'mesa' && !phone){ errEl.textContent = "Informe seu WhatsApp."; return; }
-    if(selectedOrderType === 'entrega' && !address){ errEl.textContent = "Informe o endereço de entrega."; return; }
+    if(selectedOrderType === 'entrega'){
+      if(!document.getElementById('ckRua').value.trim()){ errEl.textContent = "Informe a rua."; return; }
+      if(!document.getElementById('ckNumero').value.trim()){ errEl.textContent = "Informe o número."; return; }
+    }
     if(selectedOrderType === 'mesa' && !table){ errEl.textContent = "Informe o número da mesa."; return; }
     if(!storeIsOpen){ errEl.textContent = "A loja está fechada no momento."; return; }
     errEl.textContent = "";
@@ -1696,7 +1805,17 @@
 
     // Guarda os dados do cliente pra facilitar o próximo pedido
     try{
-      localStorage.setItem('omarkin_customer', JSON.stringify({name, phone, address}));
+      localStorage.setItem('omarkin_customer', JSON.stringify({
+        name, phone, address,
+        endereco: {
+          cep: document.getElementById('ckCep').value.trim(),
+          rua: document.getElementById('ckRua').value.trim(),
+          numero: document.getElementById('ckNumero').value.trim(),
+          bairro: document.getElementById('ckBairro').value.trim(),
+          complemento: document.getElementById('ckComplemento').value.trim(),
+          referencia: document.getElementById('ckReferencia').value.trim()
+        }
+      }));
       if(selectedOrderType === 'mesa' && table) sessionStorage.setItem('omarkin_mesa', table);
     }catch(e){}
 

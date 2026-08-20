@@ -383,6 +383,14 @@
   .box-info{background:rgba(76,175,109,0.1); border:1px solid rgba(76,175,109,0.35); color:var(--green); border-radius:10px; padding:12px 14px; font-size:13px; line-height:1.55; margin-top:10px;}
   .box-info b{color:var(--cream);}
 
+  #produtoFormHome, #addonFormHome{display:none;}
+
+  .passo-print{display:flex; gap:12px; margin-bottom:12px;}
+  .passo-print > span{flex-shrink:0; width:24px; height:24px; border-radius:50%; background:var(--ember); color:var(--pitch); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px;}
+  .passo-print strong{display:block; font-size:13.5px; margin-bottom:2px;}
+  .passo-print p{font-size:12.5px; color:rgba(242,233,218,0.6); line-height:1.5; margin:0;}
+  .passo-print b{color:var(--mustard);}
+
   /* ---------- TURBINAR (pedido manual) ---------- */
   .extras-head{display:flex; align-items:center; gap:14px; padding-bottom:16px; margin-bottom:16px; border-bottom:1px solid var(--line);}
   .extras-icon{width:56px; height:56px; border-radius:14px; background:rgba(229,118,46,0.15); display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0; overflow:hidden;}
@@ -470,6 +478,11 @@
 
   #managerView.carregando .admin-tabs{opacity:0; pointer-events:none;}
   #managerView .admin-tabs{transition:opacity .18s;}
+
+  .mod-alerta{background:rgba(240,180,41,0.1); border:1px solid rgba(240,180,41,0.4); border-radius:12px; padding:14px 16px; margin-bottom:22px;}
+  .mod-alerta strong{display:block; color:var(--mustard); font-size:14px; margin-bottom:8px;}
+  .mod-alerta p{font-size:12.5px; color:rgba(242,233,218,0.7); line-height:1.55; margin:4px 0;}
+  .mod-alerta b{color:var(--cream);}
 
   .mod-grupo{font-family:'Anton',sans-serif; font-size:16px; color:var(--ember); margin:0 0 4px; letter-spacing:0.5px;}
   .mod-grupo-desc{font-size:12.5px; color:rgba(242,233,218,0.5); margin-bottom:14px;}
@@ -1149,6 +1162,7 @@
         <!-- CARDÁPIO TAB -->
         <div id="atabCardapio" style="display:none;">
           <!-- só aparece com o cardápio vazio -->
+          <button class="btn-primary" id="novoProdutoBtn" style="width:100%; margin-bottom:20px; padding:15px;">➕ Novo produto</button>
           <div id="emptyMenuBanner" class="low-stock-banner" style="display:none; background:rgba(76,175,109,0.12); border-color:var(--green); color:var(--green); align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
             <span>📋 Cardápio vazio. Importe os 22 itens do cardápio do CB pra começar.</span>
             <button class="btn-primary" id="importMenuBtn" style="flex-shrink:0;">Importar cardápio base</button>
@@ -1182,6 +1196,8 @@
               <div class="error-msg" id="bulkError"></div>
             </div>
           </details>
+          <div id="produtoFormHome">
+          <div id="produtoFormBox">
           <input type="hidden" id="editingId">
           <div class="form-grid">
             <div class="field"><label>Nome do produto</label><input type="text" id="fName" placeholder="Ex: Cheddar Bacon"></div>
@@ -1213,6 +1229,8 @@
             <button class="btn-ghost" id="cancelEditBtn" style="display:none;">Cancelar edição</button>
           </div>
           <div class="error-msg" id="formError"></div>
+          </div>
+          </div>
 
           <div class="admin-list">
             <h3>Produtos cadastrados</h3>
@@ -1273,7 +1291,9 @@
           </div>
 
           <div class="admin-list" style="margin-top:0; border-top:none; padding-top:0;">
-            <h3 id="addonFormTitle">Novo adicional</h3>
+            <h3 id="addonFormTitle" style="display:none;">Novo adicional</h3>
+            <button class="btn-primary" id="novoAddonBtn" style="width:100%; padding:14px;">➕ Novo adicional</button>
+            <div id="addonFormHome"><div id="addonFormBox">
             <input type="hidden" id="adId">
             <div class="form-grid">
               <div class="field"><label>Nome</label><input type="text" id="adName" placeholder="Ex: Adicional Bacon"></div>
@@ -1287,6 +1307,7 @@
               <button class="btn-ghost" id="adCancelBtn" style="display:none;">Cancelar edição</button>
             </div>
             <div class="error-msg" id="adError"></div>
+            </div></div>
           </div>
 
           <div class="admin-list">
@@ -1646,6 +1667,34 @@
             </div>
           </div>
           <div class="admin-list">
+            <h3>🖨️ Impressão</h3>
+            <div class="field">
+              <label>Como imprimir neste aparelho</label>
+              <select id="printMode">
+                <option value="auto">Automático — direto na térmica se for Android</option>
+                <option value="rawbt">Sempre direto na térmica (RawBT)</option>
+                <option value="browser">Sempre pelo navegador</option>
+              </select>
+            </div>
+            <div id="printInfo" class="box-info"></div>
+            <div class="form-actions">
+              <button class="btn-ghost" id="testPrintBtn">🧾 Imprimir teste</button>
+            </div>
+            <details class="bulk-tool" style="margin-top:14px;">
+              <summary>📱 Como configurar a impressão direta</summary>
+              <div class="bulk-body">
+                <div class="passo-print"><span>1</span><div><strong>No aparelho Android</strong><p>Instale o app <b>RawBT</b> pela Play Store (gratuito).</p></div></div>
+                <div class="passo-print"><span>2</span><div><strong>Pareie a impressora</strong><p>Ajustes → Bluetooth → parear a térmica. Depois abra o RawBT e escolha ela como impressora padrão.</p></div></div>
+                <div class="passo-print"><span>3</span><div><strong>Teste aqui</strong><p>Toque em "Imprimir teste". Deve sair na hora, sem abrir tela nenhuma.</p></div></div>
+                <div class="passo-print"><span>4</span><div><strong>Pronto</strong><p>Comandas e comprovantes saem direto. O ajuste vale só neste aparelho.</p></div></div>
+                <div class="box-info" style="margin-top:14px;">
+                  ⚠️ <b>No iPhone não funciona</b> com térmica Bluetooth comum — o iOS só aceita impressora AirPrint. Nele a impressão segue pelo navegador.
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <div class="admin-list">
             <h3>🕒 Horário de funcionamento</h3>
             <p style="font-size:13px; color:rgba(242,233,218,0.6); margin-bottom:16px;">Marque os dias que você abre e defina o horário de cada um. É isso que o site mostra ao cliente — e o que o módulo <b style="color:var(--mustard);">🕒 Abrir e fechar no horário</b> usa para abrir e fechar sozinho.</p>
             <div id="horarioDias"></div>
@@ -1754,6 +1803,22 @@
       <button class="btn-primary" id="moConfirmBtn" style="width:100%; padding:16px; font-size:16px;">✅ Lançar pedido</button>
       <div class="error-msg" id="moError"></div>
     </div>
+  </div>
+</div>
+
+<!-- ================= EDITAR ADICIONAL ================= -->
+<div class="overlay" id="addonOverlay">
+  <div class="panel narrow">
+    <div class="panel-head"><h2 id="addonModalTitle">Adicional</h2><button class="close-btn" id="addonModalClose">✕</button></div>
+    <div class="panel-body" id="addonFormSlot"></div>
+  </div>
+</div>
+
+<!-- ================= EDITAR PRODUTO ================= -->
+<div class="overlay" id="produtoOverlay">
+  <div class="panel">
+    <div class="panel-head"><h2 id="produtoFormTitle">Produto</h2><button class="close-btn" data-close="produtoOverlay">✕</button></div>
+    <div class="panel-body" id="produtoFormSlot"></div>
   </div>
 </div>
 
@@ -2147,6 +2212,26 @@
     document.getElementById('cancelEditBtn').style.display = "none";
     document.getElementById('formError').textContent = "";
   }
+  // Abre o formulário como janela, ancorado no item — evita rolar até o topo
+  function abrirFormProduto(titulo){
+    const box = document.getElementById('produtoFormBox');
+    const ov  = document.getElementById('produtoOverlay');
+    document.getElementById('produtoFormTitle').textContent = titulo;
+    document.getElementById('produtoFormSlot').appendChild(box);
+    openOverlay('produtoOverlay');
+  }
+  function fecharFormProduto(){
+    // devolve o formulário pro lugar de origem antes de fechar
+    document.getElementById('produtoFormHome').appendChild(document.getElementById('produtoFormBox'));
+    closeOverlay('produtoOverlay');
+  }
+  document.getElementById('produtoOverlay').addEventListener('click', (e) => {
+    if(e.target.id === 'produtoOverlay') fecharFormProduto();
+  });
+  document.querySelector('#produtoOverlay [data-close]').addEventListener('click', (e) => {
+    e.preventDefault(); e.stopPropagation(); fecharFormProduto();
+  });
+
   function startEdit(id){
     const p = products.find(x => x.id === id);
     if(!p) return;
@@ -2163,6 +2248,7 @@
     if(p.photo){ document.getElementById('fPhotoPreview').src = p.photo; document.getElementById('fPhotoWrap').style.display = 'block'; }
     else document.getElementById('fPhotoWrap').style.display = 'none';
     document.getElementById('saveBtn').textContent = "Salvar alterações";
+    abrirFormProduto('✎ ' + p.name);
     document.getElementById('cancelEditBtn').style.display = "inline-block";
     document.getElementById('formError').textContent = "";
     document.querySelector('#adminOverlay .panel').scrollTop = 0;
@@ -2212,9 +2298,17 @@
         "O cardápio ficou grande demais (limite do banco). Remova alguma foto antes de salvar.";
       return;
     }
-    await saveProducts(); renderMenu(); renderAdminList(); clearForm();
+    await saveProducts(); renderMenu(); renderAdminList(); renderAddonTab(); clearForm();
+    if(document.getElementById('produtoOverlay').classList.contains('open')) fecharFormProduto();
   });
-  document.getElementById('cancelEditBtn').addEventListener('click', clearForm);
+  document.getElementById('cancelEditBtn').addEventListener('click', () => {
+    clearForm();
+    if(document.getElementById('produtoOverlay').classList.contains('open')) fecharFormProduto();
+  });
+  document.getElementById('novoProdutoBtn').addEventListener('click', () => {
+    clearForm();
+    abrirFormProduto('➕ Novo produto');
+  });
 
   /* ---------------- FOTO DO PRODUTO ---------------- */
   let pendingPhoto = null; // null = não mexeu | "" = remover | base64 = nova
@@ -2533,6 +2627,10 @@
     const brandNew = orders.filter(o => !knownOrderCodes.has(o.code));
     knownOrderCodes = currentCodes;
     if(brandNew.length > 0){
+      // fila configurada pra imprimir na chegada
+      if(moduloAtivo('filaimpressao') && features.filaAuto === 'novo'){
+        brandNew.forEach((o, i) => setTimeout(() => printComanda(o.code), 400 * (i+1)));
+      }
       playNewOrderSound();
       const o = brandNew[0];
       showToast("🔔 Pedido novo! #" + (o.dailyNumber || '') + " — " + o.customerName);
@@ -2641,9 +2739,234 @@
     .qr-hint{font-size:10px; margin-top:3mm;}
   `;
 
+  /* ---------------- IMPRESSÃO DIRETA (RawBT / ESC-POS) ---------------- */
+  const ehAndroid = /android/i.test(navigator.userAgent);
+
+  function modoImpressao(){
+    const salvo = localStorage.getItem('omarkin_print_mode') || 'auto';
+    if(salvo === 'browser') return 'browser';
+    if(salvo === 'rawbt')   return 'rawbt';
+    return ehAndroid ? 'rawbt' : 'browser';   // automático
+  }
+
+  function atualizarInfoImpressao(){
+    const sel = document.getElementById('printMode');
+    if(!sel) return;
+    sel.value = localStorage.getItem('omarkin_print_mode') || 'auto';
+    const m = modoImpressao();
+    const box = document.getElementById('printInfo');
+    box.innerHTML = m === 'rawbt'
+      ? '🖨️ <b>Direto na térmica</b> — a comanda sai sem abrir tela. Precisa do RawBT instalado e a impressora pareada.'
+      : (ehAndroid
+          ? '🌐 <b>Pelo navegador</b> — abre a janela de impressão. Mude acima pra sair direto na térmica.'
+          : '🌐 <b>Pelo navegador</b> — este aparelho não é Android, então a impressão direta não está disponível. No iPhone, só com impressora AirPrint.');
+  }
+  document.getElementById('printMode')?.addEventListener('change', (e) => {
+    localStorage.setItem('omarkin_print_mode', e.target.value);
+    atualizarInfoImpressao();
+    showToast('Modo de impressão salvo neste aparelho ✓');
+  });
+
+  // Impressoras térmicas usam tabela de caracteres antiga: sem acento sai certo
+  function semAcento(s){
+    return String(s)
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^\x00-\x7F]/g, (ch) => {
+        const mapa = {'—':'-','–':'-','·':'.','º':'o','ª':'a','✓':'OK','⚠':'!','🔥':'','🪑':'','🛵':'','🏠':'','📢':'','💬':''};
+        return mapa[ch] !== undefined ? mapa[ch] : '';
+      });
+  }
+
+  // Comandos ESC/POS
+  const ESC = {
+    init:    '\x1B\x40',
+    center:  '\x1B\x61\x01',
+    left:    '\x1B\x61\x00',
+    right:   '\x1B\x61\x02',
+    bold:    '\x1B\x45\x01',
+    boldOff: '\x1B\x45\x00',
+    grande:  '\x1D\x21\x11',   // dobro de largura e altura
+    medio:   '\x1D\x21\x01',
+    normal:  '\x1D\x21\x00',
+    cortar:  '\x1D\x56\x42\x00',
+    linhas:  '\n\n\n'
+  };
+  const LARGURA = 32; // colunas na 58mm; use 48 se a sua for 80mm
+
+  function linhaDupla(esq, dir, larg){
+    larg = larg || LARGURA;
+    const e = String(esq), d = String(dir);
+    const espacos = Math.max(1, larg - e.length - d.length);
+    return e + ' '.repeat(espacos) + d;
+  }
+  function separador(ch){ return (ch || '-').repeat(LARGURA); }
+
+  // Converte o HTML do cupom em texto ESC/POS
+  function htmlParaEscPos(html){
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    let out = ESC.init;
+
+    tmp.querySelectorAll(':scope > *').forEach(el => {
+      const cls = el.className || '';
+      const txt = semAcento((el.textContent || '').trim());
+
+      if(cls.includes('p-logo')){
+        out += ESC.center + ESC.grande + ESC.bold + txt + '\n' + ESC.normal + ESC.boldOff;
+      }else if(cls.includes('p-sub')){
+        out += ESC.center + ESC.bold + txt + '\n' + ESC.boldOff;
+      }else if(cls.includes('p-emp') || cls.includes('p-code')){
+        out += ESC.center + txt.replace(/\s+/g,' ') + '\n';
+      }else if(cls.includes('p-doc')){
+        out += ESC.center + ESC.bold + txt + '\n' + ESC.boldOff;
+      }else if(cls.includes('p-num')){
+        out += ESC.center + ESC.grande + ESC.bold + txt + '\n' + ESC.normal + ESC.boldOff;
+      }else if(cls.includes('p-table')){
+        out += ESC.center + ESC.grande + ESC.bold + txt + '\n' + ESC.normal + ESC.boldOff;
+      }else if(cls.includes('p-line')){
+        out += ESC.left + separador('-') + '\n';
+      }else if(cls.includes('p-cols')){
+        const sp = el.querySelectorAll('span');
+        out += ESC.left + ESC.bold + (sp.length ? semAcento(Array.from(sp).map(s=>s.textContent).join(' ')) : txt) + '\n' + ESC.boldOff;
+      }else if(cls.includes('p-addon')){
+        const sp = el.querySelectorAll('span');
+        out += ESC.left + '  ' + linhaDupla(semAcento(sp[0]?.textContent||''), semAcento(sp[1]?.textContent||''), LARGURA-2) + '\n';
+      }else if(cls.includes('p-item') || cls.includes('p-row')){
+        const sp = el.querySelectorAll('span');
+        out += ESC.left + linhaDupla(semAcento(sp[0]?.textContent||''), semAcento(sp[1]?.textContent||'')) + '\n';
+      }else if(cls.includes('p-total')){
+        const sp = el.querySelectorAll('span');
+        out += ESC.left + ESC.bold + ESC.medio +
+               linhaDupla(semAcento(sp[0]?.textContent||''), semAcento(sp[1]?.textContent||''), Math.floor(LARGURA/1)) +
+               '\n' + ESC.normal + ESC.boldOff;
+      }else if(cls.includes('p-prod')){
+        const nome = semAcento(el.querySelector('.p-prod-nome')?.textContent || '');
+        const vals = Array.from(el.querySelectorAll('.p-prod-val span')).map(s=>semAcento(s.textContent));
+        out += ESC.left + ESC.bold + nome + '\n' + ESC.boldOff;
+        if(vals.length) out += linhaDupla('  ' + vals.slice(0,-1).join(' x '), vals[vals.length-1]) + '\n';
+      }else if(cls.includes('p-notes') || cls.includes('p-aviso')){
+        out += ESC.left + separador('-') + '\n' + txt + '\n';
+      }else if(cls.includes('p-foot')){
+        out += ESC.center + '\n' + txt + '\n';
+      }else if(txt){
+        out += ESC.left + txt + '\n';
+      }
+    });
+
+    return out + ESC.linhas + ESC.cortar;
+  }
+
+  function enviarParaRawBT(texto){
+    // O RawBT recebe pelo esquema rawbt: em base64
+    const bytes = new TextEncoder().encode(texto);
+    let bin = '';
+    bytes.forEach(b => bin += String.fromCharCode(b));
+    const b64 = btoa(bin);
+    const url = 'rawbt:base64,' + b64;
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => a.remove(), 1000);
+  }
+
+  document.getElementById('testPrintBtn')?.addEventListener('click', () => {
+    document.getElementById('printArea').innerHTML = `
+      <div class="p-logo">O MARKIN</div>
+      <div class="p-sub">CHEF'S BURGUER — TESTE</div>
+      <div class="p-line"></div>
+      <div class="p-num">#00</div>
+      <div class="p-code">Impressao de teste · ${new Date().toLocaleString('pt-BR')}</div>
+      <div class="p-line"></div>
+      <div class="p-item"><span>1x Chef's Burguer</span><span>R$ 35,00</span></div>
+      <div class="p-addon"><span>+ 2x Adicional Bacon</span><span>R$ 8,00</span></div>
+      <div class="p-line"></div>
+      <div class="p-total"><span>TOTAL</span><span>R$ 43,00</span></div>
+      <div class="p-foot">Se voce esta lendo isso, funcionou!</div>`;
+    doPrint('cupom');
+  });
+
+  /* ---------------- FILA DE IMPRESSÃO (PC + USB) ---------------- */
+  let filaAgente = null;   // último sinal de vida do computador
+
+  function watchFilaAgente(){
+    db.collection('store').doc('printer').onSnapshot((doc) => {
+      filaAgente = doc.exists ? doc.data() : null;
+      if(currentTab() === 'modulos') renderModuloConfig();
+    }, () => {});
+  }
+
+  function filaStatus(){
+    if(!filaAgente || !filaAgente.ultimoSinal){
+      return {cor:'var(--tomato)', bg:'rgba(182,56,44,0.1)',
+              texto:'🔴 <b>Computador desconectado</b> — nenhum sinal recebido. Os cupons ficam na fila e saem quando o PC ligar.'};
+    }
+    const seg = (Date.now() - new Date(filaAgente.ultimoSinal)) / 1000;
+    if(seg < 90){
+      return {cor:'var(--green)', bg:'rgba(76,175,109,0.1)',
+              texto:`🟢 <b>Computador conectado</b> — ${escapeHtml(filaAgente.impressora || 'impressora padrão')}. Pronto pra imprimir.`};
+    }
+    return {cor:'var(--mustard)', bg:'rgba(240,180,41,0.1)',
+            texto:`🟡 <b>Sem resposta há ${Math.round(seg/60)} min</b> — confira se o PC está ligado e o script rodando.`};
+  }
+
+  // Coloca o cupom na fila que o computador vai consumir
+  async function enviarParaFila(tipo, titulo){
+    const html = document.getElementById('printArea').innerHTML;
+    if(!html.trim()) return false;
+    try{
+      await db.collection('printQueue').add({
+        tipo: tipo || 'comanda',
+        titulo: titulo || '',
+        escpos: htmlParaEscPos(html),
+        vias: Number(features.filaVias) || 1,
+        criadoEm: new Date().toISOString(),
+        criadoPor: currentEmployee ? currentEmployee.name : '',
+        status: 'pendente'
+      });
+      return true;
+    }catch(e){
+      console.error('fila:', e);
+      return false;
+    }
+  }
+
   function doPrint(mode){
     const html = document.getElementById('printArea').innerHTML;
     if(!html.trim()){ alert("Nada para imprimir."); return; }
+
+    // 1º) Fila no computador, se o módulo estiver ligado
+    if(mode !== 'a4' && moduloAtivo('filaimpressao')){
+      enviarParaFila('comanda').then(ok => {
+        if(ok){
+          const st = filaStatus();
+          showToast(st.cor === 'var(--green)'
+            ? '🖨️ Enviado pra impressora'
+            : '🖨️ Na fila — sai quando o PC conectar');
+        }else{
+          showToast('Falha ao enfileirar — abrindo o navegador');
+          imprimirNoNavegador(html, mode);
+        }
+      });
+      return;
+    }
+
+    // 2º) Android com RawBT: manda direto, sem abrir janela
+    if(mode !== 'a4' && modoImpressao() === 'rawbt'){
+      try{
+        enviarParaRawBT(htmlParaEscPos(html));
+        showToast('🖨️ Enviado para a impressora');
+        return;
+      }catch(e){
+        console.warn('RawBT falhou, usando o navegador:', e);
+      }
+    }
+    imprimirNoNavegador(html, mode);
+  }
+
+  function imprimirNoNavegador(html, mode){
     const css = mode === 'a4' ? QR_CSS : CUPOM_CSS;
     const doc = '<!DOCTYPE html><html><head><meta charset="utf-8">' +
                 '<meta name="viewport" content="width=device-width,initial-scale=1">' +
@@ -2879,6 +3202,7 @@
     db.collection('store').doc('info').onSnapshot((doc) => {
       const info = doc.exists ? doc.data() : {};
       renderHorarios(info.horarios);
+      atualizarInfoImpressao();
       document.getElementById('lojaAddress').value = info.address || "";
       document.getElementById('lojaWhatsapp').value = info.whatsapp || "";
       document.getElementById('lojaInstagram').value = info.instagram || "";
@@ -5035,6 +5359,8 @@
      desc:'Permite deixar na conta e acertar depois.', tab:null},
     {key:'previsao',    icon:'📈', nome:'Previsão de demanda',
      desc:'Estima o movimento dos próximos dias com base no seu histórico.', tab:null},
+    {key:'filaimpressao', icon:'🖨️', nome:'Fila de impressão (PC + USB)',
+     desc:'Manda as comandas pra um computador imprimir na térmica USB. Precisa do script rodando no PC.', tab:null},
     {key:'relatorios',  icon:'📊', nome:'Relatórios em CSV',
      desc:'Exporta vendas e pedidos pra abrir no Excel ou mandar pro contador.', tab:null}
   ];
@@ -5087,7 +5413,18 @@
       </div>`;
     };
 
-    box.innerHTML = `
+    // avisa o que está desligado e continua rodando por baixo
+    const alertas = [];
+    if(!areaAtiva('estoque'))    alertas.push('📦 <b>Estoque desligado</b> — a baixa automática continua rodando, mas você não vê o alerta na tela.');
+    if(!areaAtiva('caixa'))      alertas.push('💳 <b>Caixa desligado</b> — ninguém consegue receber pagamento nem fechar turno.');
+    if(!areaAtiva('financeiro')) alertas.push('💰 <b>Financeiro desligado</b> — as vendas seguem sendo lançadas, você só não consulta.');
+    if(!areaAtiva('mesas'))      alertas.push('🪑 <b>Mesas desligado</b> — pedidos de mesa continuam chegando, mas sem tela pra fechar a conta.');
+
+    box.innerHTML = (alertas.length ? `
+      <div class="mod-alerta">
+        <strong>⚠️ Atenção ao que está desligado</strong>
+        ${alertas.map(a => `<p>${a}</p>`).join('')}
+      </div>` : '') + `
       <h3 class="mod-grupo">Áreas do painel</h3>
       <p class="mod-grupo-desc">Desligue o que sua operação não usa — a aba some do menu.</p>
       ${AREAS.map(a => linha(a, true)).join('')}
@@ -5111,12 +5448,60 @@
     caixa: 'Ninguém consegue receber pagamentos nem fechar o turno.'
   };
 
+  // Situações que IMPEDEM desligar agora — não é aviso, é bloqueio.
+  function bloqueioParaDesligar(key){
+    if(key === 'caixa'){
+      if(register.isOpen === true){
+        const bills = pendingBills();
+        return `O caixa está ABERTO desde ${new Date(register.openedAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}` +
+               (bills.length ? ` e há ${bills.length} conta(s) a receber.` : '.') +
+               `\n\nFeche o caixa antes de desligar esta área — senão o dinheiro do turno fica sem conferência.`;
+      }
+    }
+    if(key === 'mesas'){
+      const abertas = openTables().length;
+      if(abertas > 0){
+        return `Há ${abertas} mesa(s) com comanda aberta.\n\nFeche as contas antes de desligar — senão elas ficam sem como cobrar.`;
+      }
+    }
+    if(key === 'pedidos'){
+      return 'A aba Pedidos não pode ser desligada.';
+    }
+    return null;
+  }
+
+  // Avisos importantes que não bloqueiam, mas o usuário precisa saber.
+  function avisoAoDesligar(key){
+    if(key === 'estoque'){
+      return 'ATENÇÃO: a baixa automática de estoque CONTINUA funcionando mesmo com a aba desligada.\n\n' +
+             'Os insumos vão descontando a cada pedido entregue, mas você não vai ver o alerta de estoque baixo.';
+    }
+    if(key === 'financeiro'){
+      return 'As vendas continuam sendo lançadas automaticamente. Você só perde a tela de consulta e os relatórios.';
+    }
+    if(key === 'dashboard'){
+      return 'As estatísticas continuam sendo gravadas. Ao religar, o histórico do período estará completo.';
+    }
+    return null;
+  }
+
   async function toggleArea(key){
     const a = AREAS.find(x => x.key === key);
     if(!a || a.fixo) return;
     const novo = !areaAtiva(key);
-    if(!novo && AREAS_SENSIVEIS[key]){
-      if(!confirm(`Desligar "${a.nome}"?\n\n${AREAS_SENSIVEIS[key]}\n\nVocê pode religar aqui nos Módulos quando quiser.`)) return;
+
+    if(!novo){
+      // 1) bloqueios
+      const bloqueio = bloqueioParaDesligar(key);
+      if(bloqueio){
+        alert(`Não dá pra desligar "${a.nome}" agora.\n\n${bloqueio}`);
+        return;
+      }
+      // 2) avisos específicos
+      const aviso = avisoAoDesligar(key);
+      if(aviso && !confirm(`Desligar "${a.nome}"?\n\n${aviso}\n\nContinuar?`)) return;
+      // 3) aviso de área sensível
+      if(AREAS_SENSIVEIS[key] && !confirm(`Desligar "${a.nome}"?\n\n${AREAS_SENSIVEIS[key]}\n\nVocê pode religar aqui nos Módulos quando quiser.`)) return;
     }
     try{
       await db.collection('store').doc('features').set({['area_' + key]: novo}, {merge:true});
@@ -5140,6 +5525,35 @@
           <button class="btn-primary" id="fidSaveBtn">Salvar</button>
         </div>`;
     }
+    if(moduloAtivo('filaimpressao')){
+      const st = filaStatus();
+      html += `
+        <div class="admin-list">
+          <h3>🖨️ Fila de impressão</h3>
+          <div class="box-info" style="border-color:${st.cor}; color:${st.cor}; background:${st.bg};">
+            ${st.texto}
+          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Imprimir automaticamente</label>
+              <select id="filaAuto">
+                <option value="aceito" ${features.filaAuto==='aceito'?'selected':''}>Quando eu aceitar o pedido</option>
+                <option value="novo" ${features.filaAuto==='novo'?'selected':''}>Assim que o pedido chegar</option>
+                <option value="manual" ${(!features.filaAuto||features.filaAuto==='manual')?'selected':''}>Só quando eu mandar</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Vias da comanda</label>
+              <input type="number" id="filaVias" min="1" max="3" value="${features.filaVias || 1}">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" id="filaSaveBtn">Salvar</button>
+            <button class="btn-ghost" id="filaTesteBtn">🧾 Enviar teste pra fila</button>
+          </div>
+          <div class="error-msg" id="filaMsg"></div>
+        </div>`;
+    }
     if(moduloAtivo('fiado')){
       html += `
         <div class="admin-list">
@@ -5157,6 +5571,30 @@
       }, {merge:true});
       showToast('Fidelidade configurada ✓');
     });
+    const flS = document.getElementById('filaSaveBtn');
+    if(flS) flS.addEventListener('click', async () => {
+      await db.collection('store').doc('features').set({
+        filaAuto: document.getElementById('filaAuto').value,
+        filaVias: parseInt(document.getElementById('filaVias').value) || 1
+      }, {merge:true});
+      showToast('Fila de impressão configurada ✓');
+    });
+    const flT = document.getElementById('filaTesteBtn');
+    if(flT) flT.addEventListener('click', async () => {
+      document.getElementById('printArea').innerHTML = `
+        <div class="p-logo">O MARKIN</div>
+        <div class="p-sub">TESTE DA FILA DE IMPRESSAO</div>
+        <div class="p-line"></div>
+        <div class="p-code">${new Date().toLocaleString('pt-BR')}</div>
+        <div class="p-line"></div>
+        <div class="p-item"><span>1x Teste</span><span>R$ 0,00</span></div>
+        <div class="p-foot">Se saiu, a fila esta funcionando!</div>`;
+      const ok = await enviarParaFila('teste', 'Teste do sistema');
+      const m = document.getElementById('filaMsg');
+      m.style.color = ok ? 'var(--green)' : 'var(--tomato)';
+      m.textContent = ok ? 'Enviado pra fila ✓ Se o PC estiver rodando, sai em segundos.' : 'Não foi possível enviar.';
+    });
+
     const fis = document.getElementById('fiadoSaveBtn');
     if(fis) fis.addEventListener('click', async () => {
       await db.collection('store').doc('features').set({
@@ -5168,9 +5606,36 @@
 
   async function toggleModulo(key){
     const novo = !moduloAtivo(key);
+    const m = MODULOS.find(x => x.key === key);
+
+    // Avisos antes de ligar/desligar recursos que mexem na operação
+    if(key === 'horario' && novo){
+      const h = horarioDeHoje();
+      const agora = new Date();
+      const min = agora.getHours()*60 + agora.getMinutes();
+      const minAj = (h && h.fim > 24*60 && min < h.inicio) ? min + 24*60 : min;
+      const deveria = h ? (minAj >= h.inicio && minAj < h.fim) : false;
+      const esta = storeInfo.isOpen !== false;
+      if(deveria !== esta){
+        if(!confirm(`Ligar o horário automático?\n\nAgora a loja está ${esta?'ABERTA':'FECHADA'}, mas pelos horários deveria estar ${deveria?'ABERTA':'FECHADA'}.\n\nEla vai ser ${deveria?'aberta':'fechada'} em até 1 minuto.\n\nConfira os dias e horários na aba Loja antes.`)) return;
+      }
+    }
+    if(key === 'avaliacao' && !novo){
+      if(!confirm('Desligar a avaliação?\n\nOs pedidos entregues durante o período desligado não poderão ser avaliados depois — essa lacuna não volta.\n\nContinuar?')) return;
+    }
+    if(key === 'fiado' && !novo){
+      const emAberto = orders.filter(o => (o.paymentMethods||[]).some(x => x.method === 'fiado')).length;
+      if(emAberto > 0 && !confirm(`Há ${emAberto} pedido(s) pagos em fiado neste turno.\n\nDesligar só esconde a forma de pagamento — os valores continuam registrados.\n\nContinuar?`)) return;
+    }
+
     try{
-      await db.collection('store').doc('features').set({[key]: novo}, {merge:true});
-      const m = MODULOS.find(x => x.key === key);
+      const patch = {[key]: novo};
+      // ao desligar o automático, limpa a marca de intervenção manual pra
+      // não travar a primeira virada quando religar
+      if(key === 'horario' && !novo){
+        await db.collection('store').doc('info').set({manualOverride: null}, {merge:true}).catch(()=>{});
+      }
+      await db.collection('store').doc('features').set(patch, {merge:true});
       showToast(`${m.icon} ${m.nome} ${novo ? 'ligado ✓' : 'desligado'}`);
     }catch(e){ alert('Não foi possível alterar. Você precisa ser gerente.'); }
   }
@@ -5291,6 +5756,24 @@
     document.getElementById('adError').textContent = '';
   }
 
+  function abrirFormAddon(titulo){
+    document.getElementById('addonModalTitle').textContent = titulo;
+    document.getElementById('addonFormSlot').appendChild(document.getElementById('addonFormBox'));
+    openOverlay('addonOverlay');
+  }
+  function fecharFormAddon(){
+    document.getElementById('addonFormHome').appendChild(document.getElementById('addonFormBox'));
+    closeOverlay('addonOverlay');
+  }
+  document.getElementById('addonModalClose').addEventListener('click', fecharFormAddon);
+  document.getElementById('addonOverlay').addEventListener('click', (e) => {
+    if(e.target.id === 'addonOverlay') fecharFormAddon();
+  });
+  document.getElementById('novoAddonBtn').addEventListener('click', () => {
+    clearAddonForm();
+    abrirFormAddon('➕ Novo adicional');
+  });
+
   function startEditAddon(id){
     const a = products.find(x => x.id === id); if(!a) return;
     editingAddonId = id;
@@ -5302,10 +5785,13 @@
     document.getElementById('addonFormTitle').textContent = 'Editando: ' + a.name;
     document.getElementById('adSaveBtn').textContent = 'Salvar alterações';
     document.getElementById('adCancelBtn').style.display = 'inline-block';
-    document.getElementById('atabAdicionais').scrollIntoView({behavior:'smooth', block:'start'});
+    abrirFormAddon('✎ ' + a.name);
   }
 
-  document.getElementById('adCancelBtn').addEventListener('click', clearAddonForm);
+  document.getElementById('adCancelBtn').addEventListener('click', () => {
+    clearAddonForm();
+    if(document.getElementById('addonOverlay').classList.contains('open')) fecharFormAddon();
+  });
 
   document.getElementById('adSaveBtn').addEventListener('click', async () => {
     const name = document.getElementById('adName').value.trim();
@@ -5336,6 +5822,7 @@
     renderAddonTab(); renderAdminList(); renderMenu();
     showToast(editingAddonId ? 'Adicional atualizado ✓' : 'Adicional criado ✓');
     clearAddonForm();
+    if(document.getElementById('addonOverlay').classList.contains('open')) fecharFormAddon();
   });
 
   async function deleteAddon(id){
@@ -5452,7 +5939,14 @@
         }),
         new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 4000))
       ]);
-      if(low && low.length > 0) showToast("⚠️ Estoque baixo: " + low.join(', '));
+      if(low && low.length > 0){
+        // Mesmo com a aba Estoque desligada, o alerta aparece — senão o
+        // insumo acaba sem ninguém perceber.
+        showToast("⚠️ Estoque baixo: " + low.join(', '));
+        if(!areaAtiva('estoque')){
+          console.warn('Estoque baixo (aba desligada):', low.join(', '));
+        }
+      }
     }catch(e){
       console.warn("Baixa de estoque adiada:", e);
     }
@@ -5859,7 +6353,8 @@
     };
 
     // Comanda sai sozinha ao aceitar, se o módulo estiver ligado
-    if(status === 'aceito' && order.status === 'recebido' && moduloAtivo('autoprint')){
+    const autoFila = moduloAtivo('filaimpressao') && features.filaAuto === 'aceito';
+    if(status === 'aceito' && order.status === 'recebido' && (moduloAtivo('autoprint') || autoFila)){
       setTimeout(() => printComanda(code), 300);
     }
 
@@ -6270,6 +6765,7 @@
     watchEmployees();
     watchRegister();
     watchFeatures();
+    watchFilaAgente();
     if(myPerms.includes('dashboard')) watchStats();
     // Só busca o financeiro se a pessoa tiver essa permissão
     if(myPerms.includes('financeiro')){
