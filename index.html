@@ -953,7 +953,68 @@
   let fixedCosts = [];
   let inventory = [];
   let activeCategory = "todos";
-  let cart = []; // {productId, name, price, icon, qty}
+  /* ---------- CARRINHO COM PERSISTÊNCIA ---------- */
+  // Antes o carrinho só existia na memória: recarregar a página ou o
+  // navegador descartar a aba fazia o cliente perder o pedido montado.
+  const CART_KEY = 'omarkin_cart';
+  const CART_VALIDADE = 6 * 60 * 60 * 1000;   // 6 horas
+
+  function carregarCarrinho(){
+    try{
+      const bruto = localStorage.getItem(CART_KEY);
+      if(!bruto) return [];
+      const dados = JSON.parse(bruto);
+      if(!dados || !Array.isArray(dados.itens)) return [];
+      // carrinho velho não serve — preço pode ter mudado
+      if(Date.now() - (dados.em || 0) > CART_VALIDADE){
+        localStorage.removeItem(CART_KEY);
+        return [];
+      }
+      return dados.itens;
+    }catch(e){ return []; }
+  }
+
+  function salvarCarrinho(){
+    try{
+      if(cart.length === 0) localStorage.removeItem(CART_KEY);
+      else localStorage.setItem(CART_KEY, JSON.stringify({em: Date.now(), itens: cart}));
+    }catch(e){ /* modo privado ou armazenamento cheio */ }
+  }
+
+  // Confere o carrinho salvo contra o cardápio atual: remove item que saiu
+  // do ar e corrige preço que mudou desde a última visita.
+  function revalidarCarrinho(){
+    if(cart.length === 0 || products.length === 0) return;
+    const antes = cart.length;
+    let precoMudou = false;
+
+    cart = cart.filter(item => {
+      const p = products.find(x => x.id === item.productId);
+      if(!p || p.active === false) return false;      // saiu do cardápio
+      if(Number(p.price) !== Number(item.price)){
+        item.price = Number(p.price);
+        precoMudou = true;
+      }
+      item.name = p.name;
+      item.photo = p.photo || '';
+      return true;
+    });
+
+    // adicional cujo lanche saiu do carrinho vira avulso
+    const nomes = cart.filter(i => i.cat === 'burguers').map(i => i.name);
+    cart.forEach(i => { if(i.forItem && !nomes.includes(i.forItem)) i.forItem = ''; });
+
+    if(cart.length !== antes){
+      showToast('Alguns itens saíram do cardápio e foram removidos');
+      salvarCarrinho();
+    }else if(precoMudou){
+      showToast('Os preços foram atualizados');
+      salvarCarrinho();
+    }
+    updateCartUI(); renderMenu();
+  }
+
+  let cart = carregarCarrinho(); // {key, productId, name, price, icon, qty, forItem}
   let lastOrderCode = null;
   let currentTrackedCode = null;
 
@@ -1047,6 +1108,7 @@
         try{ await db.collection('store').doc('menu').set({items: defaultProducts}); }catch(e){}
       }
       renderMenu();
+      revalidarCarrinho();
     }, (err) => {
       console.error("Erro ao ler cardápio:", err);
       products = defaultProducts;
@@ -1276,6 +1338,7 @@
   }
   function cartTotal(){ return cartSubtotal() + currentDeliveryFee(); }
   function updateCartUI(){
+    salvarCarrinho();
     document.getElementById('cartCount').textContent = cart.reduce((s,c)=>s+c.qty,0);
     const box = document.getElementById('cartItems');
     if(cart.length === 0){ box.innerHTML = '<div class="loading-row">Seu carrinho está vazio. Adicione algo gostoso! 🍔</div>'; }
@@ -1823,7 +1886,7 @@
     btn.disabled = false; btn.textContent = "Confirmar pedido";
     const code = order.code;
 
-    cart = []; updateCartUI(); renderMenu();
+    cart = []; salvarCarrinho(); updateCartUI(); renderMenu();
     document.getElementById('ckName').value = "";
     document.getElementById('ckPhone').value = "";
     document.getElementById('ckAddress').value = "";
@@ -2262,7 +2325,14 @@ if('serviceWorker' in navigator){
         const nw = reg.installing;
         nw.addEventListener('statechange', () => {
           if(nw.state === 'installed' && navigator.serviceWorker.controller){
-            setTimeout(() => window.location.reload(), 1000);
+            // Nunca recarrega no meio de um pedido. Espera o carrinho
+            // esvaziar e nenhuma janela estar aberta.
+            const tentarRecarregar = () => {
+              const ocupado = cart.length > 0 || document.querySelector('.overlay.open');
+              if(ocupado){ setTimeout(tentarRecarregar, 5000); return; }
+              window.location.reload();
+            };
+            setTimeout(tentarRecarregar, 1500);
           }
         });
       });
