@@ -385,6 +385,9 @@
 
   #produtoFormHome, #addonFormHome{display:none;}
 
+  .px-dica{display:block; font-size:11.5px; color:rgba(242,233,218,0.45); margin-top:5px; text-transform:none; letter-spacing:0;}
+  .box-info code{background:rgba(242,233,218,0.1); padding:1px 6px; border-radius:5px; font-size:12px;}
+
   .passo-print{display:flex; gap:12px; margin-bottom:12px;}
   .passo-print > span{flex-shrink:0; width:24px; height:24px; border-radius:50%; background:var(--ember); color:var(--pitch); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px;}
   .passo-print strong{display:block; font-size:13.5px; margin-bottom:2px;}
@@ -5361,6 +5364,8 @@
      desc:'Estima o movimento dos próximos dias com base no seu histórico.', tab:null},
     {key:'filaimpressao', icon:'🖨️', nome:'Fila de impressão (PC + USB)',
      desc:'Manda as comandas pra um computador imprimir na térmica USB. Precisa do script rodando no PC.', tab:null},
+    {key:'pixels',      icon:'📣', nome:'Pixels de anúncio (Meta / Google / TikTok)',
+     desc:'Rastreia visitas, carrinho e compras pro seu gestor de tráfego medir o retorno.', tab:null},
     {key:'relatorios',  icon:'📊', nome:'Relatórios em CSV',
      desc:'Exporta vendas e pedidos pra abrir no Excel ou mandar pro contador.', tab:null}
   ];
@@ -5525,6 +5530,63 @@
           <button class="btn-primary" id="fidSaveBtn">Salvar</button>
         </div>`;
     }
+    if(moduloAtivo('pixels')){
+      html += `
+        <div class="admin-list">
+          <h3>📣 Pixels de anúncio</h3>
+          <p style="font-size:13px;color:rgba(242,233,218,0.6);margin-bottom:16px;">Peça os códigos ao seu gestor de tráfego e cole aqui. Deixe em branco o que não usar.</p>
+
+          <div class="field">
+            <label>Meta Pixel (Facebook / Instagram)</label>
+            <input type="text" id="pxMeta" placeholder="Ex: 1234567890123456" value="${escapeHtml(features.pxMeta||'')}">
+            <small class="px-dica">Só números. Está no Gerenciador de Eventos da Meta.</small>
+          </div>
+
+          <div class="field">
+            <label>Google Analytics 4</label>
+            <input type="text" id="pxGa4" placeholder="Ex: G-XXXXXXXXXX" value="${escapeHtml(features.pxGa4||'')}">
+            <small class="px-dica">Começa com G-</small>
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label>Google Ads — ID de conversão</label>
+              <input type="text" id="pxAdsId" placeholder="Ex: AW-123456789" value="${escapeHtml(features.pxAdsId||'')}">
+            </div>
+            <div class="field">
+              <label>Google Ads — rótulo</label>
+              <input type="text" id="pxAdsLabel" placeholder="Ex: AbC-D_efG" value="${escapeHtml(features.pxAdsLabel||'')}">
+            </div>
+          </div>
+
+          <div class="field">
+            <label>TikTok Pixel</label>
+            <input type="text" id="pxTiktok" placeholder="Ex: CXXXXXXXXXXXXXXXXXXX" value="${escapeHtml(features.pxTiktok||'')}">
+          </div>
+
+          <div class="field">
+            <label>Aviso de cookies (LGPD)</label>
+            <select id="pxConsent">
+              <option value="sim" ${features.pxConsent!=='nao'?'selected':''}>Mostrar aviso e só rastrear após aceite</option>
+              <option value="nao" ${features.pxConsent==='nao'?'selected':''}>Não mostrar aviso</option>
+            </select>
+            <small class="px-dica">Recomendado manter ligado. O rastreamento só começa depois que o cliente aceita.</small>
+          </div>
+
+          <button class="btn-primary" id="pxSaveBtn">Salvar pixels</button>
+          <div class="error-msg" id="pxMsg"></div>
+
+          <div class="box-info" style="margin-top:16px;">
+            <b>Eventos que o seu gestor vai receber:</b><br>
+            <code>PageView</code> — visita<br>
+            <code>ViewContent</code> — abriu um lanche<br>
+            <code>AddToCart</code> — adicionou ao carrinho<br>
+            <code>InitiateCheckout</code> — começou a finalizar<br>
+            <code>Purchase</code> — pedido confirmado, <b>com o valor</b><br>
+            <small style="opacity:.75;">O valor no Purchase é o que permite calcular o retorno do anúncio.</small>
+          </div>
+        </div>`;
+    }
     if(moduloAtivo('filaimpressao')){
       const st = filaStatus();
       html += `
@@ -5571,6 +5633,23 @@
       }, {merge:true});
       showToast('Fidelidade configurada ✓');
     });
+    const pxS = document.getElementById('pxSaveBtn');
+    if(pxS) pxS.addEventListener('click', async () => {
+      const limpar = s => String(s||'').trim();
+      await db.collection('store').doc('features').set({
+        pxMeta:    limpar(document.getElementById('pxMeta').value).replace(/\D/g,''),
+        pxGa4:     limpar(document.getElementById('pxGa4').value),
+        pxAdsId:   limpar(document.getElementById('pxAdsId').value),
+        pxAdsLabel:limpar(document.getElementById('pxAdsLabel').value),
+        pxTiktok:  limpar(document.getElementById('pxTiktok').value),
+        pxConsent: document.getElementById('pxConsent').value
+      }, {merge:true});
+      const m = document.getElementById('pxMsg');
+      m.style.color = 'var(--green)';
+      m.textContent = 'Pixels salvos ✓ Peça pro gestor conferir no Gerenciador de Eventos.';
+      setTimeout(()=>{ m.textContent=''; }, 6000);
+    });
+
     const flS = document.getElementById('filaSaveBtn');
     if(flS) flS.addEventListener('click', async () => {
       await db.collection('store').doc('features').set({

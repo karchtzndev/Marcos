@@ -1,4 +1,4 @@
-const CACHE = "omarkin-gerencial-v34";
+const CACHE = "omarkin-gerencial-v35";
 const ASSETS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./mascot.jpg"];
 
 self.addEventListener('install', (e) => {
