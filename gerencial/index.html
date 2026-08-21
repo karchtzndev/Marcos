@@ -599,6 +599,21 @@
   .prev-info span{font-size:12px; color:var(--mustard);}
   .prev-step{background:var(--char); border-radius:99px; padding:5px 12px; font-size:13px; font-weight:700; color:rgba(242,233,218,0.6); flex-shrink:0;}
 
+  /* ---------- FALHA DE CONEXÃO ---------- */
+  .falha-conexao{
+    position:fixed; inset:0; z-index:300; background:var(--pitch);
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .fc-box{max-width:340px; text-align:center;}
+  .fc-icon{font-size:52px; margin-bottom:16px;}
+  .fc-box strong{display:block; font-family:'Anton',sans-serif; font-size:19px; color:var(--ember); margin-bottom:10px;}
+  .fc-box p{font-size:14px; color:rgba(242,233,218,0.65); line-height:1.6; margin-bottom:22px;}
+  .fc-box button{
+    background:var(--ember); color:var(--pitch); border:none; border-radius:999px;
+    padding:14px 32px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit;
+  }
+  .fc-box button:hover{background:var(--mustard);}
+
   /* ---------- ITEM PAUSADO ---------- */
   .prod-off{opacity:0.5;}
   .prod-off .prod-thumb, .prod-off .pi{filter:grayscale(1);}
@@ -2002,9 +2017,29 @@
 
 <!-- ============ FIREBASE ============ -->
 <!-- Projeto conectado: omarkin-burguer-39bda -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<div id="falhaConexao" class="falha-conexao" style="display:none;">
+  <div class="fc-box">
+    <div class="fc-icon">📡</div>
+    <strong>Não conseguimos carregar o painel</strong>
+    <p>Pode ser a internet ou um bloqueador de anúncios. Verifique a conexão e tente de novo.</p>
+    <button onclick="window.location.reload()">🔄 Tentar novamente</button>
+  </div>
+</div>
+<script>
+  window.__firebaseOk = false;
+  window.__vigiaFirebase = setTimeout(function(){
+    if(!window.__firebaseOk){
+      var el = document.getElementById('falhaConexao');
+      if(el) el.style.display = 'flex';
+    }
+  }, 9000);
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"
+        onerror="document.getElementById('falhaConexao').style.display='flex'"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"
+        onerror="document.getElementById('falhaConexao').style.display='flex'"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"
+        onerror="document.getElementById('falhaConexao').style.display='flex'"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
   const firebaseConfig = {
@@ -2015,15 +2050,28 @@
     messagingSenderId: "476114578010",
     appId: "1:476114578010:web:fb22f3159e86edf0a5c663"
   };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-  // Modo offline: guarda no aparelho e sincroniza quando a internet voltar
-  db.enablePersistence({synchronizeTabs:true}).catch((err) => {
-    console.warn("Persistência offline indisponível:", err.code);
-  });
-  const auth = firebase.auth();
-  // app secundário: usado só pra criar contas de funcionário sem deslogar o gerente
-  const secondaryApp = firebase.initializeApp(firebaseConfig, "secondary");
+  let db, auth, secondaryApp;
+  try{
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    // Modo offline: guarda no aparelho e sincroniza quando a internet voltar
+    db.enablePersistence({synchronizeTabs:true}).catch((err) => {
+      console.warn("Persistência offline indisponível:", err.code);
+    });
+    auth = firebase.auth();
+    // app secundário: usado só pra criar contas de funcionário sem deslogar o gerente
+    secondaryApp = firebase.initializeApp(firebaseConfig, "secondary");
+
+    window.__firebaseOk = true;
+    clearTimeout(window.__vigiaFirebase);
+    const falhaEl = document.getElementById('falhaConexao');
+    if(falhaEl) falhaEl.style.display = 'none';
+  }catch(e){
+    console.error('Falha ao iniciar o Firebase:', e);
+    const falhaEl = document.getElementById('falhaConexao');
+    if(falhaEl) falhaEl.style.display = 'flex';
+    throw e;
+  }
 </script>
 
 <script>
@@ -2035,6 +2083,10 @@
   let inventory = [];
   let employees = [];
   let currentRole = null; // 'gerente' | 'funcionario'
+  // Escutas de Dashboard/Financeiro sensíveis a permissão — declaradas
+  // aqui em cima, antes do auth.onAuthStateChanged, pra nunca correr risco
+  // de "Cannot access before initialization" caso o callback dispare cedo.
+  let statsUnsub = null, cashflowUnsub = null, fixedCostsUnsub = null;
   let currentEmployee = null; // {id, name}
   let activeCategory = "todos";
   let cart = []; // {productId, name, price, icon, qty}
@@ -6897,8 +6949,6 @@
   // Financeiro) e o Gerente entrasse depois no mesmo aparelho, essas
   // escutas nunca chegavam a começar: o Dashboard e o Financeiro
   // apareciam zerados mesmo com dados no banco.
-  let statsUnsub = null, cashflowUnsub = null, fixedCostsUnsub = null;
-
   function ajustarListenersPorPermissao(){
     if(myPerms.includes('dashboard')){
       if(!statsUnsub) statsUnsub = watchStats() || true;

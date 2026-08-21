@@ -198,8 +198,27 @@
   </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<div id="falhaConexao" style="display:none; position:fixed; inset:0; z-index:300; background:#120e0b; align-items:center; justify-content:center; padding:24px;">
+  <div style="max-width:420px; text-align:center;">
+    <div style="font-size:60px; margin-bottom:16px;">📡</div>
+    <strong style="display:block; font-family:'Anton',sans-serif; font-size:24px; color:#e5762e; margin-bottom:12px;">Não conseguimos conectar</strong>
+    <p style="font-size:15px; color:rgba(242,233,218,0.65); line-height:1.6; margin-bottom:24px;">Verifique a internet da TV e tente de novo.</p>
+    <button onclick="window.location.reload()" style="background:#e5762e; color:#120e0b; border:none; border-radius:999px; padding:16px 36px; font-size:16px; font-weight:900; cursor:pointer;">🔄 Tentar novamente</button>
+  </div>
+</div>
+<script>
+  window.__firebaseOk = false;
+  window.__vigiaFirebase = setTimeout(function(){
+    if(!window.__firebaseOk){
+      var el = document.getElementById('falhaConexao');
+      if(el) el.style.display = 'flex';
+    }
+  }, 9000);
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"
+        onerror="document.getElementById('falhaConexao').style.display='flex'"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"
+        onerror="document.getElementById('falhaConexao').style.display='flex'"></script>
 <script>
 (function(){
   "use strict";
@@ -212,8 +231,20 @@
     messagingSenderId: "476114578010",
     appId: "1:476114578010:web:fb22f3159e86edf0a5c663"
   };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  let db;
+  try{
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    window.__firebaseOk = true;
+    clearTimeout(window.__vigiaFirebase);
+    const falhaEl = document.getElementById('falhaConexao');
+    if(falhaEl) falhaEl.style.display = 'none';
+  }catch(e){
+    console.error('Falha ao iniciar o Firebase:', e);
+    const falhaEl = document.getElementById('falhaConexao');
+    if(falhaEl) falhaEl.style.display = 'flex';
+    throw e;
+  }
 
   /* ============ CONFIGURAÇÃO ============ */
   const TEMPO_NA_TELA = 14000;  // quanto cada chamada fica em destaque (ms)

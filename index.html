@@ -411,6 +411,21 @@
     font-size:12.5px; line-height:1.5; margin-top:12px;
   }
 
+  /* ---------- FALHA DE CONEXÃO ---------- */
+  .falha-conexao{
+    position:fixed; inset:0; z-index:300; background:var(--pitch);
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .fc-box{max-width:340px; text-align:center;}
+  .fc-icon{font-size:52px; margin-bottom:16px;}
+  .fc-box strong{display:block; font-family:'Anton',sans-serif; font-size:19px; color:var(--ember); margin-bottom:10px;}
+  .fc-box p{font-size:14px; color:rgba(242,233,218,0.65); line-height:1.6; margin-bottom:22px;}
+  .fc-box button{
+    background:var(--ember); color:var(--pitch); border:none; border-radius:999px;
+    padding:14px 32px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit;
+  }
+  .fc-box button:hover{background:var(--mustard);}
+
   /* ---------- AVISO DE COOKIES ---------- */
   .cookie-bar{
     position:fixed; left:12px; right:12px; bottom:12px; z-index:200;
@@ -924,8 +939,30 @@
 
 <!-- ============ FIREBASE ============ -->
 <!-- Projeto conectado: omarkin-burguer-39bda -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<!-- Vigia: se o Firebase não carregar em alguns segundos (rede instável,
+     bloqueador de anúncio, wi-fi que bloqueia o domínio), mostra um erro
+     claro em vez de deixar "Carregando..." pra sempre sem explicação. -->
+<div id="falhaConexao" class="falha-conexao" style="display:none;">
+  <div class="fc-box">
+    <div class="fc-icon">📡</div>
+    <strong>Não conseguimos carregar a loja</strong>
+    <p>Pode ser a internet ou um bloqueador de anúncios. Verifique a conexão e tente de novo.</p>
+    <button onclick="window.location.reload()">🔄 Tentar novamente</button>
+  </div>
+</div>
+<script>
+  window.__firebaseOk = false;
+  window.__vigiaFirebase = setTimeout(function(){
+    if(!window.__firebaseOk){
+      var el = document.getElementById('falhaConexao');
+      if(el) el.style.display = 'flex';
+    }
+  }, 9000);
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"
+        onerror="document.getElementById('falhaConexao').style.display='flex'"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"
+        onerror="document.getElementById('falhaConexao').style.display='flex'"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyA-7sy4ox0ErDZAw7prhXYJ3MaSA7G_scY",
@@ -935,8 +972,24 @@
     messagingSenderId: "476114578010",
     appId: "1:476114578010:web:fb22f3159e86edf0a5c663"
   };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  // Só marca sucesso DEPOIS de confirmar que o SDK carregou de verdade.
+  // Antes eu marcava sucesso cedo demais — se o Firebase falhasse, essa
+  // linha escondia o aviso de erro e o script travava logo em seguida,
+  // sem deixar rastro nenhum na tela.
+  let db;
+  try{
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    window.__firebaseOk = true;
+    clearTimeout(window.__vigiaFirebase);
+    const falhaEl = document.getElementById('falhaConexao');
+    if(falhaEl) falhaEl.style.display = 'none';
+  }catch(e){
+    console.error('Falha ao iniciar o Firebase:', e);
+    const falhaEl = document.getElementById('falhaConexao');
+    if(falhaEl) falhaEl.style.display = 'flex';
+    throw e; // interrompe aqui mesmo — não dá pra seguir sem o banco
+  }
   // Modo offline: guarda no aparelho e sincroniza quando a internet voltar
   db.enablePersistence({synchronizeTabs:true}).catch((err) => {
     console.warn("Persistência offline indisponível:", err.code);
@@ -945,8 +998,6 @@
 
 <script>
 (function(){
-  const ADMIN_PASSWORD = "markin123";
-
   let products = [];
   let orders = [];
   let cashflow = [];
