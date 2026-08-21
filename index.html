@@ -1091,6 +1091,20 @@
   document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => closeOverlay(btn.dataset.close)));
   document.querySelectorAll('.overlay').forEach(ov => ov.addEventListener('click', (e) => { if(e.target === ov) closeOverlay(ov.id); }));
 
+  // Rede de segurança: destrava mesmo se algo tiver dado errado no meio
+  // do caminho (erro de rede, exceção antes do modal fechar direito).
+  document.addEventListener('keydown', (e) => {
+    if(e.key !== 'Escape') return;
+    const aberto = document.querySelector('.overlay.open');
+    if(aberto) closeOverlay(aberto.id);
+  });
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState !== 'visible') return;
+    if(!document.querySelector('.overlay.open') && document.body.style.position === 'fixed'){
+      destravarFundo();
+    }
+  });
+
   function showToast(msg){
     const t = document.getElementById('saveToast');
     t.textContent = msg || "Alterações salvas ✓";

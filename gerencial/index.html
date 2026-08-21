@@ -2113,6 +2113,22 @@
     document.getElementById(id).classList.remove('open');
     if(!document.querySelector('.overlay.open')) destravarFundo();
   }
+
+  // Rede de segurança: destrava mesmo se algo tiver dado errado no meio
+  // do caminho (erro de rede, exceção antes do modal fechar direito).
+  document.addEventListener('keydown', (e) => {
+    if(e.key !== 'Escape') return;
+    const aberto = document.querySelector('.overlay.open');
+    if(aberto) closeOverlay(aberto.id);
+  });
+  // Ao voltar pro app (celular que bloqueou a tela, trocou de aba), confere
+  // se sobrou alguma trava sem overlay nenhum aberto de verdade.
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState !== 'visible') return;
+    if(!document.querySelector('.overlay.open') && document.body.style.position === 'fixed'){
+      destravarFundo();
+    }
+  });
   document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => closeOverlay(btn.dataset.close)));
   document.querySelectorAll('.overlay').forEach(ov => ov.addEventListener('click', (e) => { if(e.target === ov) closeOverlay(ov.id); }));
 
@@ -3048,7 +3064,7 @@
 
   /* ---------------- CASHFLOW / FIXED COSTS / INVENTORY (Firestore) ---------------- */
   function watchCashflow(){
-    db.collection('store').doc('cashflow').onSnapshot((doc) => {
+    return db.collection('store').doc('cashflow').onSnapshot((doc) => {
       cashflow = (doc.exists && doc.data().list) ? doc.data().list : [];
       renderCashflowList(); renderDashboard(); renderFinKpis();
     }, (err) => console.error("Erro cashflow:", err));
@@ -3056,7 +3072,7 @@
   async function saveCashflow(){ try{ await db.collection('store').doc('cashflow').set({list: cashflow}); showToast("Lançamento salvo ✓"); }catch(e){ alert("Não foi possível salvar."); } }
 
   function watchFixedCosts(){
-    db.collection('store').doc('fixedcosts').onSnapshot((doc) => {
+    return db.collection('store').doc('fixedcosts').onSnapshot((doc) => {
       fixedCosts = (doc.exists && doc.data().list) ? doc.data().list : [];
       renderFixedCostList(); renderDashboard(); renderFinKpis();
     }, (err) => console.error("Erro custos fixos:", err));
@@ -3988,7 +4004,7 @@
           return `<tr class="${urgClass}">
             <td class="td-num">${o.dailyNumber||'–'}</td>
             <td><code>${o.code}</code></td>
-            <td><strong>${escapeHtml(o.customerName)}</strong><br><small>${o.phone||''}</small></td>
+            <td><strong>${escapeHtml(o.customerName)}</strong><br><small>${escapeHtml(o.phone||'')}</small></td>
             <td>${typeIcon(o)}</td>
             <td class="td-items">${o.items.map(i=>i.qty+'x '+escapeHtml(i.name)).join('<br>')}</td>
             <td class="td-money">${money(o.total)}</td>
@@ -4126,7 +4142,7 @@
   function watchStats(){
     // últimos 60 dias — 60 documentos, independente do volume de pedidos
     const from = localDateStr(Date.now() - 60*24*60*60*1000);
-    db.collection('stats').where('date','>=',from).onSnapshot((snap) => {
+    return db.collection('stats').where('date','>=',from).onSnapshot((snap) => {
       dailyStats = {};
       snap.docs.forEach(d => dailyStats[d.id] = d.data());
       renderDashboard();
@@ -6803,7 +6819,12 @@
   // Estado de autenticação: única porta de entrada do painel
   auth.onAuthStateChanged(async (user) => {
     if(!user){
-      currentRole = null; currentEmployee = null;
+      currentRole = null; currentEmployee = null; myPerms = [];
+      // encerra o que é sensível a permissão — quem entrar a seguir
+      // começa do zero, sem herdar acesso de quem saiu
+      if(statsUnsub){ if(typeof statsUnsub === 'function') statsUnsub(); statsUnsub = null; dailyStats = {}; }
+      if(cashflowUnsub){ if(typeof cashflowUnsub === 'function') cashflowUnsub(); cashflowUnsub = null; cashflow = []; }
+      if(fixedCostsUnsub){ if(typeof fixedCostsUnsub === 'function') fixedCostsUnsub(); fixedCostsUnsub = null; fixedCosts = []; }
       document.getElementById('whoAmI').style.display = 'none';
       document.getElementById('logoutBtn').style.display = 'none';
       document.getElementById('soundToggleBtn').style.display = 'none';
@@ -6830,6 +6851,11 @@
       currentEmployee = {id: user.uid, name: profile.name || user.email};
       document.getElementById('managerView').classList.add('carregando');
       if(!listenersStarted){ startDataListeners(); listenersStarted = true; }
+      // Reavalia a cada login — corrige o aparelho compartilhado: se a
+      // pessoa anterior não tinha acesso a Dashboard/Financeiro, essas
+      // escutas nunca tinham começado. Agora começam pra quem tem, e
+      // param pra quem não tem.
+      ajustarListenersPorPermissao();
       showView('manager');
       applyRolePermissions();
     }catch(e){
@@ -6850,6 +6876,8 @@
     navList.style.cssText += 'flex-direction:column; position:absolute; top:64px; right:20px; background:#1c1613; padding:20px 26px; border-radius:12px; gap:16px; border:1px solid rgba(242,233,218,0.14); z-index:60;';
   });
 
+  // Escutas fixas: independem de quem está logado, então só precisam
+  // começar uma vez.
   function startDataListeners(){
     watchProducts();
     watchOrders();
@@ -6860,13 +6888,33 @@
     watchRegister();
     watchFeatures();
     watchFilaAgente();
-    if(myPerms.includes('dashboard')) watchStats();
-    // Só busca o financeiro se a pessoa tiver essa permissão
-    if(myPerms.includes('financeiro')){
-      watchCashflow();
-      watchFixedCosts();
-    }
     updateCartUI();
+  }
+
+  // Escutas que dependem da PERMISSÃO de quem está logado. Rodavam só
+  // dentro de startDataListeners(), que só executa uma vez — em aparelho
+  // compartilhado, se o Caixa logasse primeiro (sem acesso a Dashboard/
+  // Financeiro) e o Gerente entrasse depois no mesmo aparelho, essas
+  // escutas nunca chegavam a começar: o Dashboard e o Financeiro
+  // apareciam zerados mesmo com dados no banco.
+  let statsUnsub = null, cashflowUnsub = null, fixedCostsUnsub = null;
+
+  function ajustarListenersPorPermissao(){
+    if(myPerms.includes('dashboard')){
+      if(!statsUnsub) statsUnsub = watchStats() || true;
+    }else if(statsUnsub){
+      if(typeof statsUnsub === 'function') statsUnsub();
+      statsUnsub = null;
+      dailyStats = {};
+    }
+
+    if(myPerms.includes('financeiro')){
+      if(!cashflowUnsub)    cashflowUnsub    = watchCashflow()    || true;
+      if(!fixedCostsUnsub)  fixedCostsUnsub  = watchFixedCosts()  || true;
+    }else{
+      if(cashflowUnsub){ if(typeof cashflowUnsub === 'function') cashflowUnsub(); cashflowUnsub = null; cashflow = []; }
+      if(fixedCostsUnsub){ if(typeof fixedCostsUnsub === 'function') fixedCostsUnsub(); fixedCostsUnsub = null; fixedCosts = []; }
+    }
   }
 })();
 
