@@ -3955,7 +3955,7 @@
       </details>
       <div class="order-actions-row">
         <button class="print-btn" data-print="${o.code}">🖨️ Comanda</button>
-        <button class="call-btn" data-call="${o.code}">📢 Chamar na TV</button>
+        ${podeChamarTv() ? `<button class="call-btn" data-call="${o.code}">📢 Chamar na TV</button>` : ''}
         <button class="pay-now-btn" data-paybill="${o.orderType==='mesa'?'mesa:'+o.table:'pedido:'+o.code}" style="padding:8px 14px;font-size:12px;">💳 Receber</button>
         <button class="cancel-btn" data-cancel="${o.code}">❌ Cancelar</button>
       </div>`:`<div style="color:var(--tomato);font-weight:700;font-size:13px;margin-top:8px;">❌ CANCELADO${o.cancelReason?' — '+escapeHtml(o.cancelReason):''}</div>`}
@@ -4002,9 +4002,10 @@
                   ${STATUS_FLOW.map(s=>`<button class="status-btn ${s.key===o.status?'current':''}" data-setstatus="${o.code}" data-status="${s.key}" title="${s.label}">${s.icon}</button>`).join('')}
                 </div>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                  <button class="print-btn" data-print="${o.code}">🖨️</button>
-                  <button class="pay-now-btn" data-paybill="${o.orderType==='mesa'?'mesa:'+o.table:'pedido:'+o.code}" style="padding:6px 10px;font-size:12px;">💳</button>
-                  <button class="cancel-btn" data-cancel="${o.code}" style="padding:4px 10px;font-size:12px;">❌</button>
+                  <button class="print-btn" data-print="${o.code}" title="Imprimir comanda">🖨️</button>
+                  ${podeChamarTv() ? `<button class="call-btn" data-call="${o.code}" style="padding:6px 10px;font-size:12px;" title="Chamar na TV">📢</button>` : ''}
+                  <button class="pay-now-btn" data-paybill="${o.orderType==='mesa'?'mesa:'+o.table:'pedido:'+o.code}" style="padding:6px 10px;font-size:12px;" title="Receber">💳</button>
+                  <button class="cancel-btn" data-cancel="${o.code}" style="padding:4px 10px;font-size:12px;" title="Cancelar">❌</button>
                 </div>
               </div>`
               :'<span style="color:var(--tomato);font-size:12px;">Cancelado</span>'}
@@ -4050,8 +4051,9 @@
               ${o.status!=='cancelado'?`
               <div class="kk-btns">
                 ${(()=>{const a=nextAction(o.status);return a?`<button class="main-action ${a.cls}" style="padding:8px 10px;font-size:11px;width:100%;" data-setstatus="${o.code}" data-status="${a.to}">${a.label}</button>`:'';})()}
-                <button class="print-btn kk-print" data-print="${o.code}">🖨️</button>
-                <button class="cancel-btn" data-cancel="${o.code}" style="padding:5px 10px;font-size:11px;">❌</button>
+                <button class="print-btn kk-print" data-print="${o.code}" title="Comanda">🖨️</button>
+                ${podeChamarTv() ? `<button class="call-btn" data-call="${o.code}" style="padding:5px 10px;font-size:11px;" title="Chamar na TV">📢</button>` : ''}
+                <button class="cancel-btn" data-cancel="${o.code}" style="padding:5px 10px;font-size:11px;" title="Cancelar">❌</button>
               </div>`:''}
             </div>`;
           }).join('')}
@@ -5731,10 +5733,18 @@
       const btn = document.querySelector(`.admin-tab-btn[data-atab="${m.tab}"]`);
       if(btn) btn.style.display = (moduloAtivo(m.key) && myPerms.includes(m.tab)) ? 'inline-flex' : 'none';
     });
+    // o atalho 📺 TV do cabeçalho acompanha a área
+    const tvL = document.getElementById('tvLink');
+    if(tvL) tvL.style.display = (areaAtiva('tv') && myPerms.includes('tv')) ? 'inline-flex' : 'none';
+
+    // redesenha os pedidos: o botão "Chamar na TV" some/aparece junto
+    const t = currentTab();
+    if(t === 'pedidos') renderAdminOrders();
+    else if(t === 'cozinha') renderKitchen();
+
     // se a aba aberta foi desligada, volta pra Pedidos
-    const atual = currentTab();
-    const aInfo = AREAS.find(a => a.key === atual);
-    if(aInfo && !areaAtiva(atual)){
+    const aInfo = AREAS.find(a => a.key === t);
+    if(aInfo && !areaAtiva(t)){
       const p = document.querySelector('.admin-tab-btn[data-atab="pedidos"]');
       if(p) p.click();
     }
@@ -6073,7 +6083,7 @@
         </ul>
         ${o.notes ? `<div class="kc-notes">📝 ${escapeHtml(o.notes)}</div>` : ''}
         <button class="kc-btn" data-kitchen="${o.code}" data-next="${next}">${nextLabel}</button>
-        <button class="call-btn" data-call="${o.code}" style="width:100%; margin-top:8px;">📢 Chamar na TV</button>
+        ${podeChamarTv() ? `<button class="call-btn" data-call="${o.code}" style="width:100%; margin-top:8px;">📢 Chamar na TV</button>` : ''}
       </div>`;
     }).join('');
     box.querySelectorAll('[data-kitchen]').forEach(b => b.addEventListener('click', () => setOrderStatus(b.dataset.kitchen, b.dataset.next)));
@@ -6375,6 +6385,11 @@
   }
 
   /* ---------------- CHAMAR NO PAINEL DA TV ---------------- */
+  // O botão só aparece se a área TV estiver ligada e a pessoa tiver acesso
+  function podeChamarTv(){
+    return areaAtiva('tv') && myPerms.includes('tv');
+  }
+
   async function chamarPedido(code){
     const o = orders.find(x => x.code === code); if(!o) return;
     try{
@@ -6721,7 +6736,7 @@
     logoutBtn.style.display = 'inline-block';
     document.getElementById('soundToggleBtn').style.display = 'inline-block';
     const tvL = document.getElementById('tvLink');
-    if(tvL) tvL.style.display = myPerms.includes('tv') ? 'inline-flex' : 'none';
+    if(tvL) tvL.style.display = (areaAtiva('tv') && myPerms.includes('tv')) ? 'inline-flex' : 'none';
     const tvU = document.getElementById('tvUrl');
     if(tvU) tvU.value = window.location.origin + "/chamada/";
     initAudio();
