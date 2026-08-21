@@ -1164,8 +1164,25 @@
   }
 
   /* ---------------- PRODUCTS (Firestore) ---------------- */
+  // Vigia do cardápio: se a consulta ao Firestore travar sem erro nenhum
+  // (acontece ao voltar do painel pra cá na mesma aba — a persistência
+  // offline às vezes ainda está segurando a conexão anterior), oferece
+  // recarregar em vez de deixar "Carregando cardápio..." pra sempre.
+  let primeiroCardapioChegou = false;
+  const vigiaCardapio = setTimeout(() => {
+    if(primeiroCardapioChegou) return;
+    const grid = document.getElementById('menuGrid');
+    if(grid) grid.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1; text-align:center;">
+        <div style="font-size:15px; margin-bottom:14px;">📡 O cardápio está demorando pra carregar.</div>
+        <button onclick="window.location.reload()" style="background:var(--ember); color:var(--pitch); border:none; border-radius:999px; padding:12px 28px; font-size:14px; font-weight:700; cursor:pointer;">🔄 Recarregar</button>
+      </div>`;
+  }, 8000);
+
   function watchProducts(){
     db.collection('store').doc('menu').onSnapshot(async (doc) => {
+      primeiroCardapioChegou = true;
+      clearTimeout(vigiaCardapio);
       if(doc.exists && doc.data().items){
         products = doc.data().items;
       }else{
@@ -1176,6 +1193,8 @@
       revalidarCarrinho();
     }, (err) => {
       console.error("Erro ao ler cardápio:", err);
+      primeiroCardapioChegou = true;
+      clearTimeout(vigiaCardapio);
       products = defaultProducts;
       renderMenu();
     });
