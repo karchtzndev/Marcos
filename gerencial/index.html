@@ -2054,10 +2054,20 @@
   try{
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
-    // Modo offline: guarda no aparelho e sincroniza quando a internet voltar
-    db.enablePersistence({synchronizeTabs:true}).catch((err) => {
-      console.warn("Persistência offline indisponível:", err.code);
-    });
+    // Modo offline: guarda no aparelho e sincroniza quando a internet voltar.
+    // No iPhone/iPad com "Solicitar site para computador", o IndexedDB fica
+    // instável e a conexão trava sem erro — por isso detectamos e pulamos.
+    var iosDesktop = (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if(iosDesktop){
+      console.warn('Modo "site para computador" detectado — offline desativado.');
+    }else{
+      Promise.race([
+        db.enablePersistence({synchronizeTabs:true}),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 3000))
+      ]).catch((err) => {
+        console.warn("Persistência offline indisponível:", err.code || err.message);
+      });
+    }
     auth = firebase.auth();
     // app secundário: usado só pra criar contas de funcionário sem deslogar o gerente
     secondaryApp = firebase.initializeApp(firebaseConfig, "secondary");
@@ -2811,10 +2821,22 @@
   `;
 
   /* ---------------- IMPRESSÃO DIRETA (RawBT / ESC-POS) ---------------- */
-  const ehAndroid = /android/i.test(navigator.userAgent);
+  // Detecção de Android resistente ao modo "site para computador":
+  // nesse modo o Chrome remove "Android" do userAgent, e a impressão direta
+  // na térmica (RawBT) silenciosamente parava de ser oferecida.
+  const ehAndroid = (function(){
+    if(/android/i.test(navigator.userAgent)) return true;
+    // Em modo desktop o UA mente, mas estas pistas continuam válidas:
+    // aparelho com toque + sem ser iOS = provável Android.
+    const temToque = navigator.maxTouchPoints > 1;
+    const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
+               || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if(temToque && !ehIOS && /linux/i.test(navigator.platform || '')) return true;
+    return false;
+  })();
 
   function modoImpressao(){
-    const salvo = localStorage.getItem('omarkin_print_mode') || 'auto';
+    const salvo = guardar.ler('omarkin_print_mode') || 'auto';
     if(salvo === 'browser') return 'browser';
     if(salvo === 'rawbt')   return 'rawbt';
     return ehAndroid ? 'rawbt' : 'browser';   // automático
@@ -2823,7 +2845,7 @@
   function atualizarInfoImpressao(){
     const sel = document.getElementById('printMode');
     if(!sel) return;
-    sel.value = localStorage.getItem('omarkin_print_mode') || 'auto';
+    sel.value = guardar.ler('omarkin_print_mode') || 'auto';
     const m = modoImpressao();
     const box = document.getElementById('printInfo');
     box.innerHTML = m === 'rawbt'
@@ -2833,7 +2855,7 @@
           : '🌐 <b>Pelo navegador</b> — este aparelho não é Android, então a impressão direta não está disponível. No iPhone, só com impressora AirPrint.');
   }
   document.getElementById('printMode')?.addEventListener('change', (e) => {
-    localStorage.setItem('omarkin_print_mode', e.target.value);
+    guardar.salvar('omarkin_print_mode', e.target.value);
     atualizarInfoImpressao();
     showToast('Modo de impressão salvo neste aparelho ✓');
   });
@@ -3325,12 +3347,29 @@
     }catch(e){ document.getElementById('lojaError').textContent = "Não foi possível salvar. Tente novamente."; }
   });
 
+  function copiarFallback(el){
+    try{
+      el.select();
+      el.setSelectionRange(0, 99999);
+      document.execCommand('copy');
+      showToast("Endereço copiado ✓");
+    }catch(e){
+      showToast("Selecione o endereço e copie manualmente");
+    }
+  }
+
   document.getElementById('copyTvUrl').addEventListener('click', () => {
     const el = document.getElementById('tvUrl');
     el.select();
-    navigator.clipboard.writeText(el.value)
-      .then(() => showToast("Endereço copiado ✓"))
-      .catch(() => { document.execCommand('copy'); showToast("Endereço copiado ✓"); });
+    // navigator.clipboard não existe em contexto não-seguro nem em alguns
+    // navegadores em modo desktop — sem essa checagem, quebrava antes do catch.
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(el.value)
+        .then(() => showToast("Endereço copiado ✓"))
+        .catch(() => copiarFallback(el));
+    }else{
+      copiarFallback(el);
+    }
   });
 
   /* ---------------- QR CODE DAS MESAS ---------------- */
@@ -3936,8 +3975,28 @@
     `;
   }
 
+  /* ---------- ARMAZENAMENTO SEGURO ----------
+     Safari em navegação privada, iOS em "solicitar site para computador" e
+     alguns navegadores com armazenamento cheio LANÇAM ERRO ao acessar
+     localStorage/sessionStorage. Um único acesso desprotegido no meio do
+     carregamento derruba o app inteiro — por isso tudo passa por aqui. */
+  const guardar = {
+    ler(chave, sessao){
+      try{ return (sessao ? sessionStorage : localStorage).getItem(chave); }
+      catch(e){ return null; }
+    },
+    salvar(chave, valor, sessao){
+      try{ (sessao ? sessionStorage : localStorage).setItem(chave, valor); return true; }
+      catch(e){ return false; }
+    },
+    apagar(chave, sessao){
+      try{ (sessao ? sessionStorage : localStorage).removeItem(chave); }
+      catch(e){}
+    }
+  };
+
   /* ===== VISUALIZAÇÕES DE PEDIDOS ===== */
-  let currentOrderView = localStorage.getItem('omarkin_order_view') || 'painel';
+  let currentOrderView = guardar.ler('omarkin_order_view') || 'painel';
 
   // STATUS_COLORS e STATUS_FLOW já declarados; precisamos de um helper seguro
   function statusInfo(st){
@@ -6171,7 +6230,7 @@
     btn.classList.toggle('active', btn.dataset.view === currentOrderView);
     btn.addEventListener('click', () => {
       currentOrderView = btn.dataset.view;
-      localStorage.setItem('omarkin_order_view', currentOrderView);
+      guardar.salvar('omarkin_order_view', currentOrderView);
       document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById('viewPainel').style.display = currentOrderView === 'painel' ? 'block' : 'none';

@@ -411,6 +411,26 @@
     font-size:12.5px; line-height:1.5; margin-top:12px;
   }
 
+  /* ---------- CAPTURADOR DE ERRO (DEBUG) ---------- */
+  .debug-erro{
+    position:fixed; left:10px; right:10px; bottom:10px; z-index:9999;
+    background:#2a0d0d; border:2px solid #ff4d4d; border-radius:14px;
+    padding:14px 16px; box-shadow:0 8px 30px rgba(0,0,0,0.6);
+    max-height:60vh; display:flex; flex-direction:column;
+  }
+  .de-topo{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+  .de-topo strong{color:#ff6b6b; font-size:14px;}
+  .de-topo button{background:none; border:none; color:#ff6b6b; font-size:18px; cursor:pointer; padding:0 4px;}
+  .de-texto{
+    background:#1a0808; border-radius:8px; padding:10px 12px; overflow-y:auto;
+    font-family:monospace; font-size:11.5px; color:#ffb3b3; white-space:pre-wrap;
+    word-break:break-word; line-height:1.5; margin-bottom:10px; flex-grow:1;
+  }
+  .de-copiar{
+    background:#ff4d4d; color:#2a0d0d; border:none; border-radius:999px;
+    padding:10px; font-size:13px; font-weight:700; cursor:pointer; flex-shrink:0;
+  }
+
   /* ---------- FALHA DE CONEXÃO ---------- */
   .falha-conexao{
     position:fixed; inset:0; z-index:300; background:var(--pitch);
@@ -942,6 +962,55 @@
 <!-- Vigia: se o Firebase não carregar em alguns segundos (rede instável,
      bloqueador de anúncio, wi-fi que bloqueia o domínio), mostra um erro
      claro em vez de deixar "Carregando..." pra sempre sem explicação. -->
+<!-- Capturador de erro visível na tela: pra achar o problema direto
+     pelo celular, sem precisar de computador nem cabo. -->
+<div id="debugErro" class="debug-erro" style="display:none;">
+  <div class="de-topo">
+    <strong>⚠️ Erro capturado</strong>
+    <button onclick="document.getElementById('debugErro').style.display='none'">✕</button>
+  </div>
+  <div id="debugErroTexto" class="de-texto"></div>
+  <button class="de-copiar" onclick="
+    var btn = this;
+    var txt = document.getElementById('debugErroTexto').textContent;
+    if(navigator.clipboard &amp;&amp; navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt)
+        .then(function(){ btn.textContent='✓ Copiado! Manda pro Claude'; })
+        .catch(function(){ btn.textContent='Selecione o texto acima e copie'; });
+    }else{
+      btn.textContent='Selecione o texto acima e copie';
+    }
+  ">📋 Copiar erro</button>
+</div>
+<script>
+  (function(){
+    var caixa = null, textoEl = null;
+    function garantirCaixa(){
+      caixa = document.getElementById('debugErro');
+      textoEl = document.getElementById('debugErroTexto');
+    }
+    function registrar(msg){
+      if(!caixa) garantirCaixa();
+      if(!caixa || !textoEl) return;
+      var hora = new Date().toLocaleTimeString('pt-BR');
+      var linha = '[' + hora + '] ' + msg;
+      textoEl.textContent = textoEl.textContent
+        ? textoEl.textContent + '\n\n' + linha
+        : linha;
+      caixa.style.display = 'block';
+    }
+    window.addEventListener('error', function(e){
+      registrar((e.message || 'Erro desconhecido') +
+        '\nArquivo: ' + (e.filename || '?') +
+        '\nLinha: ' + (e.lineno || '?') + ':' + (e.colno || '?'));
+    });
+    window.addEventListener('unhandledrejection', function(e){
+      var motivo = e.reason;
+      registrar('Promessa rejeitada: ' + (motivo && motivo.message ? motivo.message : String(motivo)));
+    });
+  })();
+</script>
+
 <div id="falhaConexao" class="falha-conexao" style="display:none;">
   <div class="fc-box">
     <div class="fc-icon">📡</div>
@@ -990,10 +1059,31 @@
     if(falhaEl) falhaEl.style.display = 'flex';
     throw e; // interrompe aqui mesmo — não dá pra seguir sem o banco
   }
-  // Modo offline: guarda no aparelho e sincroniza quando a internet voltar
-  db.enablePersistence({synchronizeTabs:true}).catch((err) => {
-    console.warn("Persistência offline indisponível:", err.code);
-  });
+  // Modo offline: guarda no aparelho e sincroniza quando a internet voltar.
+  //
+  // IMPORTANTE: no iPhone/iPad com "Solicitar site para computador" ligado,
+  // o Safari finge ser um Mac mas mantém as limitações do iOS. O IndexedDB
+  // (armazenamento que o modo offline usa) fica instável nesse modo e a
+  // conexão com o banco trava sem gerar erro nenhum — a tela fica em
+  // "Carregando cardápio..." pra sempre. Por isso detectamos e pulamos.
+  function iosFingindoSerComputador(){
+    // iPad/iPhone em modo desktop se identifica como MacIntel, mas Mac de
+    // verdade não tem tela de toque múltiplo.
+    return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+  }
+
+  if(iosFingindoSerComputador()){
+    console.warn('Modo "site para computador" detectado — offline desativado para evitar travamento.');
+  }else{
+    // Mesmo fora desse modo, não deixamos a ativação travar o app:
+    // se demorar mais de 3s, seguimos sem o offline.
+    Promise.race([
+      db.enablePersistence({synchronizeTabs:true}),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 3000))
+    ]).catch((err) => {
+      console.warn("Persistência offline indisponível:", err.code || err.message);
+    });
+  }
 </script>
 
 <script>
@@ -1004,6 +1094,26 @@
   let fixedCosts = [];
   let inventory = [];
   let activeCategory = "todos";
+  /* ---------- ARMAZENAMENTO SEGURO ----------
+     Safari em navegação privada, iOS em "solicitar site para computador" e
+     alguns navegadores com armazenamento cheio LANÇAM ERRO ao acessar
+     localStorage/sessionStorage. Um único acesso desprotegido no meio do
+     carregamento derruba o app inteiro — por isso tudo passa por aqui. */
+  const guardar = {
+    ler(chave, sessao){
+      try{ return (sessao ? sessionStorage : localStorage).getItem(chave); }
+      catch(e){ return null; }
+    },
+    salvar(chave, valor, sessao){
+      try{ (sessao ? sessionStorage : localStorage).setItem(chave, valor); return true; }
+      catch(e){ return false; }
+    },
+    apagar(chave, sessao){
+      try{ (sessao ? sessionStorage : localStorage).removeItem(chave); }
+      catch(e){}
+    }
+  };
+
   /* ---------- CARRINHO COM PERSISTÊNCIA ---------- */
   // Antes o carrinho só existia na memória: recarregar a página ou o
   // navegador descartar a aba fazia o cliente perder o pedido montado.
@@ -1012,13 +1122,13 @@
 
   function carregarCarrinho(){
     try{
-      const bruto = localStorage.getItem(CART_KEY);
+      const bruto = guardar.ler(CART_KEY);
       if(!bruto) return [];
       const dados = JSON.parse(bruto);
       if(!dados || !Array.isArray(dados.itens)) return [];
       // carrinho velho não serve — preço pode ter mudado
       if(Date.now() - (dados.em || 0) > CART_VALIDADE){
-        localStorage.removeItem(CART_KEY);
+        guardar.apagar(CART_KEY);
         return [];
       }
       return dados.itens;
@@ -1027,8 +1137,8 @@
 
   function salvarCarrinho(){
     try{
-      if(cart.length === 0) localStorage.removeItem(CART_KEY);
-      else localStorage.setItem(CART_KEY, JSON.stringify({em: Date.now(), itens: cart}));
+      if(cart.length === 0) guardar.apagar(CART_KEY);
+      else guardar.salvar(CART_KEY, JSON.stringify({em: Date.now(), itens: cart}));
     }catch(e){ /* modo privado ou armazenamento cheio */ }
   }
 
@@ -1524,7 +1634,7 @@
     const params = new URLSearchParams(window.location.search);
     const mesa = params.get('mesa');
     if(!mesa) return;
-    sessionStorage.setItem('omarkin_mesa', mesa);
+    guardar.salvar('omarkin_mesa', mesa, true);
     selectedOrderType = 'mesa';
     document.querySelectorAll('[data-ordertype]').forEach(b => b.classList.toggle('active', b.dataset.ordertype === 'mesa'));
     document.getElementById('ckAddressField').style.display = 'none';
@@ -1663,7 +1773,7 @@
 
   function autofillCustomer(){
     try{
-      const saved = JSON.parse(localStorage.getItem('omarkin_customer') || 'null');
+      const saved = JSON.parse(guardar.ler('omarkin_customer') || 'null');
       if(!saved) return;
       const nameEl = document.getElementById('ckName');
       const phoneEl = document.getElementById('ckPhone');
@@ -1676,7 +1786,7 @@
         set('ckCep', e.cep); set('ckRua', e.rua); set('ckNumero', e.numero);
         set('ckBairro', e.bairro); set('ckComplemento', e.complemento); set('ckReferencia', e.referencia);
       }
-      const mesa = sessionStorage.getItem('omarkin_mesa');
+      const mesa = guardar.ler('omarkin_mesa', true);
       const tableEl = document.getElementById('ckTable');
       if(mesa && !tableEl.value) tableEl.value = mesa;
       const hint = document.getElementById('welcomeBackHint');
@@ -1718,8 +1828,8 @@
       return result;
     }catch(e){
       // offline: numera localmente e marca pra conferência
-      const local = parseInt(sessionStorage.getItem('omarkin_localnum') || '0') + 1;
-      sessionStorage.setItem('omarkin_localnum', String(local));
+      const local = parseInt(guardar.ler('omarkin_localnum', true) || '0') + 1;
+      guardar.salvar('omarkin_localnum', String(local), true);
       return local;
     }
   }
@@ -1775,14 +1885,14 @@
       const promo = doc.data();
       if(!promo.active) return;
       const seenKey = "omarkin_promo_seen_" + (promo.updatedAt || "");
-      if(sessionStorage.getItem(seenKey)) return;
+      if(guardar.ler(seenKey, true)) return;
       document.getElementById('promoTitle').textContent = promo.title || "";
       document.getElementById('promoMessage').textContent = promo.message || "";
       const img = document.getElementById('promoImage');
       img.src = promo.image || "mascot.jpg";
       img.style.display = 'block';
       openOverlay('promoOverlay');
-      sessionStorage.setItem(seenKey, "1");
+      guardar.salvar(seenKey, "1", true);
     }, (err) => console.error("Erro promo:", err));
   }
 
@@ -1985,7 +2095,7 @@
 
     // Guarda os dados do cliente pra facilitar o próximo pedido
     try{
-      localStorage.setItem('omarkin_customer', JSON.stringify({
+      guardar.salvar('omarkin_customer', JSON.stringify({
         name, phone, address,
         endereco: {
           cep: document.getElementById('ckCep').value.trim(),
@@ -1996,7 +2106,7 @@
           referencia: document.getElementById('ckReferencia').value.trim()
         }
       }));
-      if(selectedOrderType === 'mesa' && table) sessionStorage.setItem('omarkin_mesa', table);
+      if(selectedOrderType === 'mesa' && table) guardar.salvar('omarkin_mesa', table, true);
     }catch(e){}
 
     // Abre o WhatsApp da loja com o pedido completo
@@ -2255,7 +2365,7 @@
 
   function temConsentimento(){
     if(features.pxConsent === 'nao') return true;      // aviso desligado
-    return localStorage.getItem(CONSENT_KEY) === 'sim';
+    return guardar.ler(CONSENT_KEY) === 'sim';
   }
 
   function iniciarPixels(){
@@ -2373,7 +2483,7 @@
   /* ---------- AVISO DE COOKIES (LGPD) ---------- */
   function mostrarAvisoCookies(){
     if(document.getElementById('cookieBar')) return;
-    if(localStorage.getItem(CONSENT_KEY)) return;
+    if(guardar.ler(CONSENT_KEY)) return;
     const bar = document.createElement('div');
     bar.id = 'cookieBar';
     bar.className = 'cookie-bar';
@@ -2386,12 +2496,12 @@
     document.body.appendChild(bar);
     requestAnimationFrame(() => bar.classList.add('show'));
     document.getElementById('cbSim').addEventListener('click', () => {
-      localStorage.setItem(CONSENT_KEY, 'sim');
+      guardar.salvar(CONSENT_KEY, 'sim');
       bar.remove();
       iniciarPixels();
     });
     document.getElementById('cbNao').addEventListener('click', () => {
-      localStorage.setItem(CONSENT_KEY, 'nao');
+      guardar.salvar(CONSENT_KEY, 'nao');
       bar.remove();
     });
   }
