@@ -3077,7 +3077,7 @@
     const html = document.getElementById('printArea').innerHTML;
     if(!html.trim()) return false;
     try{
-      await db.collection('printQueue').add({
+      await comLimite(db.collection('printQueue').add({
         tipo: tipo || 'comanda',
         titulo: titulo || '',
         escpos: htmlParaEscPos(html),
@@ -3085,7 +3085,7 @@
         criadoEm: new Date().toISOString(),
         criadoPor: currentEmployee ? currentEmployee.name : '',
         status: 'pendente'
-      });
+      }), 5000, 'fila de impressão');
       return true;
     }catch(e){
       console.error('fila:', e);
@@ -4725,11 +4725,11 @@
     if(isNaN(amount) || amount < 0){ errEl.textContent = "Informe o valor do fundo de troco."; return; }
     errEl.textContent = "";
     try{
-      await db.collection('store').doc('register').set({
+      await comLimite(db.collection('store').doc('register').set({
         isOpen: true, openingAmount: amount,
         openedAt: new Date().toISOString(),
         openedBy: currentEmployee ? currentEmployee.name : ''
-      });
+      }), 5000, 'abrir caixa');
       showToast("Caixa aberto ✓");
       document.getElementById('openingAmount').value = "";
     }catch(e){ errEl.textContent = "Não foi possível abrir o caixa."; }
@@ -4961,6 +4961,7 @@
 
     const btn = document.getElementById('confirmPayBtn');
     btn.disabled = true; btn.textContent = "Registrando...";
+    delete btn.dataset.travadoDesde;
     try{
       const service = document.getElementById('payServiceChk').checked ? currentBill.subtotal * 0.1 : 0;
       const discount = parseFloat(document.getElementById('payDiscount').value) || 0;
@@ -4981,19 +4982,25 @@
           : Object.assign({}, payload, {paidTotal: 0, paymentMethods: [], change: 0, serviceFee: 0, discount: 0}));
       });
       const commit = batch.commit();
-      commit.catch(e => console.warn("Sincronização pendente:", e));
+      commit.catch(e => {
+        console.warn("Sincronização pendente:", e);
+        registrarTravamento('gravar pagamento (' + (e.code || e.message || 'erro') + ')', 0);
+      });
+      // Se o servidor não confirmar em 2,5s seguimos assim mesmo (offline
+      // grava local e sincroniza depois), mas registramos pra você saber.
+      let confirmouRapido = false;
+      commit.then(() => { confirmouRapido = true; });
       await Promise.race([commit, new Promise(res => setTimeout(res, 2500))]);
+      if(!confirmouRapido) registrarTravamento('confirmação do pagamento no servidor', 2500);
 
-      // lança no financeiro
-      try{
-        const snap = await db.collection('store').doc('cashflow').get();
-        const list = (snap.exists && snap.data().list) ? snap.data().list : [];
-        list.push({
-          id: genId(), type:'entrada', desc: currentBill.title + " (" + describeMethods({paymentMethods:methods}) + ")",
-          amount: total, category:'vendas', date: todayStr()
-        });
-        await db.collection('store').doc('cashflow').set({list});
-      }catch(e){ /* funcionário não escreve no financeiro — o valor já ficou no pedido */ }
+      // Lança no financeiro EM SEGUNDO PLANO.
+      //
+      // Antes isso era `await`: quem não fosse gerente esbarrava na regra do
+      // Firestore que só deixa gerente LER o cashflow, e a leitura ficava
+      // pendurada sem erro — o botão travava em "Registrando..." pra sempre,
+      // mesmo com o pagamento já gravado. Agora o pagamento é concluído na
+      // hora e o lançamento acontece por fora, sem segurar a tela.
+      lancarVendaNoFinanceiro(currentBill.title, methods, total);
 
       closeOverlay('payOverlay');
       showToast("Pagamento recebido ✓" + (change > 0 ? " Troco: " + money(change) : ""));
@@ -5002,10 +5009,50 @@
       currentBill = null;
     }catch(e){
       console.error(e);
+      registrarTravamento('confirmar pagamento: ' + (e.message || e), 0);
       errEl.textContent = "Não foi possível registrar o pagamento. Tente novamente.";
+    }finally{
+      // finally garante que o botão destrava mesmo se algo acima falhar
+      // de um jeito que não previmos.
+      btn.disabled = false; btn.textContent = "✅ Confirmar pagamento";
     }
-    btn.disabled = false; btn.textContent = "✅ Confirmar pagamento";
   });
+
+  // Rede de segurança: se o botão ficar em "Registrando..." por mais de 12s,
+  // destrava sozinho e registra. O caixa não pode ficar parado no movimento.
+  setInterval(() => {
+    const b = document.getElementById('confirmPayBtn');
+    if(!b || !b.disabled) return;
+    if(!b.dataset.travadoDesde){ b.dataset.travadoDesde = Date.now(); return; }
+    if(Date.now() - Number(b.dataset.travadoDesde) > 12000){
+      registrarTravamento('botão de pagamento preso em "Registrando..."', 12000);
+      b.disabled = false;
+      b.textContent = "✅ Confirmar pagamento";
+      delete b.dataset.travadoDesde;
+      const em = document.getElementById('payError');
+      if(em) em.textContent = "Demorou demais. Confira na aba Caixa se o pagamento entrou antes de tentar de novo.";
+    }
+  }, 3000);
+
+  // Não usa await no fluxo do pagamento: se falhar (sem permissão, rede ruim),
+  // o pagamento já está registrado no pedido e o valor aparece no Caixa.
+  function lancarVendaNoFinanceiro(titulo, methods, total){
+    const ref = db.collection('store').doc('cashflow');
+    Promise.race([
+      ref.get(),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 4000))
+    ]).then(snap => {
+      const list = (snap.exists && snap.data().list) ? snap.data().list : [];
+      list.push({
+        id: genId(), type:'entrada',
+        desc: titulo + " (" + describeMethods({paymentMethods:methods}) + ")",
+        amount: total, category:'vendas', date: todayStr()
+      });
+      return ref.set({list});
+    }).catch(e => {
+      console.warn('Lançamento no financeiro adiado:', e.message || e);
+    });
+  }
 
   function printReceipt(bill, total, methods, change, service, discount, cpf){
     const area = document.getElementById('printArea');
@@ -5394,7 +5441,7 @@
 
   async function atribuirEntregador(code, nome){
     try{
-      await db.collection('orders').doc(code).update({deliveredBy: nome || null});
+      await comLimite(db.collection('orders').doc(code).update({deliveredBy: nome || null}), 5000, 'atribuir entregador');
       showToast(nome ? `Entrega atribuída a ${nome} ✓` : 'Atribuição removida');
     }catch(e){ alert('Não foi possível salvar.'); }
   }
@@ -6726,6 +6773,42 @@
     db.collection('stats').doc(day).set(update, {merge:true}).catch(e => console.warn("stats:", e));
   }
 
+  // Roda uma operação no banco com limite de tempo. Usado nos botões que
+  // NÃO podem travar no meio do serviço: se a rede oscilar ou uma regra
+  // recusar, a tela volta ao normal em vez de ficar presa.
+  function comLimite(promessa, ms, oQue){
+    return Promise.race([
+      promessa,
+      new Promise((_, rej) => setTimeout(() => {
+        // Espera infinita NÃO gera erro — por isso registramos aqui, senão
+        // o travamento não aparece no log e fica impossível diagnosticar.
+        registrarTravamento(oQue || 'operação', ms || 5000);
+        rej(new Error('demorou demais'));
+      }, ms || 5000))
+    ]);
+  }
+
+  // Grava travamentos no mesmo log dos erros
+  function registrarTravamento(oQue, ms){
+    try{
+      db.collection('errorLog').add({
+        mensagem: 'TRAVAMENTO: "' + oQue + '" passou de ' + (ms/1000) + 's sem resposta',
+        detalhe: 'Operação no banco não respondeu. Rede lenta, regra recusando ou aparelho offline.',
+        pagina: 'gerencial',
+        url: String(location.href).slice(0,200),
+        navegador: String(navigator.userAgent).slice(0,200),
+        plataforma: String(navigator.platform || ''),
+        toque: navigator.maxTouchPoints || 0,
+        modoComputador: (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
+        tela: (window.innerWidth||0) + 'x' + (window.innerHeight||0),
+        online: navigator.onLine,
+        usuario: currentEmployee ? currentEmployee.name : '(não logado)',
+        funcao: currentRole || '?',
+        quando: new Date().toISOString()
+      }).catch(()=>{});
+    }catch(e){}
+  }
+
   /* ---------------- CHAMAR NO PAINEL DA TV ---------------- */
   // O botão só aparece se a área TV estiver ligada e a pessoa tiver acesso
   function podeChamarTv(){
@@ -6736,7 +6819,7 @@
     const o = orders.find(x => x.code === code); if(!o) return;
     try{
       // documento novo a cada chamada: permite chamar o mesmo pedido de novo
-      await db.collection('calls').add({
+      await comLimite(db.collection('calls').add({
         code: o.code,
         dailyNumber: o.dailyNumber || null,
         customerName: o.customerName || '',
@@ -6744,7 +6827,7 @@
         table: o.table || '',
         calledAt: new Date().toISOString(),
         calledBy: currentEmployee ? currentEmployee.name : ''
-      });
+      }), 5000, 'chamar na TV');
       showToast("📢 Pedido #" + (o.dailyNumber||'') + " chamado na TV");
     }catch(e){
       console.error(e);
@@ -6757,13 +6840,13 @@
     const reason = prompt(`Cancelar o pedido #${order.dailyNumber || ''} de ${order.customerName}?\n\nMotivo (o cliente vai ver):`, "Cancelado pela loja");
     if(reason === null) return;
     try{
-      await db.collection('orders').doc(code).update({
+      await comLimite(db.collection('orders').doc(code).update({
         status: 'cancelado',
         cancelReason: reason || "",
         canceledAt: new Date().toISOString(),
         canceledBy: currentEmployee ? currentEmployee.name : '',
         tabClosed: true
-      });
+      }), 5000, 'cancelar pedido');
       // desconta das estatísticas do dia
       const day = localDateStr(order.createdAt);
       const inc = firebase.firestore.FieldValue.increment;
