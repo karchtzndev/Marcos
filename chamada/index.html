@@ -215,6 +215,41 @@
     }
   }, 9000);
 </script>
+<script>
+  // Capturador de erros — grava na aba 🐞 Erros do painel
+  (function(){
+    var jaEnviados = {};
+    function enviar(msg, detalhe){
+      try{
+        if(!window.firebase || !firebase.firestore) return;
+        var chave = String(msg).slice(0,120);
+        if(jaEnviados[chave]) return;
+        jaEnviados[chave] = true;
+        firebase.firestore().collection('errorLog').add({
+          mensagem: String(msg).slice(0,500),
+          detalhe: String(detalhe||'').slice(0,500),
+          pagina: 'tv',
+          url: String(location.href).slice(0,200),
+          navegador: String(navigator.userAgent).slice(0,200),
+          plataforma: String(navigator.platform||''),
+          toque: navigator.maxTouchPoints||0,
+          modoComputador: (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1),
+          tela: (window.innerWidth||0)+'x'+(window.innerHeight||0),
+          online: navigator.onLine,
+          quando: new Date().toISOString()
+        }).catch(function(){});
+      }catch(e){}
+    }
+    window.addEventListener('error', function(e){
+      var local = 'Arquivo: '+(e.filename||'?')+' · Linha: '+(e.lineno||'?')+':'+(e.colno||'?');
+      enviar((e.message||'Erro desconhecido')+' | '+local, local);
+    });
+    window.addEventListener('unhandledrejection', function(e){
+      var r = e.reason;
+      enviar('Promessa rejeitada: '+(r && r.message ? r.message : String(r)), '');
+    });
+  })();
+</script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"
         onerror="document.getElementById('falhaConexao').style.display='flex'"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"

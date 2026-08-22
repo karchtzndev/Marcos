@@ -989,20 +989,49 @@
       caixa = document.getElementById('debugErro');
       textoEl = document.getElementById('debugErroTexto');
     }
-    function registrar(msg){
+    var jaEnviados = {};   // evita gravar o mesmo erro repetido
+
+    function registrar(msg, detalhe){
       if(!caixa) garantirCaixa();
-      if(!caixa || !textoEl) return;
-      var hora = new Date().toLocaleTimeString('pt-BR');
-      var linha = '[' + hora + '] ' + msg;
-      textoEl.textContent = textoEl.textContent
-        ? textoEl.textContent + '\n\n' + linha
-        : linha;
-      caixa.style.display = 'block';
+      if(caixa && textoEl){
+        var hora = new Date().toLocaleTimeString('pt-BR');
+        var linha = '[' + hora + '] ' + msg;
+        textoEl.textContent = textoEl.textContent
+          ? textoEl.textContent + '\n\n' + linha
+          : linha;
+        caixa.style.display = 'block';
+      }
+      enviarParaLog(msg, detalhe);
+    }
+
+    // Grava o erro no banco pra aparecer na aba 🐞 Erros do painel.
+    // Falha aqui nunca pode quebrar o app — daí o try/catch em volta de tudo.
+    function enviarParaLog(msg, detalhe){
+      try{
+        if(!window.firebase || !firebase.firestore) return;
+        var chave = String(msg).slice(0, 120);
+        if(jaEnviados[chave]) return;      // uma vez por sessão por erro
+        jaEnviados[chave] = true;
+
+        firebase.firestore().collection('errorLog').add({
+          mensagem: String(msg).slice(0, 500),
+          detalhe: String(detalhe || '').slice(0, 500),
+          pagina: 'cliente',
+          url: String(location.href).slice(0, 200),
+          navegador: String(navigator.userAgent).slice(0, 200),
+          plataforma: String(navigator.platform || ''),
+          toque: navigator.maxTouchPoints || 0,
+          modoComputador: (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
+          tela: (window.innerWidth || 0) + 'x' + (window.innerHeight || 0),
+          online: navigator.onLine,
+          quando: new Date().toISOString()
+        }).catch(function(){});
+      }catch(e){}
     }
     window.addEventListener('error', function(e){
-      registrar((e.message || 'Erro desconhecido') +
-        '\nArquivo: ' + (e.filename || '?') +
-        '\nLinha: ' + (e.lineno || '?') + ':' + (e.colno || '?'));
+      var local = 'Arquivo: ' + (e.filename || '?') +
+                  ' · Linha: ' + (e.lineno || '?') + ':' + (e.colno || '?');
+      registrar((e.message || 'Erro desconhecido') + '\n' + local, local);
     });
     window.addEventListener('unhandledrejection', function(e){
       var motivo = e.reason;
@@ -1140,6 +1169,9 @@
       if(cart.length === 0) guardar.apagar(CART_KEY);
       else guardar.salvar(CART_KEY, JSON.stringify({em: Date.now(), itens: cart}));
     }catch(e){ /* modo privado ou armazenamento cheio */ }
+    // O service worker roda fora deste bloco e não enxerga "cart".
+    // Publicamos aqui pra ele saber se pode recarregar a página.
+    try{ window.__itensNoCarrinho = cart.length; }catch(e){}
   }
 
   // Confere o carrinho salvo contra o cardápio atual: remove item que saiu
@@ -2522,7 +2554,10 @@ if('serviceWorker' in navigator){
             // Nunca recarrega no meio de um pedido. Espera o carrinho
             // esvaziar e nenhuma janela estar aberta.
             const tentarRecarregar = () => {
-              const ocupado = cart.length > 0 || document.querySelector('.overlay.open');
+              // window.__itensNoCarrinho é publicado pelo app; se por algum
+              // motivo não existir, tratamos como carrinho vazio.
+              const noCarrinho = Number(window.__itensNoCarrinho) || 0;
+              const ocupado = noCarrinho > 0 || document.querySelector('.overlay.open');
               if(ocupado){ setTimeout(tentarRecarregar, 5000); return; }
               window.location.reload();
             };

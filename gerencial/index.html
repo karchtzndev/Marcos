@@ -443,6 +443,15 @@
   .zr-prog{background:var(--pitch); border-radius:10px; padding:14px; text-align:center; font-size:13.5px; color:var(--mustard); margin-top:14px; line-height:1.6;}
   .zr-prog.ok{color:var(--green); border:1px solid var(--green);}
 
+  /* ---------- REGISTRO DE ERROS ---------- */
+  .erro-card{border:1px solid var(--line); border-left:3px solid var(--tomato); border-radius:12px; padding:14px 16px; margin-bottom:11px;}
+  .erro-topo{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+  .erro-qtd{background:rgba(182,56,44,0.18); color:var(--tomato); border-radius:999px; padding:3px 11px; font-size:12px; font-weight:900;}
+  .erro-quando{font-size:12px; color:rgba(242,233,218,0.45);}
+  .erro-msg{font-family:monospace; font-size:12.5px; color:var(--cream); line-height:1.5; word-break:break-word; margin-bottom:10px; white-space:pre-wrap;}
+  .erro-meta{display:flex; gap:10px; flex-wrap:wrap; font-size:11.5px; color:rgba(242,233,218,0.45);}
+  .erro-tag{background:rgba(240,180,41,0.16); color:var(--mustard); border-radius:999px; padding:2px 9px; font-weight:700;}
+
   /* ---------- MÓDULOS ---------- */
   .mod-row{display:flex; align-items:center; gap:16px; padding:16px 18px; border:1px solid var(--line); border-radius:14px; margin-bottom:12px; transition:border-color .2s;}
   .mod-row.on{border-color:rgba(76,175,109,0.45); background:rgba(76,175,109,0.05);}
@@ -1150,6 +1159,7 @@
           <button class="admin-tab-btn" data-atab="loja">🏪 Loja</button>
           <button class="admin-tab-btn" data-atab="clientes" style="display:none;">👥 Clientes</button>
           <button class="admin-tab-btn" data-atab="entregas" style="display:none;">🛵 Entregas</button>
+          <button class="admin-tab-btn" data-atab="erros">🐞 Erros <span id="errosBadge"></span></button>
           <button class="admin-tab-btn" data-atab="modulos">🧩 Módulos</button>
         </div>
 
@@ -1363,6 +1373,28 @@
             <h3>Entregas do turno</h3>
             <div id="entList"><div class="loading-row">Carregando...</div></div>
           </div>
+        </div>
+
+        <!-- ERROS TAB -->
+        <div id="atabErros" style="display:none;">
+          <div class="addon-intro">
+            <div class="ai-icon">🐞</div>
+            <div>
+              <strong>Registro de erros</strong>
+              <p>Tudo que der errado em qualquer aparelho aparece aqui automaticamente. Toque em <b>Copiar tudo</b> e mande pro Claude — ele consegue achar o problema com esses dados.</p>
+            </div>
+          </div>
+
+          <div id="errosKpis" class="kpi-grid"></div>
+
+          <div class="form-actions" style="margin-bottom:18px;">
+            <button class="btn-primary" id="copiarErrosBtn">📋 Copiar tudo</button>
+            <button class="btn-ghost" id="baixarErrosBtn">⬇️ Baixar arquivo</button>
+            <button class="btn-danger" id="limparErrosBtn">🗑 Limpar registro</button>
+          </div>
+          <div class="error-msg" id="errosMsg"></div>
+
+          <div id="errosList"><div class="loading-row">Carregando...</div></div>
         </div>
 
         <!-- MÓDULOS TAB -->
@@ -2033,6 +2065,41 @@
       if(el) el.style.display = 'flex';
     }
   }, 9000);
+</script>
+<script>
+  // Capturador de erros — grava na aba 🐞 Erros do painel
+  (function(){
+    var jaEnviados = {};
+    function enviar(msg, detalhe){
+      try{
+        if(!window.firebase || !firebase.firestore) return;
+        var chave = String(msg).slice(0,120);
+        if(jaEnviados[chave]) return;
+        jaEnviados[chave] = true;
+        firebase.firestore().collection('errorLog').add({
+          mensagem: String(msg).slice(0,500),
+          detalhe: String(detalhe||'').slice(0,500),
+          pagina: 'gerencial',
+          url: String(location.href).slice(0,200),
+          navegador: String(navigator.userAgent).slice(0,200),
+          plataforma: String(navigator.platform||''),
+          toque: navigator.maxTouchPoints||0,
+          modoComputador: (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1),
+          tela: (window.innerWidth||0)+'x'+(window.innerHeight||0),
+          online: navigator.onLine,
+          quando: new Date().toISOString()
+        }).catch(function(){});
+      }catch(e){}
+    }
+    window.addEventListener('error', function(e){
+      var local = 'Arquivo: '+(e.filename||'?')+' · Linha: '+(e.lineno||'?')+':'+(e.colno||'?');
+      enviar((e.message||'Erro desconhecido')+' | '+local, local);
+    });
+    window.addEventListener('unhandledrejection', function(e){
+      var r = e.reason;
+      enviar('Promessa rejeitada: '+(r && r.message ? r.message : String(r)), '');
+    });
+  })();
 </script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"
         onerror="document.getElementById('falhaConexao').style.display='flex'"></script>
@@ -5455,6 +5522,154 @@
     baixarCSV('produtos-vendidos', linhas);
   });
 
+  /* ================= REGISTRO DE ERROS ================= */
+  let errosLog = [];
+  let errosUnsub = null;
+
+  function watchErros(){
+    if(errosUnsub) return;
+    errosUnsub = db.collection('errorLog')
+      .orderBy('quando','desc').limit(200)
+      .onSnapshot((snap) => {
+        errosLog = snap.docs.map(d => Object.assign({_id:d.id}, d.data()));
+        const badge = document.getElementById('errosBadge');
+        if(badge){
+          // conta só os das últimas 24h — erro antigo já resolvido não incomoda
+          const ontem = Date.now() - 24*60*60*1000;
+          const recentes = errosLog.filter(e => new Date(e.quando).getTime() > ontem).length;
+          badge.textContent = recentes > 0 ? `(${recentes})` : '';
+        }
+        if(currentTab() === 'erros') renderErros();
+      }, (err) => console.warn('errorLog:', err));
+  }
+
+  function renderErros(){
+    const box = document.getElementById('errosList');
+    if(!box) return;
+
+    const ontem = Date.now() - 24*60*60*1000;
+    const recentes = errosLog.filter(e => new Date(e.quando).getTime() > ontem);
+    const porPagina = {};
+    errosLog.forEach(e => { porPagina[e.pagina||'?'] = (porPagina[e.pagina||'?']||0)+1; });
+
+    document.getElementById('errosKpis').innerHTML = `
+      <div class="kpi-card"><div class="kv">${errosLog.length}</div><div class="kl">Erros registrados</div></div>
+      <div class="kpi-card"><div class="kv">${recentes.length}</div><div class="kl">Últimas 24h</div></div>
+      <div class="kpi-card"><div class="kv">${porPagina.cliente||0}</div><div class="kl">No site do cliente</div></div>
+      <div class="kpi-card"><div class="kv">${(porPagina.gerencial||0)+(porPagina.tv||0)}</div><div class="kl">Painel e TV</div></div>`;
+
+    if(errosLog.length === 0){
+      box.innerHTML = '<div class="loading-row">Nenhum erro registrado. 🎉</div>';
+      return;
+    }
+
+    // agrupa erros iguais pra não virar uma lista repetitiva
+    const grupos = {};
+    errosLog.forEach(e => {
+      const k = (e.mensagem||'').slice(0,150);
+      if(!grupos[k]) grupos[k] = {msg:e.mensagem, itens:[]};
+      grupos[k].itens.push(e);
+    });
+
+    box.innerHTML = Object.values(grupos)
+      .sort((a,b) => b.itens.length - a.itens.length)
+      .map(g => {
+        const ult = g.itens[0];
+        const qtd = g.itens.length;
+        const mins = Math.floor((Date.now() - new Date(ult.quando)) / 60000);
+        const quando = mins < 60 ? `${mins}min atrás`
+                     : mins < 1440 ? `${Math.floor(mins/60)}h atrás`
+                     : `${Math.floor(mins/1440)}d atrás`;
+        return `
+        <div class="erro-card">
+          <div class="erro-topo">
+            <span class="erro-qtd">${qtd}x</span>
+            <span class="erro-quando">${quando}</span>
+          </div>
+          <div class="erro-msg">${escapeHtml(g.msg || 'sem mensagem')}</div>
+          <div class="erro-meta">
+            <span>📍 ${escapeHtml(ult.pagina || '?')}</span>
+            ${ult.modoComputador ? '<span class="erro-tag">modo computador</span>' : ''}
+            ${ult.online === false ? '<span class="erro-tag">sem internet</span>' : ''}
+            <span>📱 ${escapeHtml((ult.plataforma||'?'))} · ${escapeHtml(ult.tela||'?')}</span>
+          </div>
+        </div>`;
+      }).join('');
+  }
+
+  function textoDosErros(){
+    if(errosLog.length === 0) return 'Nenhum erro registrado.';
+    const linhas = ['=== REGISTRO DE ERROS — O MARKIN ===',
+                    'Gerado em: ' + new Date().toLocaleString('pt-BR'),
+                    'Total: ' + errosLog.length + ' erro(s)', ''];
+    const grupos = {};
+    errosLog.forEach(e => {
+      const k = (e.mensagem||'').slice(0,150);
+      if(!grupos[k]) grupos[k] = [];
+      grupos[k].push(e);
+    });
+    Object.entries(grupos)
+      .sort((a,b) => b[1].length - a[1].length)
+      .forEach(([msg, itens], i) => {
+        const u = itens[0];
+        linhas.push(`--- ERRO ${i+1} (${itens.length}x) ---`);
+        linhas.push(u.mensagem || msg);
+        if(u.detalhe) linhas.push('Local: ' + u.detalhe);
+        linhas.push('Página: ' + (u.pagina||'?'));
+        linhas.push('Quando: ' + new Date(u.quando).toLocaleString('pt-BR'));
+        linhas.push('Aparelho: ' + (u.plataforma||'?') + ' · toque:' + (u.toque||0) +
+                    ' · tela:' + (u.tela||'?') +
+                    (u.modoComputador ? ' · MODO COMPUTADOR' : '') +
+                    (u.online === false ? ' · SEM INTERNET' : ''));
+        linhas.push('Navegador: ' + (u.navegador||'?'));
+        linhas.push('');
+      });
+    return linhas.join('\n');
+  }
+
+  document.getElementById('copiarErrosBtn')?.addEventListener('click', function(){
+    const txt = textoDosErros();
+    const msg = document.getElementById('errosMsg');
+    const feito = () => { msg.style.color='var(--green)'; msg.textContent='Copiado ✓ Cole na conversa com o Claude.'; setTimeout(()=>{msg.textContent='';},6000); };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(feito).catch(() => baixarTexto(txt));
+    }else{
+      baixarTexto(txt);
+    }
+  });
+
+  function baixarTexto(txt){
+    const blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'erros-omarkin-' + todayStr() + '.txt'; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    const msg = document.getElementById('errosMsg');
+    msg.style.color = 'var(--green)';
+    msg.textContent = 'Arquivo baixado ✓';
+    setTimeout(()=>{msg.textContent='';}, 6000);
+  }
+
+  document.getElementById('baixarErrosBtn')?.addEventListener('click', () => baixarTexto(textoDosErros()));
+
+  document.getElementById('limparErrosBtn')?.addEventListener('click', async () => {
+    if(currentRole !== 'gerente'){ alert('Só o gerente pode limpar o registro.'); return; }
+    if(!confirm(`Apagar os ${errosLog.length} erro(s) registrados?\n\nFaça isso depois de resolver os problemas.`)) return;
+    try{
+      let apagados = 0;
+      while(true){
+        const snap = await db.collection('errorLog').limit(400).get();
+        if(snap.empty) break;
+        const batch = db.batch();
+        snap.docs.forEach(d => batch.delete(d.ref));
+        await batch.commit();
+        apagados += snap.size;
+        if(snap.size < 400) break;
+      }
+      showToast(`${apagados} erro(s) apagados ✓`);
+    }catch(e){ alert('Não foi possível limpar.'); }
+  });
+
   /* ================= MÓDULOS (liga/desliga) ================= */
   // Áreas do painel — ligadas por padrão
   const AREAS = [
@@ -6618,10 +6833,10 @@
   }
 
   /* ---------------- FUNÇÕES E PERMISSÕES ---------------- */
-  const ALL_TABS = ['dashboard','cardapio','adicionais','pedidos','cozinha','tv','mesas','caixa','clientes','entregas','financeiro','estoque','equipe','promocao','loja','modulos'];
+  const ALL_TABS = ['dashboard','cardapio','adicionais','pedidos','cozinha','tv','mesas','caixa','clientes','entregas','financeiro','estoque','equipe','promocao','loja','modulos','erros'];
   const TAB_LABEL = {
     dashboard:'📊 Dashboard', cardapio:'🍔 Cardápio', adicionais:'➕ Adicionais', pedidos:'📋 Pedidos', cozinha:'👨‍🍳 Cozinha', tv:'📺 Painel TV', mesas:'🪑 Mesas',
-    caixa:'💳 Caixa', clientes:'👥 Clientes', entregas:'🛵 Entregas', financeiro:'💰 Financeiro', modulos:'🧩 Módulos', estoque:'📦 Estoque', equipe:'👥 Equipe',
+    caixa:'💳 Caixa', clientes:'👥 Clientes', entregas:'🛵 Entregas', financeiro:'💰 Financeiro', modulos:'🧩 Módulos', erros:'🐞 Erros', estoque:'📦 Estoque', equipe:'👥 Equipe',
     promocao:'📣 Promoção', loja:'🏪 Loja'
   };
   const ROLE_PRESETS = {
@@ -6809,6 +7024,7 @@
     document.getElementById('atabPedidos').style.display = tab === 'pedidos' ? 'block' : 'none';
     document.getElementById('atabAdicionais').style.display = tab === 'adicionais' ? 'block' : 'none';
     document.getElementById('atabModulos').style.display = tab === 'modulos' ? 'block' : 'none';
+    document.getElementById('atabErros').style.display = tab === 'erros' ? 'block' : 'none';
     document.getElementById('atabClientes').style.display = tab === 'clientes' ? 'block' : 'none';
     document.getElementById('atabEntregas').style.display = tab === 'entregas' ? 'block' : 'none';
     document.getElementById('atabCozinha').style.display = tab === 'cozinha' ? 'block' : 'none';
@@ -6823,6 +7039,7 @@
     if(tab === 'pedidos') renderAdminOrders();
     if(tab === 'adicionais') renderAddonTab();
     if(tab === 'modulos') renderModulos();
+    if(tab === 'erros') renderErros();
     if(tab === 'clientes') renderClientes();
     if(tab === 'entregas') renderEntregas();
     if(tab === 'cozinha') renderKitchen();
@@ -6998,6 +7215,7 @@
     watchEmployees();
     watchRegister();
     watchFeatures();
+    watchErros();
     watchFilaAgente();
     updateCartUI();
   }
