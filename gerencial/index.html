@@ -505,6 +505,15 @@
   .cli-rank{width:30px; height:30px; border-radius:50%; background:rgba(229,118,46,0.16); color:var(--ember); display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:13px; flex-shrink:0;}
   .fid-badge{display:inline-block; background:rgba(76,175,109,0.2); color:var(--green); border-radius:999px; padding:2px 9px; font-size:10px; font-weight:700; margin-left:6px;}
   .fid-flag{background:rgba(76,175,109,0.16); color:var(--green); border-radius:999px; padding:8px 15px; font-size:12px; font-weight:700; display:inline-block; margin-bottom:10px;}
+  .fid-box{background:rgba(76,175,109,0.12); border:1px solid var(--green); border-radius:12px; padding:12px 14px; margin-bottom:12px;}
+  .fid-titulo{color:var(--green); font-size:12px; font-weight:900; letter-spacing:0.6px; margin-bottom:4px;}
+  .fid-premio{font-size:15px; font-weight:700; color:var(--cream); margin-bottom:10px;}
+  .fid-acoes{display:flex; gap:8px; flex-wrap:wrap;}
+  .fid-btn{border:none; border-radius:999px; padding:9px 16px; font-size:12.5px; font-weight:700; cursor:pointer; font-family:inherit;}
+  .fid-btn.add{background:var(--green); color:#062814;}
+  .fid-btn.ok{background:transparent; border:1px solid rgba(242,233,218,0.3); color:rgba(242,233,218,0.7);}
+  .fid-btn:hover{filter:brightness(1.12);}
+  .kc-premio{background:rgba(76,175,109,0.12); border-radius:8px; padding:4px 8px !important; border-left:3px solid var(--green);}
   .fid-flag.soft{background:rgba(240,180,41,0.14); color:var(--mustard);}
 
   /* entregas */
@@ -4096,6 +4105,8 @@
     container.querySelectorAll('[data-print]').forEach(btn=>btn.addEventListener('click',()=>printComanda(btn.dataset.print)));
     container.querySelectorAll('[data-cancel]').forEach(btn=>btn.addEventListener('click',()=>cancelOrder(btn.dataset.cancel)));
     container.querySelectorAll('[data-call]').forEach(btn=>btn.addEventListener('click',()=>chamarPedido(btn.dataset.call)));
+    container.querySelectorAll('[data-fidadd]').forEach(btn=>btn.addEventListener('click',()=>lancarPremioNoPedido(btn.dataset.fidadd)));
+    container.querySelectorAll('[data-fidok]').forEach(btn=>btn.addEventListener('click',()=>entregarPremio(btn.dataset.fidok)));
     container.querySelectorAll('[data-paybill]').forEach(btn=>btn.addEventListener('click',()=>openPayment(btn.dataset.paybill)));
   }
 
@@ -4120,7 +4131,15 @@
       ${isNew?'<div class="new-flag">🔔 PEDIDO NOVO — aguardando seu aceite</div>':''}
       ${(()=>{const f=statusFidelidade(o.phone);
         if(!f) return '';
-        if(f.ganhou) return `<div class="fid-flag">🎁 CLIENTE GANHOU: ${escapeHtml(f.premio)} (${f.n}º pedido)</div>`;
+        if(f.ganhou) return `
+          <div class="fid-box">
+            <div class="fid-titulo">🎁 BRINDE DISPONÍVEL${f.pendentes>1?` (${f.pendentes})`:''}</div>
+            <div class="fid-premio">${escapeHtml(f.premio)}</div>
+            <div class="fid-acoes">
+              ${f.premioId ? `<button class="fid-btn add" data-fidadd="${o.code}">➕ Lançar no pedido</button>` : ''}
+              <button class="fid-btn ok" data-fidok="${escapeHtml(o.phone||'')}">✓ Já entreguei</button>
+            </div>
+          </div>`;
         if(f.faltam<=2) return `<div class="fid-flag soft">🎁 Faltam ${f.faltam} pedido(s) pro brinde</div>`;
         return '';})()}
       <div class="order-row-top">
@@ -4274,7 +4293,9 @@
     const addons = items.filter(i => i.forItem);
     let html = '';
     principais.forEach(p => {
-      html += `<div class="p-item"><span>${p.qty}x ${escapeHtml(p.name)}</span><span>${money(p.price*p.qty)}</span></div>`;
+      html += p.premio
+        ? `<div class="p-item"><span>${p.qty}x ${escapeHtml(p.name)}</span><span>BRINDE</span></div>`
+        : `<div class="p-item"><span>${p.qty}x ${escapeHtml(p.name)}</span><span>${money(p.price*p.qty)}</span></div>`;
       addons.filter(a => a.forItem === p.name).forEach(a => {
         html += `<div class="p-addon"><span>+ ${a.qty}x ${escapeHtml(a.name)}</span><span>${money(a.price*a.qty)}</span></div>`;
       });
@@ -5291,13 +5312,86 @@
     const cl = clientes[tel];
     return cl ? (Number(cl.pedidos)||0) : 0;
   }
+  // O prêmio agora fica PENDENTE até ser entregue.
+  //
+  // Antes eu só olhava se o total era múltiplo da meta — o brinde aparecia
+  // no pedido exato e sumia no seguinte. Se ninguém visse naquele instante,
+  // o cliente perdia sem saber. Agora contamos quantos foram conquistados
+  // ao longo do tempo e quantos já foram entregues.
   function statusFidelidade(telefone){
     if(!moduloAtivo('fidelidade')) return null;
-    const meta = features.fidQtd || 10;
-    const n = pedidosDoCliente(telefone);
+    const tel = (telefone||'').replace(/\D/g,'');
+    if(!tel) return null;
+    const cl = clientes[tel];
+    if(!cl) return null;
+
+    const meta = Number(features.fidQtd) || 10;
+    const n = Number(cl.pedidos) || 0;
     if(n === 0) return null;
+
+    const conquistados = Math.floor(n / meta);
+    const entregues = Number(cl.premiosEntregues) || 0;
+    const pendentes = Math.max(0, conquistados - entregues);
     const faltam = (meta - (n % meta)) % meta;
-    return {n, meta, faltam, ganhou: faltam === 0, premio: features.fidPremio || 'Um brinde'};
+
+    return {
+      n, meta, faltam, pendentes,
+      ganhou: pendentes > 0,
+      premio: features.fidPremio || 'Um brinde',
+      premioId: features.fidPremioId || ''
+    };
+  }
+
+  // Adiciona o item do cardápio ao pedido, com valor ZERO e a marca
+  // PRÊMIO FIDELIDADE. A cozinha vê o que produzir; o caixa não cobra.
+  async function lancarPremioNoPedido(code){
+    const o = orders.find(x => x.code === code); if(!o) return;
+    const f = statusFidelidade(o.phone);
+    if(!f || !f.ganhou) return;
+    const prod = products.find(p => p.id === f.premioId);
+    if(!prod){ alert('O item do brinde não está mais no cardápio. Escolha outro nos Módulos.'); return; }
+
+    if(o.items.some(i => i.premio)){ alert('Este pedido já tem o brinde lançado.'); return; }
+    if(!confirm(`Lançar "${prod.name}" como PRÊMIO FIDELIDADE no pedido #${o.dailyNumber||''}?\n\nEntra com valor R$ 0,00.`)) return;
+
+    const novosItens = o.items.concat([{
+      name: prod.name + ' — PRÊMIO FIDELIDADE',
+      price: 0, qty: 1, forItem: '', premio: true
+    }]);
+
+    try{
+      await comLimite(db.collection('orders').doc(code).update({
+        items: novosItens,
+        temPremio: true,
+        updatedAt: new Date().toISOString()
+      }), 5000, 'lançar brinde no pedido');
+      // marca como entregue: o brinde saiu junto com este pedido
+      const tel = (o.phone||'').replace(/\D/g,'');
+      const cl = clientes[tel];
+      if(cl){
+        db.collection('customers').doc(tel).set({
+          premiosEntregues: (Number(cl.premiosEntregues)||0) + 1,
+          ultimoPremioEm: new Date().toISOString()
+        }, {merge:true}).catch(()=>{});
+      }
+      showToast('🎁 Brinde lançado no pedido ✓');
+    }catch(e){ alert('Não foi possível lançar. Tente de novo.'); }
+  }
+
+  // Marca o brinde como entregue — some o aviso do card
+  async function entregarPremio(telefone){
+    const tel = (telefone||'').replace(/\D/g,'');
+    if(!tel) return;
+    const cl = clientes[tel];
+    if(!cl) return;
+    if(!confirm(`Confirmar entrega do brinde para ${cl.nome || tel}?\n\n"${features.fidPremio || 'Um brinde'}"`)) return;
+    try{
+      await comLimite(db.collection('customers').doc(tel).set({
+        premiosEntregues: (Number(cl.premiosEntregues) || 0) + 1,
+        ultimoPremioEm: new Date().toISOString()
+      }, {merge:true}), 5000, 'entregar brinde');
+      showToast('🎁 Brinde entregue ✓');
+    }catch(e){ alert('Não foi possível registrar. Tente de novo.'); }
   }
 
   /* ================= CLIENTES ================= */
@@ -5916,7 +6010,22 @@
           <h3>🎁 Configuração da fidelidade</h3>
           <div class="form-grid">
             <div class="field"><label>Pedidos para ganhar o brinde</label><input type="number" id="fidQtd" min="2" value="${features.fidQtd || 10}"></div>
-            <div class="field"><label>O que ganha</label><input type="text" id="fidPremio" value="${escapeHtml(features.fidPremio || 'Um hambúrguer grátis')}"></div>
+            <div class="field">
+              <label>Qual item do cardápio</label>
+              <select id="fidPremioId">
+                <option value="">— escrever à mão —</option>
+                ${products.filter(p => p.active !== false).map(p =>
+                  `<option value="${p.id}" ${features.fidPremioId === p.id ? 'selected' : ''}>${p.icon || ''} ${escapeHtml(p.name)} — ${money(p.price)}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div class="field" id="fidPremioTextoBox" style="${features.fidPremioId ? 'display:none;' : ''}">
+            <label>Descrição do brinde</label>
+            <input type="text" id="fidPremio" value="${escapeHtml(features.fidPremio || 'Um hambúrguer grátis')}">
+          </div>
+          <div class="box-info">
+            🎁 Escolhendo um item do cardápio, ele entra <b>sozinho no pedido</b> marcado como
+            <b>PRÊMIO FIDELIDADE</b>, com valor zero — a cozinha vê o que produzir e o caixa não cobra.
           </div>
           <button class="btn-primary" id="fidSaveBtn">Salvar</button>
         </div>`;
@@ -6016,11 +6125,21 @@
         </div>`;
     }
     box.innerHTML = html;
+    // alterna entre item do cardápio e texto livre
+    const fpSel = document.getElementById('fidPremioId');
+    if(fpSel) fpSel.addEventListener('change', () => {
+      document.getElementById('fidPremioTextoBox').style.display = fpSel.value ? 'none' : 'block';
+    });
+
     const fs = document.getElementById('fidSaveBtn');
     if(fs) fs.addEventListener('click', async () => {
+      const id = document.getElementById('fidPremioId').value;
+      const prod = products.find(p => p.id === id);
       await db.collection('store').doc('features').set({
         fidQtd: parseInt(document.getElementById('fidQtd').value) || 10,
-        fidPremio: document.getElementById('fidPremio').value.trim()
+        fidPremioId: id || '',
+        // quando é item do cardápio, o nome vem dele; senão usa o texto digitado
+        fidPremio: prod ? prod.name : (document.getElementById('fidPremio').value.trim() || 'Um brinde')
       }, {merge:true});
       showToast('Fidelidade configurada ✓');
     });
@@ -6460,7 +6579,7 @@
             const addons = o.items.filter(i => i.forItem);
             let h = '';
             principais.forEach(p => {
-              h += `<li><b>${p.qty}x</b> ${escapeHtml(p.name)}`;
+              h += `<li${p.premio ? ' class="kc-premio"' : ''}><b>${p.qty}x</b> ${escapeHtml(p.name)}`;
               const meus = addons.filter(a => a.forItem === p.name);
               if(meus.length) h += `<ul class="kc-addons">${meus.map(a => `<li>+ ${a.qty}x ${escapeHtml(a.name)}</li>`).join('')}</ul>`;
               h += `</li>`;
