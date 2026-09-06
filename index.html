@@ -294,7 +294,24 @@
 
   @media(max-width:900px){
     nav ul{display:none;}
-    .menu-toggle{display:flex; padding:12px 8px; margin:-12px -8px;}
+    .menu-toggle{display:flex; padding:12px 6px; margin:-12px 0; align-items:center;}
+
+    /* Telas bem estreitas (320px, iPhone SE antigo): o cabeçalho não cabia
+       depois que aumentei os botões pro dedo. Encolhe com elegância. */
+    @media(max-width:360px){
+      .wrap.nav{gap:4px;}
+      .header-actions{gap:0;}
+      .icon-link{padding:10px 5px; min-width:38px;}
+      .icon-link .lbl{display:none;}
+      .gear-link{min-width:38px;}
+      .brand-text .l1{font-size:8px; letter-spacing:1.5px;}
+      .brand-text .l2{font-size:14px;}
+      .brand-badge{width:34px; height:34px;}
+      .menu-toggle{padding:12px 2px;}
+      .menu-toggle span{width:20px;}
+      /* arte do topo não pode empurrar a página */
+      .hero-art{overflow:hidden;}
+    }
 
     /* Alvos de toque com no mínimo 44px — recomendação de acessibilidade.
        Antes vários botões tinham 31–38px e davam toque errado no dedo. */
@@ -1700,8 +1717,17 @@
   // Mesa vinda do QR code: ?mesa=7
   function applyTableFromURL(){
     const params = new URLSearchParams(window.location.search);
-    const mesa = params.get('mesa');
-    if(!mesa) return;
+    // Mesa vem da URL (QR code) — qualquer um pode forjar o link, então
+    // aceitamos SÓ número de 1 a 999. Sem isso dava pra injetar código
+    // que rodaria na tela da cozinha e do caixa.
+    const bruto = (params.get('mesa') || '').trim();
+    // Só aceita se for SÓ número. Antes eu extraía os dígitos de qualquer
+    // texto — um link forjado com código virava "mesa 1" em vez de ser
+    // rejeitado, e a pessoa sentava numa mesa errada.
+    if(!/^\d{1,3}$/.test(bruto)) return;
+    const num = parseInt(bruto, 10);
+    if(num < 1 || num > 999) return;
+    const mesa = String(num);
     guardar.salvar('omarkin_mesa', mesa, true);
     selectedOrderType = 'mesa';
     document.querySelectorAll('[data-ordertype]').forEach(b => b.classList.toggle('active', b.dataset.ordertype === 'mesa'));
@@ -2102,7 +2128,9 @@
     const address = selectedOrderType === 'entrega' ? montarEndereco() : '';
     const payment = document.getElementById('ckPayment').value;
     const notes = document.getElementById('ckNotes').value.trim();
-    const table = document.getElementById('ckTable').value.trim();
+    const tableBruto = document.getElementById('ckTable').value.replace(/\D/g,'').slice(0,3);
+    const tableNum = parseInt(tableBruto, 10);
+    const table = (tableNum && tableNum >= 1 && tableNum <= 999) ? String(tableNum) : '';
     const errEl = document.getElementById('checkoutError');
     if(!name){ errEl.textContent = "Preencha seu nome."; return; }
     if(selectedOrderType !== 'mesa' && !phone){ errEl.textContent = "Informe seu WhatsApp."; return; }

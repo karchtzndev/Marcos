@@ -1,4 +1,4 @@
-const CACHE = "omarkin-cliente-v31";
+const CACHE = "omarkin-cliente-v32";
 const ASSETS = ["/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png", "/mascot.jpg"];
 
 self.addEventListener('install', (e) => {
