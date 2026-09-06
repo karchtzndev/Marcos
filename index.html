@@ -294,7 +294,28 @@
 
   @media(max-width:900px){
     nav ul{display:none;}
-    .menu-toggle{display:flex;}
+    .menu-toggle{display:flex; padding:12px 8px; margin:-12px -8px;}
+
+    /* Alvos de toque com no mínimo 44px — recomendação de acessibilidade.
+       Antes vários botões tinham 31–38px e davam toque errado no dedo. */
+    .icon-link{min-height:44px; min-width:44px; padding:10px 12px;}
+    .gear-link{min-height:44px; min-width:44px; display:inline-flex;
+               align-items:center; justify-content:center;}
+    .add,
+    .menu-qty button,
+    .qty-ctrl button,
+    .ex-step button{min-width:44px; min-height:44px;}
+
+    /* Links do rodapé com respiro pro dedo não errar o vizinho */
+    .foot-col ul li{margin-bottom:4px;}
+    .foot-col ul li a{display:inline-block; padding:9px 0;}
+    nav ul.nav-aberto a{padding:10px 4px; display:block;}
+    nav ul.nav-aberto{
+      display:flex; flex-direction:column; position:absolute; top:64px; right:20px;
+      background:#1c1613; padding:20px 26px; border-radius:12px; gap:16px;
+      border:1px solid rgba(242,233,218,0.14); z-index:60;
+      box-shadow:0 10px 30px rgba(0,0,0,0.5);
+    }
     .hero-grid{grid-template-columns:1fr;}
     .hero-art{order:-1; min-height:320px;}
     .about-grid{grid-template-columns:1fr;}
@@ -445,6 +466,9 @@
     padding:14px 32px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit;
   }
   .fc-box button:hover{background:var(--mustard);}
+
+  .brand-link{text-decoration:none; color:inherit; cursor:pointer; transition:opacity .2s;}
+  .brand-link:hover{opacity:0.75;}
 
   /* ---------- AVISO DE COOKIES ---------- */
   .cookie-bar{
@@ -639,18 +663,21 @@
 <body>
 <div class="grain"></div>
 
+<span id="topo"></span>
 <header>
   <div class="wrap nav">
-    <div class="brand">
+    <!-- Clicar na logo volta ao topo da página. Tinha reclamação de quem
+         rolava até o fim e não achava como voltar. -->
+    <a href="#topo" class="brand brand-link" id="brandHome" title="Voltar ao início">
       <img src="mascot.jpg" alt="Mascote O Markin" class="brand-badge">
       <div class="brand-text"><div class="l1">O MARKIN</div><div class="l2">Chef's Burguer</div></div>
-    </div>
+    </a>
     <nav>
       <ul>
         <li><a href="#cardapio">Cardápio</a></li>
         <li><a href="#sobre">Sobre</a></li>
         <li><a href="#local">Localização</a></li>
-        <li><a id="navTrack">Acompanhar pedido</a></li>
+        <li><a id="navTrack" href="#" role="button">Acompanhar pedido</a></li>
       </ul>
     </nav>
     <div class="header-actions">
@@ -786,7 +813,7 @@
       </div>
       <div class="foot-col"><h4>Navegação</h4><ul><li><a href="#cardapio">Cardápio</a></li><li><a href="#sobre">Sobre nós</a></li><li><a href="#local">Localização</a></li></ul></div>
       <div class="foot-col"><h4>Cardápio</h4><ul><li><a href="#cardapio">Burguers</a></li><li><a href="#cardapio">Acompanhamentos</a></li><li><a href="#cardapio">Bebidas</a></li></ul></div>
-      <div class="foot-col"><h4>Redes sociais</h4><ul><li><a href="#" id="footInstagramLink" target="_blank" rel="noopener">Instagram</a></li><li><a href="#" id="footWhatsappLink" target="_blank" rel="noopener">WhatsApp</a></li><li><a href="#">iFood</a></li></ul></div>
+      <div class="foot-col"><h4>Redes sociais</h4><ul><li style="display:none;"><a href="#" id="footInstagramLink" target="_blank" rel="noopener">Instagram</a></li><li style="display:none;"><a href="#" id="footWhatsappLink" target="_blank" rel="noopener">WhatsApp</a></li><li id="footIfoodItem" style="display:none;"><a href="#" id="footIfoodLink" target="_blank" rel="noopener">iFood</a></li></ul></div>
     </div>
     <div class="foot-bottom">
       <span>© 2026 O Markin Chef's Burguer. Todos os direitos reservados.</span>
@@ -795,7 +822,7 @@
   </div>
 </footer>
 
-<a href="#" class="whatsapp-fab" id="whatsappFab" target="_blank" rel="noopener">💬</a>
+<a href="#" class="whatsapp-fab" id="whatsappFab" target="_blank" rel="noopener" style="display:none;" aria-label="Falar no WhatsApp">💬</a>
 
 <!-- ============ BARRA RÁPIDA DE PEDIDO ============ -->
 <div class="quick-bar" id="quickBar">
@@ -1281,6 +1308,15 @@
     const bar = document.getElementById('quickBar');
     if(bar && !anyOpen) bar.style.visibility = 'visible';
   }
+  // Logo volta ao início, fechando o que estiver aberto
+  document.getElementById('brandHome')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelectorAll('.overlay.open').forEach(ov => closeOverlay(ov.id));
+    const nl = document.querySelector('nav ul');
+    if(nl) nl.classList.remove('nav-aberto');
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  });
+
   document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => closeOverlay(btn.dataset.close)));
   document.querySelectorAll('.overlay').forEach(ov => ov.addEventListener('click', (e) => { if(e.target === ov) closeOverlay(ov.id); }));
 
@@ -2035,12 +2071,16 @@
       const link = waLink(info.whatsapp, "Olá! Vim pelo site da O Markin Chef's Burguer 🍔");
       if(info.whatsapp) document.getElementById('infoWhatsapp').textContent = info.whatsapp;
       if(link){
-        document.getElementById('whatsappFab').href = link;
+        const fab = document.getElementById('whatsappFab');
+        fab.href = link;
+        fab.style.display = '';   // só aparece com número configurado
         document.getElementById('footWhatsappLink').href = link;
+        document.getElementById('footWhatsappLink').parentElement.style.display = '';
       }
       if(info.instagram){
         const igHandle = info.instagram.replace('@','').trim();
         document.getElementById('footInstagramLink').href = "https://instagram.com/" + igHandle;
+        document.getElementById('footInstagramLink').parentElement.style.display = '';
       }
     }, (err) => console.error("Erro info da loja:", err));
   }
@@ -2359,19 +2399,44 @@
   }
   document.getElementById('openTrack').addEventListener('click', openTrackFlow);
   document.getElementById('heroTrackBtn').addEventListener('click', openTrackFlow);
-  document.getElementById('navTrack').addEventListener('click', openTrackFlow);
+  document.getElementById('navTrack').addEventListener('click', (e) => { e.preventDefault(); openTrackFlow(); });
   document.getElementById('trackOverlay').querySelector('[data-close]').addEventListener('click', () => {
     currentTrackedCode = null; trackedOrder = null;
     if(trackUnsubscribe){ trackUnsubscribe(); trackUnsubscribe = null; }
   });
 
 
+  /* ---------- MENU DO CELULAR ---------- */
   const toggle = document.querySelector('.menu-toggle');
   const navList = document.querySelector('nav ul');
-  toggle.addEventListener('click', () => {
-    navList.style.display = navList.style.display === 'flex' ? 'none' : 'flex';
-    navList.style.cssText += 'flex-direction:column; position:absolute; top:64px; right:20px; background:#1c1613; padding:20px 26px; border-radius:12px; gap:16px; border:1px solid rgba(242,233,218,0.14); z-index:60;';
+
+  function abrirMenu(){
+    navList.classList.add('nav-aberto');
+    toggle.setAttribute('aria-expanded','true');
+  }
+  function fecharMenu(){
+    navList.classList.remove('nav-aberto');
+    toggle.setAttribute('aria-expanded','false');
+  }
+  function menuAberto(){ return navList.classList.contains('nav-aberto'); }
+
+  toggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menuAberto() ? fecharMenu() : abrirMenu();
   });
+
+  // Fecha ao escolher uma seção — antes ficava aberto tapando a tela
+  navList.querySelectorAll('a').forEach(a =>
+    a.addEventListener('click', () => fecharMenu()));
+
+  // Fecha ao tocar fora e com ESC
+  document.addEventListener('click', (e) => {
+    if(!menuAberto()) return;
+    if(navList.contains(e.target) || toggle.contains(e.target)) return;
+    fecharMenu();
+  });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape') fecharMenu(); });
+
 
   // O app do cliente só lê o que é público: cardápio, avisos e dados da loja.
   // Pedidos, financeiro, estoque e equipe ficam bloqueados pelas regras do Firestore.

@@ -293,6 +293,12 @@
   @media(max-width:900px){
     nav ul{display:none;}
     .menu-toggle{display:flex;}
+    nav ul.nav-aberto{
+      display:flex; flex-direction:column; position:absolute; top:64px; right:20px;
+      background:#1c1613; padding:20px 26px; border-radius:12px; gap:16px;
+      border:1px solid rgba(242,233,218,0.14); z-index:60;
+      box-shadow:0 10px 30px rgba(0,0,0,0.5);
+    }
     .hero-grid{grid-template-columns:1fr;}
     .hero-art{order:-1; min-height:320px;}
     .about-grid{grid-template-columns:1fr;}
@@ -512,6 +518,7 @@
   .fid-btn{border:none; border-radius:999px; padding:9px 16px; font-size:12.5px; font-weight:700; cursor:pointer; font-family:inherit;}
   .fid-btn.add{background:var(--green); color:#062814;}
   .fid-btn.ok{background:transparent; border:1px solid rgba(242,233,218,0.3); color:rgba(242,233,218,0.7);}
+  .fid-aviso{font-size:11.5px; color:var(--mustard); align-self:center; line-height:1.4;}
   .fid-btn:hover{filter:brightness(1.12);}
   .kc-premio{background:rgba(76,175,109,0.12); border-radius:8px; padding:4px 8px !important; border-left:3px solid var(--green);}
   .fid-flag.soft{background:rgba(240,180,41,0.14); color:var(--mustard);}
@@ -616,6 +623,9 @@
   .prev-info strong{display:block; font-size:13px;}
   .prev-info span{font-size:12px; color:var(--mustard);}
   .prev-step{background:var(--char); border-radius:99px; padding:5px 12px; font-size:13px; font-weight:700; color:rgba(242,233,218,0.6); flex-shrink:0;}
+
+  .brand-link{text-decoration:none; color:inherit; cursor:pointer; transition:opacity .2s;}
+  .brand-link:hover{opacity:0.75;}
 
   /* ---------- FALHA DE CONEXÃO ---------- */
   .falha-conexao{
@@ -893,16 +903,18 @@
 
 <header>
   <div class="wrap nav">
-    <div class="brand">
+    <a href="/" class="brand brand-link" title="Voltar para o site">
       <img src="mascot.jpg" alt="Mascote O Markin" class="brand-badge">
       <div class="brand-text"><div class="l1">O MARKIN</div><div class="l2">Chef's Burguer</div></div>
-    </div>
+    </a>
     <nav>
       <ul>
-        <li><a href="#cardapio">Cardápio</a></li>
-        <li><a href="#sobre">Sobre</a></li>
-        <li><a href="#local">Localização</a></li>
-        <li><a id="navTrack">Acompanhar pedido</a></li>
+        <!-- Estas seções vivem no site, não aqui. Antes apontavam pra
+             âncoras inexistentes e o clique não fazia nada. -->
+        <li><a href="/#cardapio">Cardápio</a></li>
+        <li><a href="/#sobre">Sobre</a></li>
+        <li><a href="/#local">Localização</a></li>
+        <li><a href="/" id="navTrack">Acompanhar pedido</a></li>
       </ul>
     </nav>
     <div class="header-actions">
@@ -2881,6 +2893,8 @@
     .p-prod-val{display:flex; justify-content:flex-end; gap:0; font-size:11px;}
     .p-prod-val span{width:22%; text-align:right;}
     .p-aviso{text-align:center; font-size:9px; border:1px solid #000; padding:5px; margin-top:8px; line-height:1.4;}
+    .p-premio{border:2px solid #000; padding:6px; margin:6px 0; text-align:center; font-weight:900; font-size:13px; line-height:1.4;}
+    .p-premio small{font-size:9px; font-weight:700; letter-spacing:0.5px;}
   `;
 
   const QR_CSS = `
@@ -3013,6 +3027,11 @@
         const vals = Array.from(el.querySelectorAll('.p-prod-val span')).map(s=>semAcento(s.textContent));
         out += ESC.left + ESC.bold + nome + '\n' + ESC.boldOff;
         if(vals.length) out += linhaDupla('  ' + vals.slice(0,-1).join(' x '), vals[vals.length-1]) + '\n';
+      }else if(cls.includes('p-premio')){
+        out += ESC.left + separador('*') + '\n' +
+               ESC.center + ESC.bold + ESC.medio + semAcento(txt.split('***')[0].trim()) + '\n' +
+               ESC.normal + 'BRINDE FIDELIDADE - NAO COBRAR' + '\n' +
+               ESC.boldOff + ESC.left + separador('*') + '\n';
       }else if(cls.includes('p-notes') || cls.includes('p-aviso')){
         out += ESC.left + separador('-') + '\n' + txt + '\n';
       }else if(cls.includes('p-foot')){
@@ -4035,7 +4054,7 @@
   }
   document.getElementById('openTrack').addEventListener('click', openTrackFlow);
   document.getElementById('heroTrackBtn').addEventListener('click', openTrackFlow);
-  document.getElementById('navTrack').addEventListener('click', openTrackFlow);
+  // navTrack no painel é um link pro site — não intercepta o clique aqui.
   document.getElementById('trackOverlay').querySelector('[data-close]').addEventListener('click', () => { currentTrackedCode = null; });
 
   /* ---------------- ADMIN: ORDERS TAB ---------------- */
@@ -4136,7 +4155,9 @@
             <div class="fid-titulo">🎁 BRINDE DISPONÍVEL${f.pendentes>1?` (${f.pendentes})`:''}</div>
             <div class="fid-premio">${escapeHtml(f.premio)}</div>
             <div class="fid-acoes">
-              ${f.premioId ? `<button class="fid-btn add" data-fidadd="${o.code}">➕ Lançar no pedido</button>` : ''}
+              ${f.premioId
+                ? `<button class="fid-btn add" data-fidadd="${o.code}">➕ Lançar no pedido</button>`
+                : `<span class="fid-aviso">Vincule o brinde a um item do cardápio nos Módulos pra lançar automático</span>`}
               <button class="fid-btn ok" data-fidok="${escapeHtml(o.phone||'')}">✓ Já entreguei</button>
             </div>
           </div>`;
@@ -4294,7 +4315,7 @@
     let html = '';
     principais.forEach(p => {
       html += p.premio
-        ? `<div class="p-item"><span>${p.qty}x ${escapeHtml(p.name)}</span><span>BRINDE</span></div>`
+        ? `<div class="p-premio">🎁 ${p.qty}x ${escapeHtml(p.name.replace(' — PRÊMIO FIDELIDADE',''))}<br><small>*** BRINDE FIDELIDADE — NAO COBRAR ***</small></div>`
         : `<div class="p-item"><span>${p.qty}x ${escapeHtml(p.name)}</span><span>${money(p.price*p.qty)}</span></div>`;
       addons.filter(a => a.forItem === p.name).forEach(a => {
         html += `<div class="p-addon"><span>+ ${a.qty}x ${escapeHtml(a.name)}</span><span>${money(a.price*a.qty)}</span></div>`;
@@ -5338,8 +5359,30 @@
       n, meta, faltam, pendentes,
       ganhou: pendentes > 0,
       premio: features.fidPremio || 'Um brinde',
-      premioId: features.fidPremioId || ''
+      premioId: resolverItemPremio()
     };
+  }
+
+  // Descobre qual item do cardápio corresponde ao brinde.
+  // Se o vínculo não foi salvo (configuração antiga, feita quando o campo
+  // era texto livre), tenta casar pelo nome — assim o botão de lançar
+  // aparece mesmo sem reconfigurar.
+  function resolverItemPremio(){
+    if(features.fidPremioId){
+      const p = products.find(x => x.id === features.fidPremioId && x.active !== false);
+      if(p) return p.id;
+    }
+    const texto = (features.fidPremio || '').trim().toLowerCase();
+    if(!texto) return '';
+    const limpar = s => String(s).toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9]/g,'');
+    const alvo = limpar(texto);
+    // nome exato, depois um contido no outro
+    let achado = products.find(p => p.active !== false && limpar(p.name) === alvo);
+    if(!achado) achado = products.find(p => p.active !== false &&
+      (alvo.includes(limpar(p.name)) || limpar(p.name).includes(alvo)));
+    return achado ? achado.id : '';
   }
 
   // Adiciona o item do cardápio ao pedido, com valor ZERO e a marca
@@ -5376,6 +5419,52 @@
       }
       showToast('🎁 Brinde lançado no pedido ✓');
     }catch(e){ alert('Não foi possível lançar. Tente de novo.'); }
+  }
+
+  // Aplica o brinde automaticamente ao ACEITAR o pedido.
+  //
+  // Depender de alguém clicar em "Lançar no pedido" é frágil: no movimento
+  // a pessoa aceita e manda pra cozinha direto, o brinde não entra na
+  // comanda e o cliente não recebe. Agora entra sozinho, antes da produção.
+  async function aplicarPremioAutomatico(code){
+    if(!moduloAtivo('fidelidade')) return false;
+    const o = orders.find(x => x.code === code);
+    if(!o) return false;
+    if(o.temPremio) return false;                       // já tem
+    if((o.items||[]).some(i => i.premio)) return false; // segurança extra
+
+    const f = statusFidelidade(o.phone);
+    if(!f || !f.ganhou) return false;
+
+    const prod = products.find(p => p.id === f.premioId && p.active !== false);
+    if(!prod) return false;   // brinde não vinculado: segue o fluxo manual
+
+    const novosItens = (o.items||[]).concat([{
+      name: prod.name + ' — PRÊMIO FIDELIDADE',
+      price: 0, qty: 1, forItem: '', premio: true
+    }]);
+
+    try{
+      await comLimite(db.collection('orders').doc(code).update({
+        items: novosItens,
+        temPremio: true,
+        updatedAt: new Date().toISOString()
+      }), 5000, 'aplicar brinde automático');
+
+      const tel = (o.phone||'').replace(/\D/g,'');
+      const cl = clientes[tel];
+      if(cl){
+        db.collection('customers').doc(tel).set({
+          premiosEntregues: (Number(cl.premiosEntregues)||0) + 1,
+          ultimoPremioEm: new Date().toISOString()
+        }, {merge:true}).catch(()=>{});
+      }
+      showToast(`🎁 Brinde incluído: ${prod.name}`);
+      return true;
+    }catch(e){
+      console.warn('brinde automático:', e);
+      return false;
+    }
   }
 
   // Marca o brinde como entregue — some o aviso do card
@@ -6991,9 +7080,14 @@
     };
 
     // Comanda sai sozinha ao aceitar, se o módulo estiver ligado
+    // Brinde entra ANTES da comanda ser impressa, senão sai comanda sem ele
+    if(status === 'aceito' && order.status === 'recebido'){
+      await aplicarPremioAutomatico(code);
+    }
+
     const autoFila = moduloAtivo('filaimpressao') && features.filaAuto === 'aceito';
     if(status === 'aceito' && order.status === 'recebido' && (moduloAtivo('autoprint') || autoFila)){
-      setTimeout(() => printComanda(code), 300);
+      setTimeout(() => printComanda(code), 700);
     }
 
     // Baixa de estoque protegida por transação: dois aparelhos marcando
@@ -7399,12 +7493,37 @@
     await auth.signOut();
   });
 
+  /* ---------- MENU DO CELULAR ---------- */
   const toggle = document.querySelector('.menu-toggle');
   const navList = document.querySelector('nav ul');
-  toggle.addEventListener('click', () => {
-    navList.style.display = navList.style.display === 'flex' ? 'none' : 'flex';
-    navList.style.cssText += 'flex-direction:column; position:absolute; top:64px; right:20px; background:#1c1613; padding:20px 26px; border-radius:12px; gap:16px; border:1px solid rgba(242,233,218,0.14); z-index:60;';
+
+  function abrirMenu(){
+    navList.classList.add('nav-aberto');
+    toggle.setAttribute('aria-expanded','true');
+  }
+  function fecharMenu(){
+    navList.classList.remove('nav-aberto');
+    toggle.setAttribute('aria-expanded','false');
+  }
+  function menuAberto(){ return navList.classList.contains('nav-aberto'); }
+
+  toggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menuAberto() ? fecharMenu() : abrirMenu();
   });
+
+  // Fecha ao escolher uma seção — antes ficava aberto tapando a tela
+  navList.querySelectorAll('a').forEach(a =>
+    a.addEventListener('click', () => fecharMenu()));
+
+  // Fecha ao tocar fora e com ESC
+  document.addEventListener('click', (e) => {
+    if(!menuAberto()) return;
+    if(navList.contains(e.target) || toggle.contains(e.target)) return;
+    fecharMenu();
+  });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape') fecharMenu(); });
+
 
   // Escutas fixas: independem de quem está logado, então só precisam
   // começar uma vez.
