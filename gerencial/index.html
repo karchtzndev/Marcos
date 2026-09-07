@@ -29,12 +29,18 @@
   a{color:inherit; text-decoration:none;}
   img{max-width:100%; display:block;}
   button{font-family:inherit;}
-  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+  .wrap{
+    max-width:1180px; margin:0 auto; box-sizing:border-box;
+    /* padding respeita as bordas curvas/notch quando deitado; sem o
+       box-sizing o conteúdo estourava a tela nesses aparelhos. */
+    padding-left:max(28px, env(safe-area-inset-left, 0px));
+    padding-right:max(28px, env(safe-area-inset-right, 0px));
+  }
 
   .grain{position:fixed; inset:0; pointer-events:none; z-index:50; opacity:0.05; mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
 
-  header{position:sticky; top:0; z-index:40; background:rgba(18,14,11,0.88); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);}
+  header{position:sticky; top:0; z-index:40; background:rgba(18,14,11,0.88); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); padding-top:env(safe-area-inset-top, 0px);}
   .nav{display:flex; align-items:center; justify-content:space-between; padding:16px 0; gap:14px;}
   .brand{display:flex; align-items:center; gap:10px;}
   .brand-badge{width:42px; height:42px; border-radius:50%; object-fit:cover; box-shadow:0 0 0 3px var(--pitch), 0 0 0 4px var(--ember); flex-shrink:0;}
@@ -140,6 +146,8 @@
   .hours-row span:last-child{color:var(--mustard); font-weight:700;}
   .hours-row:last-child{border-bottom:none;}
   .contact-row{display:flex; align-items:center; gap:14px; margin-bottom:20px;}
+  .contact-row > div:last-child{min-width:0; flex:1;}
+  .contact-row .val{overflow-wrap:break-word; word-break:break-word;}
   .contact-icon{width:42px; height:42px; border-radius:12px; background:rgba(229,118,46,0.15); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;}
   .contact-row .lbl{font-size:12px; letter-spacing:1px; color:rgba(242,233,218,0.5); text-transform:uppercase;}
   .contact-row .val{font-size:15px; font-weight:700;}
@@ -1423,6 +1431,21 @@
 
           <div class="form-actions" style="margin-bottom:18px;">
             <button class="btn-primary" id="copiarErrosBtn">📋 Copiar tudo</button>
+            <div class="overlay" id="copiarErrosOverlay">
+              <div class="panel narrow">
+                <div class="panel-head"><h2>📋 Copiar registro de erros</h2><button class="close-btn" data-close="copiarErrosOverlay">✕</button></div>
+                <div class="panel-body">
+                  <p style="font-size:13px;color:rgba(242,233,218,0.65);margin-bottom:12px;">
+                    Toque no texto abaixo — ele já vem selecionado. É só tocar em
+                    <b>Copiar</b> no menu que aparecer e colar na conversa.
+                  </p>
+                  <textarea id="copiarErrosTexto" readonly
+                    style="width:100%;height:280px;background:var(--pitch);border:1px solid var(--line);
+                    border-radius:10px;padding:12px;color:var(--cream);font-family:monospace;
+                    font-size:11.5px;line-height:1.5;resize:vertical;"></textarea>
+                </div>
+              </div>
+            </div>
             <button class="btn-ghost" id="baixarErrosBtn">⬇️ Baixar arquivo</button>
             <button class="btn-danger" id="limparErrosBtn">🗑 Limpar registro</button>
           </div>
@@ -2155,20 +2178,20 @@
   try{
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
-    // Modo offline: guarda no aparelho e sincroniza quando a internet voltar.
-    // No iPhone/iPad com "Solicitar site para computador", o IndexedDB fica
-    // instável e a conexão trava sem erro — por isso detectamos e pulamos.
-    var iosDesktop = (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    if(iosDesktop){
-      console.warn('Modo "site para computador" detectado — offline desativado.');
-    }else{
-      Promise.race([
-        db.enablePersistence({synchronizeTabs:true}),
-        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 3000))
-      ]).catch((err) => {
-        console.warn("Persistência offline indisponível:", err.code || err.message);
-      });
-    }
+    // O modo offline (enablePersistence) foi DESLIGADO de propósito.
+    //
+    // Registro de erro real em produção (06/09/2026) mostrou o IndexedDB
+    // quebrando com "Attempt to get records from database without an
+    // in-progress transaction" — bug conhecido dessa camada no Safari/
+    // Chrome do iPhone. Uma vez corrompida, TODA escrita seguinte no
+    // painel trava 5s e falha, até a pessoa recarregar a página.
+    //
+    // A equipe está sempre na loja com wi-fi — o benefício do offline
+    // (resistir a uma internet ruim) não compensa o risco de travar o
+    // caixa/estoque/fidelidade no meio do movimento. As operações
+    // continuam protegidas por comLimite() (timeout de 5s + aviso claro),
+    // só que agora sem o IndexedDB no meio do caminho pra quebrar.
+    console.info('Modo offline desativado no painel — ver nota no código.');
     auth = firebase.auth();
     // app secundário: usado só pra criar contas de funcionário sem deslogar o gerente
     secondaryApp = firebase.initializeApp(firebaseConfig, "secondary");
@@ -5430,37 +5453,46 @@
 
   // Adiciona o item do cardápio ao pedido, com valor ZERO e a marca
   // PRÊMIO FIDELIDADE. A cozinha vê o que produzir; o caixa não cobra.
+  // CORRIGIDO: mesmo bug de concorrência do aplicarPremioAutomatico — dois
+  // funcionários podiam ver o mesmo card e clicar "Lançar" quase juntos
+  // (o confirm() dá alguns segundos de janela, tempo real de sobra pra
+  // isso acontecer numa noite corrida). Agora usa transação também.
   async function lancarPremioNoPedido(code){
     const o = orders.find(x => x.code === code); if(!o) return;
     const f = statusFidelidade(o.phone);
     if(!f || !f.ganhou) return;
     const prod = products.find(p => p.id === f.premioId);
     if(!prod){ alert('O item do brinde não está mais no cardápio. Escolha outro nos Módulos.'); return; }
-
     if(o.items.some(i => i.premio)){ alert('Este pedido já tem o brinde lançado.'); return; }
     if(!confirm(`Lançar "${prod.name}" como PRÊMIO FIDELIDADE no pedido #${o.dailyNumber||''}?\n\nEntra com valor R$ 0,00.`)) return;
 
-    const novosItens = o.items.concat([{
-      name: prod.name + ' — PRÊMIO FIDELIDADE',
-      price: 0, qty: 1, forItem: '', premio: true
-    }]);
+    const tel = (o.phone||'').replace(/\D/g,'');
+    const orderRef = db.collection('orders').doc(code);
+    const custRef = tel ? db.collection('customers').doc(tel) : null;
 
     try{
-      await comLimite(db.collection('orders').doc(code).update({
-        items: novosItens,
-        temPremio: true,
-        updatedAt: new Date().toISOString()
+      const aplicou = await comLimite(db.runTransaction(async (tx) => {
+        const doc = await tx.get(orderRef);
+        if(!doc.exists) return false;
+        const dados = doc.data();
+        if(dados.temPremio || (dados.items||[]).some(i => i.premio)) return false;
+
+        const novosItens = (dados.items||[]).concat([{
+          name: prod.name + ' — PRÊMIO FIDELIDADE',
+          price: 0, qty: 1, forItem: '', premio: true
+        }]);
+        tx.update(orderRef, {items: novosItens, temPremio: true, updatedAt: new Date().toISOString()});
+        if(custRef){
+          tx.set(custRef, {
+            premiosEntregues: firebase.firestore.FieldValue.increment(1),
+            ultimoPremioEm: new Date().toISOString()
+          }, {merge:true});
+        }
+        return true;
       }), 5000, 'lançar brinde no pedido');
-      // marca como entregue: o brinde saiu junto com este pedido
-      const tel = (o.phone||'').replace(/\D/g,'');
-      const cl = clientes[tel];
-      if(cl){
-        db.collection('customers').doc(tel).set({
-          premiosEntregues: (Number(cl.premiosEntregues)||0) + 1,
-          ultimoPremioEm: new Date().toISOString()
-        }, {merge:true}).catch(()=>{});
-      }
-      showToast('🎁 Brinde lançado no pedido ✓');
+
+      if(aplicou) showToast('🎁 Brinde lançado no pedido ✓');
+      else alert('Este pedido já teve o brinde lançado (por você ou outro aparelho).');
     }catch(e){ alert('Não foi possível lançar. Tente de novo.'); }
   }
 
@@ -5469,12 +5501,26 @@
   // Depender de alguém clicar em "Lançar no pedido" é frágil: no movimento
   // a pessoa aceita e manda pra cozinha direto, o brinde não entra na
   // comanda e o cliente não recebe. Agora entra sozinho, antes da produção.
+  // CORRIGIDO (achado no teste de concorrência): a versão anterior conferia
+  // "já tem prêmio?" olhando o estado local da tela (o array `orders`), não
+  // o banco em tempo real. Com dois ou mais aparelhos aceitando pedidos ao
+  // mesmo tempo — bem provável numa noite cheia, um no caixa, outro na
+  // cozinha — ambos liam "ainda não tem prêmio" antes de qualquer um
+  // escrever, e os dois incrementavam o contador de fidelidade do cliente.
+  // Testado 5 vezes em simulação: o contador subiu 2x em vez de 1x em
+  // todas as rodadas. O brinde em si não duplicava no pedido (por acaso
+  // do jeito que o array era sobrescrito), mas o contador de fidelidade
+  // do cliente ficava errado — ele podia deixar de ganhar um prêmio futuro
+  // porque o contador já estava inflado.
+  //
+  // A correção usa uma transação: o banco garante que, se dois aparelhos
+  // tentarem ao mesmo tempo, um deles automaticamente tenta de novo depois
+  // de ver que o outro já aplicou — void garante só UMA aplicação por pedido,
+  // não importa quantos aparelhos cliquem juntos.
   async function aplicarPremioAutomatico(code){
     if(!moduloAtivo('fidelidade')) return false;
     const o = orders.find(x => x.code === code);
     if(!o) return false;
-    if(o.temPremio) return false;                       // já tem
-    if((o.items||[]).some(i => i.premio)) return false; // segurança extra
 
     const f = statusFidelidade(o.phone);
     if(!f || !f.ganhou) return false;
@@ -5482,28 +5528,45 @@
     const prod = products.find(p => p.id === f.premioId && p.active !== false);
     if(!prod) return false;   // brinde não vinculado: segue o fluxo manual
 
-    const novosItens = (o.items||[]).concat([{
-      name: prod.name + ' — PRÊMIO FIDELIDADE',
-      price: 0, qty: 1, forItem: '', premio: true
-    }]);
+    const tel = (o.phone||'').replace(/\D/g,'');
+    const orderRef = db.collection('orders').doc(code);
+    const custRef = tel ? db.collection('customers').doc(tel) : null;
 
     try{
-      await comLimite(db.collection('orders').doc(code).update({
-        items: novosItens,
-        temPremio: true,
-        updatedAt: new Date().toISOString()
+      const aplicou = await comLimite(db.runTransaction(async (tx) => {
+        // Lê o pedido DIRETO DO SERVIDOR dentro da transação — não do
+        // array local. Se outro aparelho já aplicou entre o clique e
+        // agora, o Firestore detecta e refaz essa transação sozinho.
+        const doc = await tx.get(orderRef);
+        if(!doc.exists) return false;
+        const dados = doc.data();
+        if(dados.temPremio) return false;                       // já foi
+        if((dados.items||[]).some(i => i.premio)) return false; // segurança extra
+
+        const novosItens = (dados.items||[]).concat([{
+          name: prod.name + ' — PRÊMIO FIDELIDADE',
+          price: 0, qty: 1, forItem: '', premio: true
+        }]);
+        tx.update(orderRef, {
+          items: novosItens,
+          temPremio: true,
+          updatedAt: new Date().toISOString()
+        });
+
+        if(custRef){
+          // FieldValue.increment: soma no servidor, não calcula um valor
+          // fixo aqui — mesmo que a transação rode de novo, o resultado
+          // final continua correto.
+          tx.set(custRef, {
+            premiosEntregues: firebase.firestore.FieldValue.increment(1),
+            ultimoPremioEm: new Date().toISOString()
+          }, {merge:true});
+        }
+        return true;
       }), 5000, 'aplicar brinde automático');
 
-      const tel = (o.phone||'').replace(/\D/g,'');
-      const cl = clientes[tel];
-      if(cl){
-        db.collection('customers').doc(tel).set({
-          premiosEntregues: (Number(cl.premiosEntregues)||0) + 1,
-          ultimoPremioEm: new Date().toISOString()
-        }, {merge:true}).catch(()=>{});
-      }
-      showToast(`🎁 Brinde incluído: ${prod.name}`);
-      return true;
+      if(aplicou) showToast(`🎁 Brinde incluído: ${prod.name}`);
+      return aplicou;
     }catch(e){
       console.warn('brinde automático:', e);
       return false;
@@ -5900,15 +5963,28 @@
     return linhas.join('\n');
   }
 
-  document.getElementById('copiarErrosBtn')?.addEventListener('click', function(){
+  document.getElementById('copiarErrosBtn')?.addEventListener('click', async function(){
     const txt = textoDosErros();
     const msg = document.getElementById('errosMsg');
     const feito = () => { msg.style.color='var(--green)'; msg.textContent='Copiado ✓ Cole na conversa com o Claude.'; setTimeout(()=>{msg.textContent='';},6000); };
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(txt).then(feito).catch(() => baixarTexto(txt));
-    }else{
-      baixarTexto(txt);
-    }
+
+    // Tenta o jeito rápido primeiro (funciona na maioria dos navegadores)
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        await navigator.clipboard.writeText(txt);
+        feito();
+        return;
+      }
+    }catch(e){ /* segue pro plano B abaixo */ }
+
+    // Plano B — à prova de navegador: mostra o texto numa caixa já
+    // selecionada. O Chrome do iPhone (CriOS) às vezes recusa a cópia
+    // automática mesmo em página segura; isso nunca falha, porque usa
+    // a seleção de texto nativa do próprio iOS, não a API do navegador.
+    const area = document.getElementById('copiarErrosTexto');
+    area.value = txt;
+    openOverlay('copiarErrosOverlay');
+    setTimeout(() => { area.focus(); area.select(); area.setSelectionRange(0, txt.length); }, 250);
   });
 
   function baixarTexto(txt){
