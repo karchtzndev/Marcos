@@ -562,6 +562,151 @@
   }
   .aviso-box button:hover{background:var(--mustard);}
 
+  /* ---------- FAVORITOS ---------- */
+  .menu-card{position:relative;}
+  .fav-btn{
+    position:absolute; top:10px; right:10px; z-index:2;
+    background:rgba(18,14,11,0.7); border:none; border-radius:50%;
+    width:38px; height:38px; font-size:17px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    backdrop-filter:blur(4px); transition:transform .2s;
+  }
+  .fav-btn:active{transform:scale(0.88);}
+  .menu-card.favorito{border-color:rgba(229,118,46,0.45);}
+
+  /* ---------- HISTÓRICO ---------- */
+  .hist-titulo{font-size:14px; color:var(--ember); margin:20px 0 12px;}
+  .hist-item{background:var(--pitch); border:1px solid var(--line);
+             border-radius:12px; padding:14px; margin-bottom:10px;}
+  .hi-topo{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .hi-data{font-size:12px; color:rgba(242,233,218,0.5);}
+  .hi-total{font-family:'Anton',sans-serif; font-size:16px; color:var(--mustard);}
+  .hi-itens{font-size:13px; color:rgba(242,233,218,0.75); line-height:1.5; margin-bottom:10px;}
+  .hi-repetir{
+    width:100%; background:rgba(229,118,46,0.15); color:var(--ember);
+    border:1px solid rgba(229,118,46,0.4); border-radius:999px;
+    padding:11px; font-size:13.5px; font-weight:700; cursor:pointer;
+    font-family:inherit; min-height:44px;
+  }
+  .hi-repetir:active{background:rgba(229,118,46,0.28);}
+
+  /* ---------- ENDEREÇOS SALVOS ---------- */
+  .end-lista{display:flex; flex-direction:column; gap:8px; margin-bottom:18px;}
+  .end-item{display:flex; gap:6px; align-items:stretch;}
+  .end-usar{
+    flex-grow:1; text-align:left; background:var(--pitch);
+    border:1px solid var(--line); border-radius:10px; padding:11px 13px;
+    cursor:pointer; font-family:inherit; min-height:52px;
+  }
+  .end-usar:active{border-color:var(--ember);}
+  .end-usar strong{display:block; font-size:13.5px; color:var(--cream); margin-bottom:2px;}
+  .end-usar span{font-size:12px; color:rgba(242,233,218,0.55);}
+  .end-apagar{
+    background:none; border:1px solid var(--line); border-radius:10px;
+    color:rgba(242,233,218,0.4); font-size:15px; cursor:pointer;
+    min-width:44px; flex-shrink:0;
+  }
+
+  /* ---------- FALE CONOSCO ---------- */
+  .sug-tipos{display:flex; gap:8px; flex-wrap:wrap;}
+  .sug-tipo{
+    flex:1; min-width:96px; background:var(--pitch); border:1px solid var(--line);
+    border-radius:10px; padding:12px 8px; font-size:13px; cursor:pointer;
+    color:rgba(242,233,218,0.7); font-family:inherit; min-height:48px;
+  }
+  .sug-tipo.active{border-color:var(--ember); background:rgba(229,118,46,0.12); color:var(--ember); font-weight:700;}
+  #sugMensagem{
+    width:100%; background:var(--pitch); border:1px solid var(--line);
+    border-radius:10px; padding:12px 14px; color:var(--cream);
+    font-family:inherit; font-size:14px; resize:vertical; line-height:1.55;
+  }
+  #sugMensagem:focus{outline:none; border-color:var(--ember);}
+  .sug-alt{text-align:center; font-size:13px; color:rgba(242,233,218,0.55);
+           margin-top:18px; padding-top:16px; border-top:1px solid var(--line);}
+  .sug-alt a{color:var(--green); text-decoration:none; font-weight:700;}
+
+  /* ---------- NOTA POR ITEM ---------- */
+  #rateItens{margin:16px 0; text-align:left;}
+  .ri-titulo{font-size:13px; color:rgba(242,233,218,0.7); margin-bottom:10px; text-align:center;}
+  .ri-titulo small{color:rgba(242,233,218,0.4);}
+  .ri-linha{display:flex; align-items:center; justify-content:space-between;
+            gap:10px; padding:8px 0; border-bottom:1px solid rgba(242,233,218,0.06);}
+  .ri-nome{font-size:13px; color:var(--cream); flex-grow:1; min-width:0;}
+  .ri-estrelas{display:flex; gap:2px; flex-shrink:0;}
+  .ri-estrelas button{background:none; border:none; font-size:18px;
+                      cursor:pointer; padding:2px; line-height:1;}
+
+  /* ---------- CUPOM NO CHECKOUT ---------- */
+  .cupom-box{margin:16px 0;}
+  .cupom-linha{display:flex; gap:8px;}
+  .cupom-linha input{
+    flex-grow:1; background:var(--pitch); border:1px dashed var(--mustard);
+    border-radius:10px; padding:13px 14px; color:var(--cream);
+    font-family:monospace; font-size:14px; letter-spacing:1px;
+  }
+  .cupom-linha input::placeholder{letter-spacing:0; font-family:'DM Sans',sans-serif;}
+  .cupom-linha button{
+    background:var(--mustard); color:var(--pitch); border:none; border-radius:10px;
+    padding:0 20px; font-size:14px; font-weight:700; cursor:pointer;
+    font-family:inherit; min-height:48px; flex-shrink:0;
+  }
+  .cupom-linha button:disabled{opacity:0.6;}
+  .cupom-aplicado{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:rgba(76,175,109,0.12); border:1px solid var(--green);
+    border-radius:10px; padding:12px 14px;
+  }
+  .ca-info{font-size:13.5px; color:var(--green); flex-grow:1;}
+  .ca-info b{font-family:monospace; letter-spacing:1px;}
+  .cupom-aplicado button{
+    background:none; border:none; color:rgba(242,233,218,0.5);
+    font-size:16px; cursor:pointer; min-width:36px; min-height:36px;
+  }
+  .cupom-msg{font-size:12.5px; margin-top:8px; min-height:16px;}
+  .cupom-msg.erro{color:var(--tomato);}
+  .ck-tot-row.ck-desconto span{color:var(--green) !important;}
+
+  /* ---------- CONTA DO CLIENTE ---------- */
+  .senha-wrap{position:relative; display:flex; align-items:center;}
+  .senha-wrap input{width:100%; padding-right:52px;}
+  .ver-senha{
+    position:absolute; right:6px; background:none; border:none;
+    font-size:19px; cursor:pointer; padding:0;
+    min-width:44px; min-height:44px;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0.65; transition:opacity .2s;
+  }
+  .ver-senha:hover, .ver-senha:active{opacity:1;}
+
+  .conta-beneficios{
+    background:rgba(229,118,46,0.08); border:1px solid rgba(229,118,46,0.28);
+    border-radius:14px; padding:16px; margin-bottom:14px;
+  }
+  .conta-beneficios strong{display:block; color:var(--ember); font-size:15px; margin-bottom:12px;}
+  .cb-item{display:flex; gap:10px; align-items:flex-start; font-size:13px;
+           color:rgba(242,233,218,0.8); line-height:1.5; margin-bottom:8px;}
+  .conta-opcional{font-size:12.5px; color:rgba(242,233,218,0.5); text-align:center; margin-bottom:20px;}
+
+  .conta-header{display:flex; align-items:center; gap:14px; padding-bottom:18px;
+                margin-bottom:18px; border-bottom:1px solid var(--line);}
+  .ch-avatar{width:52px; height:52px; border-radius:50%; background:rgba(229,118,46,0.16);
+             display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0;}
+  .conta-header strong{display:block; font-size:17px;}
+  .conta-header span{font-size:13px; color:rgba(242,233,218,0.55);}
+
+  .conta-aviso{background:var(--pitch); border-radius:12px; padding:16px;
+               font-size:13.5px; color:rgba(242,233,218,0.65); line-height:1.55; text-align:center;}
+
+  .fid-cliente{background:rgba(76,175,109,0.1); border:1px solid rgba(76,175,109,0.35);
+               border-radius:14px; padding:18px; text-align:center;}
+  .fc-topo{font-size:14px; color:var(--green); margin-bottom:8px;}
+  .fc-num{font-family:'Anton',sans-serif; font-size:30px; color:var(--cream); margin-bottom:6px;}
+  .fc-premio{color:var(--green); font-weight:700; font-size:14px; margin-bottom:12px;}
+  .fc-falta{font-size:13.5px; color:rgba(242,233,218,0.7); margin-bottom:12px;}
+  .fc-falta b{color:var(--mustard); font-size:16px;}
+  .fc-barra{height:8px; background:rgba(242,233,218,0.1); border-radius:99px; overflow:hidden;}
+  .fc-fill{height:100%; background:var(--green); border-radius:99px; transition:width .5s;}
+
   /* ---------- INSTALAR O APP ---------- */
   .instalar-banner{
     position:fixed; left:12px; right:12px; bottom:12px; z-index:210;
@@ -792,10 +937,12 @@
         <li><a href="#sobre">Sobre</a></li>
         <li><a href="#local">Localização</a></li>
         <li><a id="navTrack" href="#" role="button">Acompanhar pedido</a></li>
+        <li><a id="navSugestao" href="#" role="button">💬 Fale conosco</a></li>
         <li id="navInstalarItem"><a id="navInstalar" href="#" role="button">📱 Instalar app</a></li>
       </ul>
     </nav>
     <div class="header-actions">
+      <button class="icon-link" id="openConta">👤 <span class="lbl" id="contaLbl">Entrar</span></button>
       <button class="icon-link" id="openTrack">📦 <span class="lbl">Meu pedido</span></button>
       <button class="icon-link" id="openCart">🛒 <span class="lbl">Carrinho</span> <span class="cart-count" id="cartCount">0</span></button>
       <a href="gerencial/" class="gear-link" title="Área da equipe" aria-label="Área da equipe">⚙</a>
@@ -981,6 +1128,17 @@
           <button type="button" class="ck-edit" id="ckEditCart">✏️ alterar</button>
         </div>
         <div id="ckItems"></div>
+        <div class="cupom-box" id="cupomBox" style="display:none;">
+          <div class="cupom-linha" id="cupomEntrada">
+            <input type="text" id="cupomInput" placeholder="Tem um cupom?" maxlength="20" autocomplete="off" style="text-transform:uppercase;">
+            <button type="button" id="cupomAplicarBtn">Aplicar</button>
+          </div>
+          <div class="cupom-aplicado" id="cupomAplicado" style="display:none;">
+            <span class="ca-info">🏷️ <b id="cupomCodigoAplicado"></b> <span id="cupomDescricao"></span></span>
+            <button type="button" id="cupomRemoverBtn" aria-label="Remover cupom">✕</button>
+          </div>
+          <div class="cupom-msg" id="cupomMsg"></div>
+        </div>
         <div class="ck-totals" id="ckTotals"></div>
       </div>
 
@@ -995,6 +1153,10 @@
         </div>
       </div>
       <div id="ckAddressField">
+        <div id="enderecosSalvos" style="display:none;">
+          <label>Endereços salvos</label>
+          <div class="end-lista" id="endLista"></div>
+        </div>
         <div class="field">
           <label>CEP <span class="opt">(opcional — preenche o endereço)</span></label>
           <div class="cep-row">
@@ -1012,6 +1174,7 @@
           <div class="field"><label>Complemento</label><input type="text" id="ckComplemento" placeholder="Apto, bloco, casa"></div>
         </div>
         <div class="field"><label>Ponto de referência</label><input type="text" id="ckReferencia" placeholder="Ex: portão azul, ao lado da farmácia"></div>
+        <button type="button" class="btn-ghost" id="salvarEnderecoBtn" style="width:100%; font-size:13px; margin-bottom:14px;">💾 Salvar este endereço</button>
         <textarea id="ckAddress" style="display:none;"></textarea>
       </div>
       <div class="field" id="ckTableField" style="display:none;">
@@ -1106,6 +1269,106 @@
      claro em vez de deixar "Carregando..." pra sempre sem explicação. -->
 <!-- Capturador de erro visível na tela: pra achar o problema direto
      pelo celular, sem precisar de computador nem cabo. -->
+<!-- ================= FALE CONOSCO ================= -->
+<div class="overlay" id="sugestaoOverlay">
+  <div class="panel narrow">
+    <div class="panel-head"><h2>💬 Fale conosco</h2><button class="close-btn" data-close="sugestaoOverlay">✕</button></div>
+    <div class="panel-body">
+      <p style="font-size:13.5px;color:rgba(242,233,218,0.7);margin-bottom:18px;line-height:1.55;">
+        Sua opinião ajuda a gente a melhorar. Pode ser elogio, sugestão, reclamação
+        ou uma ideia de lanche novo — a gente lê tudo.
+      </p>
+
+      <div class="field">
+        <label>Sobre o que é?</label>
+        <div class="sug-tipos">
+          <button type="button" class="sug-tipo active" data-sugtipo="sugestao">💡 Sugestão</button>
+          <button type="button" class="sug-tipo" data-sugtipo="elogio">😍 Elogio</button>
+          <button type="button" class="sug-tipo" data-sugtipo="reclamacao">😟 Problema</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Sua mensagem</label>
+        <textarea id="sugMensagem" rows="5" maxlength="600" placeholder="Conta pra gente..."></textarea>
+        <small class="px-dica"><span id="sugContador">0</span>/600</small>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="field">
+          <label>Seu nome <span class="opt">(opcional)</span></label>
+          <input type="text" id="sugNome" placeholder="Como te chamamos" maxlength="60">
+        </div>
+        <div class="field">
+          <label>Telefone <span class="opt">(opcional)</span></label>
+          <input type="text" id="sugTelefone" placeholder="Pra te responder" inputmode="numeric" maxlength="15">
+        </div>
+      </div>
+
+      <button class="btn-primary" id="sugEnviarBtn" style="width:100%;">Enviar mensagem</button>
+      <div class="error-msg" id="sugErro"></div>
+
+      <div class="sug-alt">
+        Prefere falar direto? <a href="#" id="sugWhatsapp" target="_blank" rel="noopener">Chamar no WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= CONTA DO CLIENTE ================= -->
+<div class="overlay" id="contaOverlay">
+  <div class="panel narrow">
+    <div class="panel-head"><h2 id="contaTitulo">Minha conta</h2><button class="close-btn" data-close="contaOverlay">✕</button></div>
+    <div class="panel-body">
+
+      <!-- quando NÃO está logado -->
+      <div id="contaDeslogado">
+        <div class="conta-beneficios">
+          <strong>Vale a pena criar sua conta</strong>
+          <div class="cb-item">🎁 <span>Participa do programa de fidelidade automaticamente</span></div>
+          <div class="cb-item">🏷️ <span>Recebe cupons e promoções exclusivas</span></div>
+          <div class="cb-item">⚡ <span>Seus dados já vêm preenchidos no pedido</span></div>
+          <div class="cb-item">📋 <span>Vê o histórico de tudo que já pediu</span></div>
+        </div>
+        <p class="conta-opcional">Criar conta é opcional — você pode pedir normalmente sem ela.</p>
+
+        <div class="field">
+          <label>E-mail</label>
+          <input type="email" id="contaEmail" placeholder="seu@email.com" autocomplete="email">
+        </div>
+        <div class="field">
+          <label>Senha</label>
+          <div class="senha-wrap">
+            <input type="password" id="contaSenha" placeholder="Mínimo 6 caracteres" autocomplete="current-password">
+            <button type="button" class="ver-senha" data-versenha="contaSenha" aria-label="Mostrar senha">👁</button>
+          </div>
+        </div>
+        <div class="field" id="contaNomeCampo" style="display:none;">
+          <label>Seu nome</label>
+          <input type="text" id="contaNome" placeholder="Como quer ser chamado" autocomplete="name">
+        </div>
+
+        <button class="btn-primary" id="contaEntrarBtn" style="width:100%;">Entrar</button>
+        <button class="btn-ghost" id="contaCriarBtn" style="width:100%; margin-top:10px;">Criar minha conta</button>
+        <button class="btn-ghost" id="contaEsqueciBtn" style="width:100%; margin-top:6px; font-size:13px;">Esqueci minha senha</button>
+        <div class="error-msg" id="contaErro"></div>
+      </div>
+
+      <!-- quando ESTÁ logado -->
+      <div id="contaLogado" style="display:none;">
+        <div class="conta-header">
+          <div class="ch-avatar">👤</div>
+          <div><strong id="contaNomeExibe">Cliente</strong><span id="contaEmailExibe"></span></div>
+        </div>
+        <div id="contaFidelidade"></div>
+        <div id="contaHistorico"></div>
+        <button class="btn-ghost" id="contaSairBtn" style="width:100%; margin-top:20px;">Sair da conta</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <div id="instalarBanner" class="instalar-banner" style="display:none;">
   <img src="mascot.jpg" alt="" class="ib-icone">
   <div class="ib-txt">
@@ -1237,6 +1500,8 @@
         onerror="document.getElementById('falhaConexao').style.display='flex'"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"
         onerror="document.getElementById('falhaConexao').style.display='flex'"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"
+        onerror="document.getElementById('falhaConexao').style.display='flex'"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyA-7sy4ox0ErDZAw7prhXYJ3MaSA7G_scY",
@@ -1250,10 +1515,11 @@
   // Antes eu marcava sucesso cedo demais — se o Firebase falhasse, essa
   // linha escondia o aviso de erro e o script travava logo em seguida,
   // sem deixar rastro nenhum na tela.
-  let db;
+  let db, authCliente;
   try{
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
+    authCliente = firebase.auth();
     window.__firebaseOk = true;
     clearTimeout(window.__vigiaFirebase);
     const falhaEl = document.getElementById('falhaConexao');
@@ -1538,11 +1804,36 @@
     return products.filter(p => p.active !== false && p.cat !== 'adicionais');
   }
 
+  /* ---------- FAVORITOS ---------- */
+  // Guardados no aparelho — não precisa de conta pra usar.
+  const FAV_KEY = 'omarkin_favoritos';
+  function lerFavoritos(){
+    try{ return JSON.parse(guardar.ler(FAV_KEY) || '[]'); }catch(e){ return []; }
+  }
+  function ehFavorito(id){ return lerFavoritos().includes(id); }
+  function alternarFavorito(id){
+    const favs = lerFavoritos();
+    const i = favs.indexOf(id);
+    if(i > -1){ favs.splice(i,1); showToast('Removido dos favoritos'); }
+    else { favs.push(id); showToast('❤️ Adicionado aos favoritos'); }
+    guardar.salvar(FAV_KEY, JSON.stringify(favs));
+    renderMenu();
+  }
+  // Favoritos primeiro, mantendo a ordem original dentro de cada grupo
+  function ordenarComFavoritos(lista){
+    const favs = lerFavoritos();
+    if(favs.length === 0) return lista;
+    const fav = lista.filter(p => favs.includes(p.id));
+    const resto = lista.filter(p => !favs.includes(p.id));
+    return fav.concat(resto);
+  }
+
   function renderMenu(){
     const grid = document.getElementById('menuGrid');
     const visiveis = visibleProducts();
     document.getElementById('statCount').textContent = visiveis.length + "+";
-    const list = activeCategory === "todos" ? visiveis : visiveis.filter(p => p.cat === activeCategory);
+    const listaBase = activeCategory === "todos" ? visiveis : visiveis.filter(p => p.cat === activeCategory);
+    const list = ordenarComFavoritos(listaBase);
     if(list.length === 0){ grid.innerHTML = '<div class="empty-state">Nenhum produto nessa categoria ainda. Volte em breve! 👨‍🍳</div>'; return; }
     grid.innerHTML = list.map(p => {
       const qty = cart.filter(c => c.productId === p.id).reduce((s,c) => s + c.qty, 0);
@@ -1554,7 +1845,8 @@
            </div>`
         : `<button class="add" data-add="${p.id}">+</button>`;
       return `
-      <div class="menu-card">
+      <div class="menu-card${ehFavorito(p.id) ? ' favorito' : ''}">
+        <button class="fav-btn" data-fav="${p.id}" aria-label="${ehFavorito(p.id) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}">${ehFavorito(p.id) ? '❤️' : '🤍'}</button>
         ${p.tag ? `<span class="tag">${escapeHtml(p.tag)}</span>` : ''}
         ${p.photo ? `<img src="${p.photo}" alt="${escapeHtml(p.name)}" class="menu-photo" loading="lazy">` : `<div class="menu-icon">${p.icon || '🍔'}</div>`}
         <h3>${escapeHtml(p.name)}</h3>
@@ -1562,6 +1854,10 @@
         <div class="menu-foot"><span class="price">${money(p.price)}</span>${footControl}</div>
       </div>
     `;}).join('');
+    grid.querySelectorAll('[data-fav]').forEach(btn => btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      alternarFavorito(btn.dataset.fav);
+    }));
     grid.querySelectorAll('[data-add]').forEach(btn => btn.addEventListener('click', () => addToCart(btn.dataset.add)));
     grid.querySelectorAll('[data-menuinc]').forEach(btn => btn.addEventListener('click', () => addToCart(btn.dataset.menuinc)));
     grid.querySelectorAll('[data-menudec]').forEach(btn => btn.addEventListener('click', () => {
@@ -1747,7 +2043,21 @@
     if(item.qty <= 0) cart = cart.filter(c => c.key !== cartKey);
     updateCartUI(); renderMenu();
   }
-  function cartTotal(){ return cartSubtotal() + currentDeliveryFee(); }
+  function cartTotal(){
+    const sub = cartSubtotal();
+    const taxaBase = currentDeliveryFee();
+    const d = calcularDesconto(cupomAtivo, sub, taxaBase);
+    const taxa = d.freteGratis ? 0 : taxaBase;
+    return Math.max(0, sub + taxa - d.desconto);
+  }
+  // taxa efetiva depois do cupom (usada no resumo e no pedido salvo)
+  function taxaEntregaFinal(){
+    const d = calcularDesconto(cupomAtivo, cartSubtotal(), currentDeliveryFee());
+    return d.freteGratis ? 0 : currentDeliveryFee();
+  }
+  function descontoAtual(){
+    return calcularDesconto(cupomAtivo, cartSubtotal(), currentDeliveryFee()).desconto;
+  }
   function updateCartUI(){
     salvarCarrinho();
     document.getElementById('cartCount').textContent = cart.reduce((s,c)=>s+c.qty,0);
@@ -1834,6 +2144,8 @@
     if(cart.length === 0) return;
     openOverlay('checkoutOverlay');
     renderCheckoutSummary();
+    mostrarCampoCupom();
+    renderEnderecosSalvos();
     autofillCustomer();
     rastrear('InitiateCheckout', {value: cartTotal(), itens: itensDoCarrinho()});
   });
@@ -1842,6 +2154,8 @@
     if(cart.length === 0){ alert("Seu carrinho está vazio."); return; }
     closeOverlay('cartOverlay'); openOverlay('checkoutOverlay');
     renderCheckoutSummary();
+    mostrarCampoCupom();
+    renderEnderecosSalvos();
     autofillCustomer();
     rastrear('InitiateCheckout', {value: cartTotal(), itens: itensDoCarrinho()});
   });
@@ -1904,11 +2218,20 @@
 
     // totais
     const sub = cartSubtotal();
-    const fee = currentDeliveryFee();
+    const desc = descontoAtual();
+    const dInfo = calcularDesconto(cupomAtivo, sub, currentDeliveryFee());
+    const fee = dInfo.freteGratis ? 0 : currentDeliveryFee();
     let t = `<div class="ck-tot-row"><span>Subtotal</span><span>${money(sub)}</span></div>`;
+
+    if(desc > 0){
+      t += `<div class="ck-tot-row ck-desconto"><span>🏷️ Cupom ${escapeHtml(cupomAtivo.codigo)}</span><span>− ${money(desc)}</span></div>`;
+    }
+
     if(selectedOrderType === 'entrega'){
       if(taxaACombinar()){
         t += `<div class="ck-tot-row"><span>Taxa de entrega</span><span class="ck-combinar">💬 A combinar</span></div>`;
+      }else if(dInfo.freteGratis){
+        t += `<div class="ck-tot-row ck-desconto"><span>🏷️ Taxa de entrega</span><span>Grátis pelo cupom 🎉</span></div>`;
       }else{
         t += `<div class="ck-tot-row"><span>Taxa de entrega</span><span>${
           fee === 0 ? '<span class="ck-free">Grátis 🎉</span>' : money(fee)
@@ -2286,8 +2609,10 @@
         customerName: name, phone, address, table, orderType: selectedOrderType, payment, notes,
         items: cart.map(c => ({name:c.name, price:c.price, qty:c.qty, forItem:c.forItem || ""})),
         subtotal: cartSubtotal(),
-        deliveryFee: currentDeliveryFee(),
+        deliveryFee: taxaEntregaFinal(),
         feePending: taxaACombinar(),
+        cupom: cupomAtivo ? cupomAtivo.codigo : '',
+        desconto: descontoAtual(),
         total: cartTotal(),
         status: "recebido",
         tabClosed: selectedOrderType === 'mesa' ? false : true,
@@ -2297,6 +2622,7 @@
       await saveOrder(order);
       bumpDailyStats(order);
       registrarCliente(order);
+      registrarUsoCupom(order);
       // Purchase com valor: é o que permite calcular retorno do anúncio
       rastrear('Purchase', {
         value: order.total,
@@ -2313,6 +2639,14 @@
     const code = order.code;
 
     cart = []; salvarCarrinho(); updateCartUI(); renderMenu();
+    // zera o cupom pro próximo pedido
+    cupomAtivo = null;
+    const ce = document.getElementById('cupomEntrada');
+    const ca = document.getElementById('cupomAplicado');
+    const ci = document.getElementById('cupomInput');
+    if(ce) ce.style.display = 'flex';
+    if(ca) ca.style.display = 'none';
+    if(ci) ci.value = '';
     document.getElementById('ckName').value = "";
     document.getElementById('ckPhone').value = "";
     document.getElementById('ckAddress').value = "";
@@ -2515,6 +2849,594 @@
     });
   }
 
+  // Mostrar/ocultar senha
+  document.querySelectorAll('[data-versenha]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const campo = document.getElementById(btn.dataset.versenha);
+      if(!campo) return;
+      const mostrando = campo.type === 'text';
+      campo.type = mostrando ? 'password' : 'text';
+      btn.textContent = mostrando ? '👁' : '🙈';
+      btn.setAttribute('aria-label', mostrando ? 'Mostrar senha' : 'Ocultar senha');
+      campo.focus();
+    });
+  });
+
+  /* ================= ENDEREÇOS SALVOS ================= */
+  // Guardados no aparelho. Permite ter "Casa", "Trabalho" etc. sem
+  // precisar de conta — quem tem conta usa igual, só que os dados
+  // acompanham o aparelho, não o login.
+  const END_KEY = 'omarkin_enderecos';
+
+  function lerEnderecos(){
+    try{ return JSON.parse(guardar.ler(END_KEY) || '[]'); }catch(e){ return []; }
+  }
+  function salvarEnderecos(lista){
+    guardar.salvar(END_KEY, JSON.stringify(lista.slice(0,5)));  // no máximo 5
+  }
+
+  function renderEnderecosSalvos(){
+    const box = document.getElementById('enderecosSalvos');
+    const lista = document.getElementById('endLista');
+    if(!box || !lista) return;
+    const ends = lerEnderecos();
+    if(ends.length === 0 || selectedOrderType !== 'entrega'){
+      box.style.display = 'none';
+      return;
+    }
+    box.style.display = 'block';
+    lista.innerHTML = ends.map((e,i) => `
+      <div class="end-item">
+        <button type="button" class="end-usar" data-endusar="${i}">
+          <strong>${escapeHtml(e.apelido || 'Endereço ' + (i+1))}</strong>
+          <span>${escapeHtml((e.rua||'') + (e.numero ? ', ' + e.numero : ''))}</span>
+        </button>
+        <button type="button" class="end-apagar" data-endapagar="${i}" aria-label="Remover">✕</button>
+      </div>`).join('');
+
+    lista.querySelectorAll('[data-endusar]').forEach(b =>
+      b.addEventListener('click', () => usarEndereco(Number(b.dataset.endusar))));
+    lista.querySelectorAll('[data-endapagar]').forEach(b =>
+      b.addEventListener('click', () => {
+        const ends = lerEnderecos();
+        ends.splice(Number(b.dataset.endapagar), 1);
+        salvarEnderecos(ends);
+        renderEnderecosSalvos();
+        showToast('Endereço removido');
+      }));
+  }
+
+  function usarEndereco(i){
+    const e = lerEnderecos()[i];
+    if(!e) return;
+    const set = (id, v) => { const el = document.getElementById(id); if(el) el.value = v || ''; };
+    set('ckCep', e.cep); set('ckRua', e.rua); set('ckNumero', e.numero);
+    set('ckBairro', e.bairro); set('ckComplemento', e.complemento); set('ckReferencia', e.referencia);
+    showToast(`📍 ${e.apelido || 'Endereço'} preenchido`);
+  }
+
+  document.getElementById('salvarEnderecoBtn')?.addEventListener('click', () => {
+    const rua = document.getElementById('ckRua').value.trim();
+    const numero = document.getElementById('ckNumero').value.trim();
+    if(!rua){ showToast('Preencha o endereço primeiro'); return; }
+
+    const apelido = prompt('Dê um nome pra esse endereço:\n(ex: Casa, Trabalho, Casa da mãe)', 'Casa');
+    if(apelido === null) return;
+
+    const ends = lerEnderecos();
+    const novo = {
+      apelido: (apelido || 'Endereço').slice(0,20),
+      cep: document.getElementById('ckCep').value.trim(),
+      rua, numero,
+      bairro: document.getElementById('ckBairro').value.trim(),
+      complemento: document.getElementById('ckComplemento').value.trim(),
+      referencia: document.getElementById('ckReferencia').value.trim()
+    };
+    // substitui se já existe um com o mesmo apelido
+    const iguala = ends.findIndex(e => e.apelido.toLowerCase() === novo.apelido.toLowerCase());
+    if(iguala > -1) ends[iguala] = novo; else ends.push(novo);
+
+    if(ends.length > 5){ showToast('Máximo de 5 endereços — o mais antigo saiu'); ends.shift(); }
+    salvarEnderecos(ends);
+    renderEnderecosSalvos();
+    showToast(`💾 "${novo.apelido}" salvo`);
+  });
+
+  /* ================= FALE CONOSCO ================= */
+  let sugTipo = 'sugestao';
+
+  document.getElementById('navSugestao')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('sugErro').textContent = '';
+    // preenche o que já sabemos, pra pessoa não redigitar
+    const salvos = JSON.parse(guardar.ler('omarkin_customer') || 'null') || {};
+    const nomeEl = document.getElementById('sugNome');
+    const telEl = document.getElementById('sugTelefone');
+    if(!nomeEl.value) nomeEl.value = clienteLogado?.nome || salvos.name || '';
+    if(!telEl.value) telEl.value = clienteLogado?.telefone || salvos.phone || '';
+    // link do WhatsApp da loja
+    const wa = document.getElementById('sugWhatsapp');
+    if(wa && storeWhatsappNumber){
+      wa.href = 'https://wa.me/55' + String(storeWhatsappNumber).replace(/\D/g,'');
+      wa.parentElement.style.display = '';
+    }else if(wa){
+      wa.parentElement.style.display = 'none';
+    }
+    openOverlay('sugestaoOverlay');
+  });
+
+  document.querySelectorAll('[data-sugtipo]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-sugtipo]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      sugTipo = btn.dataset.sugtipo;
+    });
+  });
+
+  document.getElementById('sugMensagem')?.addEventListener('input', (e) => {
+    document.getElementById('sugContador').textContent = e.target.value.length;
+  });
+
+  document.getElementById('sugEnviarBtn')?.addEventListener('click', async () => {
+    const msg = document.getElementById('sugMensagem').value.trim();
+    const err = document.getElementById('sugErro');
+    const btn = document.getElementById('sugEnviarBtn');
+
+    if(msg.length < 5){ err.textContent = 'Escreva um pouco mais pra gente entender.'; return; }
+
+    btn.disabled = true; btn.textContent = 'Enviando...';
+    try{
+      await db.collection('mensagens').add({
+        tipo: sugTipo,
+        mensagem: msg.slice(0,600),
+        nome: document.getElementById('sugNome').value.trim().slice(0,60),
+        telefone: document.getElementById('sugTelefone').value.trim().slice(0,15),
+        lida: false,
+        quando: new Date().toISOString()
+      });
+      closeOverlay('sugestaoOverlay');
+      document.getElementById('sugMensagem').value = '';
+      document.getElementById('sugContador').textContent = '0';
+      showToast('💬 Recebemos sua mensagem. Obrigado!');
+    }catch(e){
+      err.textContent = 'Não foi possível enviar agora. Tente de novo.';
+    }
+    btn.disabled = false; btn.textContent = 'Enviar mensagem';
+  });
+
+  /* ================= HISTÓRICO E REPETIR PEDIDO ================= */
+  // Busca os pedidos por telefone. Funciona logado ou não — quem já pediu
+  // e informou o telefone consegue ver e repetir.
+  async function buscarHistorico(telefone){
+    const tel = (telefone || '').replace(/\D/g,'');
+    if(!tel) return [];
+    try{
+      const snap = await db.collection('orders')
+        .where('phone','==', telefone)
+        .orderBy('createdAt','desc')
+        .limit(10).get();
+      return snap.docs.map(d => d.data());
+    }catch(e){
+      // Sem índice composto o Firestore recusa: tenta sem ordenar
+      try{
+        const snap = await db.collection('orders').where('phone','==', telefone).limit(10).get();
+        return snap.docs.map(d => d.data())
+          .sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
+      }catch(e2){ return []; }
+    }
+  }
+
+  function telefoneDoCliente(){
+    if(clienteLogado?.telefone) return clienteLogado.telefone;
+    const salvos = JSON.parse(guardar.ler('omarkin_customer') || 'null') || {};
+    return salvos.phone || '';
+  }
+
+  async function renderHistorico(){
+    const box = document.getElementById('contaHistorico');
+    if(!box) return;
+    const tel = telefoneDoCliente();
+    if(!tel){
+      box.innerHTML = `<div class="conta-aviso">Faça um pedido informando seu telefone pra ver o histórico aqui.</div>`;
+      return;
+    }
+    box.innerHTML = `<div class="conta-aviso">Buscando seus pedidos...</div>`;
+    const pedidos = await buscarHistorico(tel);
+    if(pedidos.length === 0){
+      box.innerHTML = `<div class="conta-aviso">Nenhum pedido ainda. O primeiro já conta pra fidelidade!</div>`;
+      return;
+    }
+    box.innerHTML = `
+      <h4 class="hist-titulo">📋 Seus últimos pedidos</h4>
+      ${pedidos.map((o,i) => {
+        const d = new Date(o.createdAt);
+        const itens = (o.items||[]).filter(x => !x.forItem).map(x => `${x.qty}x ${x.name}`).join(', ');
+        return `
+        <div class="hist-item">
+          <div class="hi-topo">
+            <span class="hi-data">${d.toLocaleDateString('pt-BR')} · ${d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
+            <span class="hi-total">${money(o.total)}</span>
+          </div>
+          <div class="hi-itens">${escapeHtml(itens || 'sem itens')}</div>
+          <button class="hi-repetir" data-repetir="${i}">🔁 Pedir de novo</button>
+        </div>`;
+      }).join('')}`;
+
+    box.querySelectorAll('[data-repetir]').forEach(b =>
+      b.addEventListener('click', () => repetirPedido(pedidos[Number(b.dataset.repetir)])));
+  }
+
+  // Remonta o carrinho com os itens do pedido antigo, conferindo o cardápio
+  function repetirPedido(pedidoAntigo){
+    if(!pedidoAntigo || !Array.isArray(pedidoAntigo.items)) return;
+
+    const indisponiveis = [];
+    const novoCarrinho = [];
+
+    pedidoAntigo.items.forEach(item => {
+      if(item.premio) return;  // brinde de fidelidade não se repete sozinho
+      // procura o produto ATUAL pelo nome (preço pode ter mudado)
+      const nomeBase = String(item.name).replace(' — PRÊMIO FIDELIDADE','');
+      const prod = products.find(p => p.name === nomeBase && p.active !== false);
+      if(!prod){ indisponiveis.push(nomeBase); return; }
+      novoCarrinho.push({
+        productId: prod.id, cat: prod.cat, name: prod.name,
+        price: prod.price,          // preço de HOJE, não o antigo
+        icon: prod.icon, photo: prod.photo || '',
+        qty: Number(item.qty) || 1,
+        forItem: item.forItem || ''
+      });
+    });
+
+    if(novoCarrinho.length === 0){
+      alert('Os itens desse pedido não estão mais disponíveis no cardápio.');
+      return;
+    }
+
+    let aviso = `Repetir esse pedido?\n\n${novoCarrinho.filter(i=>!i.forItem).map(i=>`${i.qty}x ${i.name}`).join('\n')}`;
+    if(indisponiveis.length){
+      aviso += `\n\n⚠️ Fora do cardápio agora (não serão incluídos):\n${indisponiveis.join('\n')}`;
+    }
+    if(cart.length > 0) aviso += `\n\nIsso vai substituir o que já está no seu carrinho.`;
+    if(!confirm(aviso)) return;
+
+    cart = novoCarrinho;
+    salvarCarrinho();
+    updateCartUI();
+    renderMenu();
+    closeOverlay('contaOverlay');
+    openOverlay('cartOverlay');
+    showToast('🔁 Pedido montado! Confira e finalize.');
+  }
+
+  /* ================= CUPONS DE DESCONTO ================= */
+  let cupomAtivo = null;   // cupom validado e aplicado neste pedido
+
+  function cupomHabilitado(){ return features.cupons === true; }
+
+  function mostrarCampoCupom(){
+    const box = document.getElementById('cupomBox');
+    if(box) box.style.display = cupomHabilitado() ? 'block' : 'none';
+  }
+
+  // Calcula quanto o cupom desconta neste carrinho
+  function calcularDesconto(cup, subtotal, taxaEntrega){
+    if(!cup) return {desconto:0, freteGratis:false};
+    if(cup.tipo === 'frete') return {desconto:0, freteGratis:true};
+    if(cup.tipo === 'fixo'){
+      // nunca desconta mais que o próprio subtotal
+      return {desconto: Math.min(Number(cup.valor)||0, subtotal), freteGratis:false};
+    }
+    // percentual
+    const pct = Number(cup.valor) || 0;
+    return {desconto: Math.round(subtotal * (pct/100) * 100) / 100, freteGratis:false};
+  }
+
+  // Confere TODAS as regras do cupom antes de aceitar
+  async function validarCupom(codigo){
+    const cod = String(codigo||'').trim().toUpperCase().replace(/\s/g,'');
+    if(!cod) return {ok:false, msg:'Digite o código do cupom.'};
+
+    let doc;
+    try{
+      doc = await db.collection('cupons').doc(cod).get();
+    }catch(e){
+      return {ok:false, msg:'Não foi possível verificar agora. Tente de novo.'};
+    }
+    if(!doc.exists) return {ok:false, msg:'Cupom não encontrado. Confira o código.'};
+
+    const cup = doc.data();
+
+    if(cup.ativo === false) return {ok:false, msg:'Esse cupom não está mais ativo.'};
+
+    if(cup.validade){
+      const hoje = localDateStr(new Date());
+      if(cup.validade < hoje) return {ok:false, msg:'Esse cupom expirou.'};
+    }
+
+    const limite = Number(cup.limite) || 0;
+    const usos = Number(cup.usos) || 0;
+    if(limite > 0 && usos >= limite) return {ok:false, msg:'Esse cupom já esgotou.'};
+
+    const minimo = Number(cup.minimo) || 0;
+    const sub = cartSubtotal();
+    if(minimo > 0 && sub < minimo){
+      return {ok:false, msg:`Esse cupom vale a partir de ${money(minimo)}. Faltam ${money(minimo - sub)}.`};
+    }
+
+    if(cup.quem === 'logados' && !clienteLogado){
+      return {ok:false, msg:'Esse cupom é só pra quem tem conta. Toque em 👤 Entrar.'};
+    }
+
+    if(cup.quem === 'primeira'){
+      // confere se esse telefone já pediu antes
+      const tel = (document.getElementById('ckPhone')?.value || '').replace(/\D/g,'');
+      if(tel){
+        try{
+          const cli = await db.collection('customers').doc(tel).get();
+          if(cli.exists && (Number(cli.data().pedidos)||0) > 0){
+            return {ok:false, msg:'Esse cupom é só pra primeira compra.'};
+          }
+        }catch(e){ /* sem permissão de leitura: deixa passar, o painel confere depois */ }
+      }
+    }
+
+    if(cup.umaVez === 'sim'){
+      const tel = (document.getElementById('ckPhone')?.value || '').replace(/\D/g,'');
+      const usados = JSON.parse(guardar.ler('omarkin_cupons_usados') || '[]');
+      if(usados.includes(cod + '|' + tel)){
+        return {ok:false, msg:'Você já usou esse cupom.'};
+      }
+    }
+
+    return {ok:true, cupom: Object.assign({codigo: cod}, cup)};
+  }
+
+  document.getElementById('cupomAplicarBtn')?.addEventListener('click', async () => {
+    const input = document.getElementById('cupomInput');
+    const msg = document.getElementById('cupomMsg');
+    const btn = document.getElementById('cupomAplicarBtn');
+
+    btn.disabled = true; btn.textContent = '...';
+    const r = await validarCupom(input.value);
+    btn.disabled = false; btn.textContent = 'Aplicar';
+
+    if(!r.ok){
+      msg.className = 'cupom-msg erro';
+      msg.textContent = r.msg;
+      return;
+    }
+
+    cupomAtivo = r.cupom;
+    msg.textContent = '';
+    document.getElementById('cupomEntrada').style.display = 'none';
+    document.getElementById('cupomAplicado').style.display = 'flex';
+    document.getElementById('cupomCodigoAplicado').textContent = cupomAtivo.codigo;
+    const d = calcularDesconto(cupomAtivo, cartSubtotal(), currentDeliveryFee());
+    document.getElementById('cupomDescricao').textContent =
+      cupomAtivo.tipo === 'frete' ? '— frete grátis!' : `— ${money(d.desconto)} de desconto`;
+    renderCheckoutSummary();
+    showToast('🏷️ Cupom aplicado!');
+  });
+
+  document.getElementById('cupomRemoverBtn')?.addEventListener('click', () => {
+    cupomAtivo = null;
+    document.getElementById('cupomEntrada').style.display = 'flex';
+    document.getElementById('cupomAplicado').style.display = 'none';
+    document.getElementById('cupomInput').value = '';
+    document.getElementById('cupomMsg').textContent = '';
+    renderCheckoutSummary();
+  });
+
+  // Registra o uso depois do pedido confirmado
+  function registrarUsoCupom(order){
+    if(!cupomAtivo) return;
+    const cod = cupomAtivo.codigo;
+    const inc = firebase.firestore.FieldValue.increment;
+    db.collection('cupons').doc(cod).set({
+      usos: inc(1),
+      totalDescontado: inc(Number(order.desconto) || 0),
+      ultimoUso: new Date().toISOString()
+    }, {merge:true}).catch(()=>{});
+
+    // guarda no aparelho pra bloquear reuso quando o cupom é "uma vez por cliente"
+    if(cupomAtivo.umaVez === 'sim'){
+      try{
+        const tel = (order.phone||'').replace(/\D/g,'');
+        const usados = JSON.parse(guardar.ler('omarkin_cupons_usados') || '[]');
+        usados.push(cod + '|' + tel);
+        guardar.salvar('omarkin_cupons_usados', JSON.stringify(usados.slice(-50)));
+      }catch(e){}
+    }
+  }
+
+  /* ================= CONTA DO CLIENTE ================= */
+  // Login é OPCIONAL — o cliente pode pedir sem conta nenhuma. A conta só
+  // acrescenta: fidelidade automática, cupons, dados preenchidos e histórico.
+  let clienteLogado = null;
+
+  function atualizarBotaoConta(){
+    const lbl = document.getElementById('contaLbl');
+    if(!lbl) return;
+    lbl.textContent = clienteLogado
+      ? (clienteLogado.nome || 'Conta').split(' ')[0]
+      : 'Entrar';
+  }
+
+  function abrirConta(){
+    document.getElementById('contaErro').textContent = '';
+    const logado = !!clienteLogado;
+    document.getElementById('contaDeslogado').style.display = logado ? 'none' : 'block';
+    document.getElementById('contaLogado').style.display = logado ? 'block' : 'none';
+    document.getElementById('contaTitulo').textContent = logado ? 'Minha conta' : 'Entrar ou criar conta';
+    if(logado){ renderContaLogada(); renderHistorico(); }
+    openOverlay('contaOverlay');
+  }
+  document.getElementById('openConta')?.addEventListener('click', abrirConta);
+
+  // ---- ENTRAR ----
+  document.getElementById('contaEntrarBtn')?.addEventListener('click', async () => {
+    const email = document.getElementById('contaEmail').value.trim();
+    const senha = document.getElementById('contaSenha').value;
+    const err = document.getElementById('contaErro');
+    const btn = document.getElementById('contaEntrarBtn');
+    if(!email || !senha){ err.textContent = 'Preencha e-mail e senha.'; return; }
+
+    btn.disabled = true; btn.textContent = 'Entrando...';
+    try{
+      await authCliente.signInWithEmailAndPassword(email, senha);
+      err.textContent = '';
+      closeOverlay('contaOverlay');
+      showToast('👋 Bem-vindo de volta!');
+    }catch(e){
+      err.textContent = mensagemErroAuth(e.code);
+    }
+    btn.disabled = false; btn.textContent = 'Entrar';
+  });
+
+  // ---- CRIAR CONTA ----
+  document.getElementById('contaCriarBtn')?.addEventListener('click', async () => {
+    const campoNome = document.getElementById('contaNomeCampo');
+    // primeiro toque revela o campo de nome; segundo cria de fato
+    if(campoNome.style.display === 'none'){
+      campoNome.style.display = 'block';
+      document.getElementById('contaNome').focus();
+      document.getElementById('contaCriarBtn').textContent = 'Confirmar cadastro';
+      return;
+    }
+
+    const email = document.getElementById('contaEmail').value.trim();
+    const senha = document.getElementById('contaSenha').value;
+    const nome = document.getElementById('contaNome').value.trim();
+    const err = document.getElementById('contaErro');
+    const btn = document.getElementById('contaCriarBtn');
+
+    if(!nome){ err.textContent = 'Como podemos te chamar?'; return; }
+    if(!email){ err.textContent = 'Informe seu e-mail.'; return; }
+    if(senha.length < 6){ err.textContent = 'A senha precisa de pelo menos 6 caracteres.'; return; }
+
+    btn.disabled = true; btn.textContent = 'Criando...';
+    try{
+      const cred = await authCliente.createUserWithEmailAndPassword(email, senha);
+      // guarda o nome e o telefone (se já preencheu antes) no perfil
+      const salvos = JSON.parse(guardar.ler('omarkin_customer') || 'null') || {};
+      await db.collection('clientes').doc(cred.user.uid).set({
+        nome, email,
+        telefone: salvos.phone || '',
+        criadoEm: new Date().toISOString()
+      });
+      err.textContent = '';
+      closeOverlay('contaOverlay');
+      showToast('🎉 Conta criada! Agora você participa da fidelidade.');
+    }catch(e){
+      err.textContent = mensagemErroAuth(e.code);
+    }
+    btn.disabled = false; btn.textContent = 'Confirmar cadastro';
+  });
+
+  // ---- ESQUECI A SENHA ----
+  document.getElementById('contaEsqueciBtn')?.addEventListener('click', async () => {
+    const email = document.getElementById('contaEmail').value.trim();
+    const err = document.getElementById('contaErro');
+    if(!email){ err.textContent = 'Digite seu e-mail acima primeiro.'; return; }
+    try{
+      await authCliente.sendPasswordResetEmail(email);
+      err.style.color = 'var(--green)';
+      err.textContent = 'Enviamos um link no seu e-mail ✓';
+    }catch(e){
+      err.style.color = '';
+      err.textContent = mensagemErroAuth(e.code);
+    }
+  });
+
+  // ---- SAIR ----
+  document.getElementById('contaSairBtn')?.addEventListener('click', async () => {
+    await authCliente.signOut();
+    closeOverlay('contaOverlay');
+    showToast('Você saiu da conta');
+  });
+
+  function mensagemErroAuth(codigo){
+    return {
+      'auth/invalid-email': 'E-mail inválido.',
+      'auth/user-not-found': 'Não encontramos essa conta. Quer criar uma?',
+      'auth/wrong-password': 'Senha incorreta.',
+      'auth/invalid-credential': 'E-mail ou senha incorretos.',
+      'auth/email-already-in-use': 'Esse e-mail já tem conta. Tente entrar.',
+      'auth/weak-password': 'Senha muito curta (mínimo 6 caracteres).',
+      'auth/too-many-requests': 'Muitas tentativas. Aguarde alguns minutos.',
+      'auth/network-request-failed': 'Sem conexão. Verifique sua internet.'
+    }[codigo] || 'Não foi possível. Tente de novo.';
+  }
+
+  // ---- ESTADO DA CONTA ----
+  function iniciarAuthCliente(){
+    if(!authCliente) return;
+    authCliente.onAuthStateChanged(async (user) => {
+      if(!user){
+        clienteLogado = null;
+        atualizarBotaoConta();
+        return;
+      }
+      try{
+        const doc = await db.collection('clientes').doc(user.uid).get();
+        const perfil = doc.exists ? doc.data() : {};
+        clienteLogado = {uid: user.uid, email: user.email, nome: perfil.nome || '', telefone: perfil.telefone || ''};
+      }catch(e){
+        clienteLogado = {uid: user.uid, email: user.email, nome: '', telefone: ''};
+      }
+      atualizarBotaoConta();
+      preencherDadosDaConta();
+    });
+  }
+
+  // Preenche o checkout com os dados de quem está logado
+  function preencherDadosDaConta(){
+    if(!clienteLogado) return;
+    const nomeEl = document.getElementById('ckName');
+    const telEl = document.getElementById('ckPhone');
+    if(nomeEl && !nomeEl.value && clienteLogado.nome) nomeEl.value = clienteLogado.nome;
+    if(telEl && !telEl.value && clienteLogado.telefone) telEl.value = clienteLogado.telefone;
+  }
+
+  function renderContaLogada(){
+    document.getElementById('contaNomeExibe').textContent = clienteLogado.nome || 'Cliente';
+    document.getElementById('contaEmailExibe').textContent = clienteLogado.email || '';
+
+    // fidelidade — lê do mesmo cadastro que o painel usa
+    const box = document.getElementById('contaFidelidade');
+    const tel = (clienteLogado.telefone || '').replace(/\D/g,'');
+    if(!tel){
+      box.innerHTML = `<div class="conta-aviso">Faça um pedido informando seu telefone pra começar a acumular fidelidade.</div>`;
+      return;
+    }
+    box.innerHTML = `<div class="conta-aviso">Carregando sua fidelidade...</div>`;
+    db.collection('customers').doc(tel).get().then(doc => {
+      if(!doc.exists){
+        box.innerHTML = `<div class="conta-aviso">Ainda sem pedidos registrados. O primeiro já conta!</div>`;
+        return;
+      }
+      const d = doc.data();
+      const meta = Number(features.fidQtd) || 10;
+      const n = Number(d.pedidos) || 0;
+      const faltam = (meta - (n % meta)) % meta;
+      const conquistados = Math.floor(n / meta);
+      const entregues = Number(d.premiosEntregues) || 0;
+      const pendentes = Math.max(0, conquistados - entregues);
+      box.innerHTML = `
+        <div class="fid-cliente">
+          <div class="fc-topo">🎁 <strong>Sua fidelidade</strong></div>
+          <div class="fc-num">${n} pedido${n!==1?'s':''}</div>
+          ${pendentes > 0
+            ? `<div class="fc-premio">Você tem ${pendentes} brinde${pendentes>1?'s':''} disponível! Peça na loja.</div>`
+            : `<div class="fc-falta">Faltam <b>${faltam}</b> pedido${faltam!==1?'s':''} pro próximo brinde</div>`}
+          <div class="fc-barra"><div class="fc-fill" style="width:${((n % meta)/meta)*100}%"></div></div>
+        </div>`;
+    }).catch(() => {
+      box.innerHTML = `<div class="conta-aviso">Não foi possível carregar agora.</div>`;
+    });
+  }
+
   /* ================= INSTALAR O APP ================= */
   // Android/Chrome: instala com um toque (evento beforeinstallprompt).
   // iPhone: a Apple não permite instalar por botão — mostramos o passo a passo.
@@ -2710,12 +3632,41 @@
       <div class="rate-stars" id="rateStars">
         ${[1,2,3,4,5].map(n => `<button data-star="${n}">☆</button>`).join('')}
       </div>
+      <div id="rateItens" style="display:none;"></div>
       <textarea id="rateComment" placeholder="Quer contar mais? (opcional)" rows="2" style="display:none;"></textarea>
       <button class="btn-primary" id="rateSend" style="display:none; width:100%; margin-top:10px;">Enviar avaliação</button>
     </div>`;
   }
 
   let notaEscolhida = 0;
+  let notasPorItem = {};
+
+  // Nota por item: só aparece depois da nota geral, pra não assustar.
+  // Opcional — quem não quiser detalhar é só enviar.
+  function mostrarNotaPorItem(){
+    const box = document.getElementById('rateItens');
+    if(!box || !trackedOrder) return;
+    const principais = (trackedOrder.items||[]).filter(i => !i.forItem && !i.premio);
+    if(principais.length === 0) return;
+    box.style.display = 'block';
+    box.innerHTML = `
+      <div class="ri-titulo">Quer avaliar item por item? <small>(opcional)</small></div>
+      ${principais.map((it, idx) => `
+        <div class="ri-linha">
+          <span class="ri-nome">${escapeHtml(it.name)}</span>
+          <div class="ri-estrelas" data-riitem="${idx}">
+            ${[1,2,3,4,5].map(n => `<button type="button" data-rinota="${n}" data-riidx="${idx}">☆</button>`).join('')}
+          </div>
+        </div>`).join('')}`;
+
+    box.querySelectorAll('[data-rinota]').forEach(b => b.addEventListener('click', () => {
+      const idx = b.dataset.riidx;
+      const nota = Number(b.dataset.rinota);
+      notasPorItem[principais[idx].name] = nota;
+      box.querySelectorAll(`[data-riidx="${idx}"]`).forEach(x =>
+        x.textContent = Number(x.dataset.rinota) <= nota ? '⭐' : '☆');
+    }));
+  }
   function bindAvaliacao(){
     const box = document.getElementById('rateStars');
     if(!box) return;
@@ -2726,6 +3677,7 @@
         x.textContent = Number(x.dataset.star) <= notaEscolhida ? '⭐' : '☆');
       document.getElementById('rateComment').style.display = 'block';
       document.getElementById('rateSend').style.display = 'block';
+      mostrarNotaPorItem();
     }));
     document.getElementById('rateSend')?.addEventListener('click', async () => {
       if(!notaEscolhida || !trackedOrder) return;
@@ -2735,6 +3687,7 @@
         await db.collection('orders').doc(trackedOrder.code).update({
           rating: notaEscolhida,
           ratingComment: document.getElementById('rateComment').value.trim(),
+          ratingItens: notasPorItem,
           ratedAt: new Date().toISOString()
         });
         showToast('Obrigado pela avaliação! ⭐');
@@ -2963,6 +3916,7 @@
     });
   }
 
+  iniciarAuthCliente();
   watchProducts();
   watchPromo();
   watchStoreInfo();

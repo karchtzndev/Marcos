@@ -477,6 +477,38 @@
   .erro-meta{display:flex; gap:10px; flex-wrap:wrap; font-size:11.5px; color:rgba(242,233,218,0.45);}
   .erro-tag{background:rgba(240,180,41,0.16); color:var(--mustard); border-radius:999px; padding:2px 9px; font-weight:700;}
 
+  /* ---------- MENSAGENS ---------- */
+  .msg-card{border:1px solid var(--line); border-left:3px solid var(--ember);
+            border-radius:12px; padding:14px 16px; margin-bottom:11px;}
+  .msg-card.lida{opacity:0.55;}
+  .msg-card.tipo-elogio{border-left-color:var(--green);}
+  .msg-card.tipo-reclamacao{border-left-color:var(--tomato);}
+  .msg-topo{display:flex; justify-content:space-between; align-items:center; margin-bottom:9px; gap:10px;}
+  .msg-tipo{font-size:11px; font-weight:900; letter-spacing:0.5px; color:var(--mustard);}
+  .msg-data{font-size:11.5px; color:rgba(242,233,218,0.45);}
+  .msg-texto{font-size:14px; color:var(--cream); line-height:1.6; margin-bottom:12px; white-space:pre-wrap;}
+  .msg-rodape{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;}
+  .msg-autor{font-size:12px; color:rgba(242,233,218,0.5);}
+  .msg-acoes{display:flex; gap:6px;}
+  .icon-btn.on{border-color:var(--green); color:var(--green);}
+
+  /* ---------- CUPONS ---------- */
+  .cupom-card{border:1px solid var(--line); border-left:3px solid var(--green);
+              border-radius:12px; padding:14px 16px; margin-bottom:11px;}
+  .cupom-card.inativo{opacity:0.55; border-left-color:rgba(242,233,218,0.25);}
+  .cup-topo{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:10px;}
+  .cup-codigo{font-family:monospace; font-size:16px; font-weight:900; color:var(--mustard);
+              letter-spacing:1px; background:var(--pitch); padding:5px 12px; border-radius:8px;}
+  .cup-status{font-size:10px; font-weight:900; letter-spacing:0.5px; padding:3px 10px; border-radius:999px;}
+  .cup-status.on{background:rgba(76,175,109,0.18); color:var(--green);}
+  .cup-status.off{background:rgba(242,233,218,0.1); color:rgba(242,233,218,0.5);}
+  .cup-desconto{font-family:'Anton',sans-serif; font-size:20px; color:var(--ember); margin-bottom:4px;}
+  .cup-desc{font-size:13px; color:rgba(242,233,218,0.65); margin-bottom:8px;}
+  .cup-regras{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;}
+  .cup-regras span{font-size:11px; background:var(--pitch); color:rgba(242,233,218,0.6);
+                   padding:3px 9px; border-radius:999px;}
+  .cup-acoes{display:flex; gap:6px; flex-wrap:wrap;}
+
   /* ---------- MÓDULOS ---------- */
   .mod-row{display:flex; align-items:center; gap:16px; padding:16px 18px; border:1px solid var(--line); border-radius:14px; margin-bottom:12px; transition:border-color .2s;}
   .mod-row.on{border-color:rgba(76,175,109,0.45); background:rgba(76,175,109,0.05);}
@@ -647,6 +679,18 @@
 
   .brand-link{text-decoration:none; color:inherit; cursor:pointer; transition:opacity .2s;}
   .brand-link:hover{opacity:0.75;}
+
+  /* ---------- MOSTRAR SENHA ---------- */
+  .senha-wrap{position:relative; display:flex; align-items:center;}
+  .senha-wrap input{width:100%; padding-right:52px;}
+  .ver-senha{
+    position:absolute; right:6px; background:none; border:none;
+    font-size:19px; cursor:pointer; padding:0;
+    min-width:44px; min-height:44px;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0.65; transition:opacity .2s;
+  }
+  .ver-senha:hover, .ver-senha:active{opacity:1;}
 
   /* ---------- FALHA DE CONEXÃO ---------- */
   .falha-conexao{
@@ -1173,7 +1217,12 @@
         <img src="mascot.jpg" alt="Mascote O Markin" class="login-mascot">
         <p>Entre com seu e-mail e senha.</p>
         <div class="field"><input type="email" id="authEmail" placeholder="E-mail" autocomplete="username"></div>
-        <div class="field"><input type="password" id="authPass" placeholder="Senha" autocomplete="current-password"></div>
+        <div class="field">
+          <div class="senha-wrap">
+            <input type="password" id="authPass" placeholder="Senha" autocomplete="current-password">
+            <button type="button" class="ver-senha" data-versenha="authPass" aria-label="Mostrar senha">👁</button>
+          </div>
+        </div>
         <button class="btn-primary" id="loginBtn" style="width:100%;">Entrar</button>
         <div class="error-msg" id="loginError"></div>
         <button class="btn-ghost" id="forgotPassBtn" style="width:100%; margin-top:12px; font-size:13px;">Esqueci minha senha</button>
@@ -1202,6 +1251,8 @@
           <button class="admin-tab-btn" data-atab="clientes" style="display:none;">👥 Clientes</button>
           <button class="admin-tab-btn" data-atab="entregas" style="display:none;">🛵 Entregas</button>
           <button class="admin-tab-btn" data-atab="erros">🐞 Erros <span id="errosBadge"></span></button>
+          <button class="admin-tab-btn" data-atab="mensagens">💬 Mensagens <span id="msgBadge"></span></button>
+          <button class="admin-tab-btn" data-atab="cupons" style="display:none;">🏷️ Cupons <span id="cuponsBadge"></span></button>
           <button class="admin-tab-btn" data-atab="modulos">🧩 Módulos</button>
         </div>
 
@@ -1452,6 +1503,118 @@
           <div class="error-msg" id="errosMsg"></div>
 
           <div id="errosList"><div class="loading-row">Carregando...</div></div>
+        </div>
+
+        <!-- MENSAGENS TAB -->
+        <div id="atabMensagens" style="display:none;">
+          <div class="addon-intro">
+            <div class="ai-icon">💬</div>
+            <div>
+              <strong>Mensagens dos clientes</strong>
+              <p>Sugestões, elogios e problemas enviados pelo site. Vale ler — é o que o cliente não fala na hora do pedido.</p>
+            </div>
+          </div>
+          <div id="msgKpis" class="kpi-grid"></div>
+          <div class="form-actions" style="margin-bottom:16px;">
+            <button class="btn-ghost" id="msgFiltroTodas">Todas</button>
+            <button class="btn-ghost" id="msgFiltroNaoLidas">Só não lidas</button>
+          </div>
+          <div id="msgLista"><div class="loading-row">Carregando...</div></div>
+        </div>
+
+        <!-- CUPONS TAB -->
+        <div id="atabCupons" style="display:none;">
+          <div class="addon-intro">
+            <div class="ai-icon">🏷️</div>
+            <div>
+              <strong>Cupons de desconto</strong>
+              <p>Crie códigos promocionais. O cliente digita no checkout e o desconto entra automaticamente.</p>
+            </div>
+          </div>
+
+          <div id="cupomKpis" class="kpi-grid"></div>
+
+          <div class="admin-list" style="margin-top:0;border-top:none;padding-top:0;">
+            <h3 id="cupomFormTitulo" style="display:none;">Novo cupom</h3>
+            <button class="btn-primary" id="novoCupomBtn" style="width:100%; padding:14px;">➕ Criar cupom</button>
+
+            <div id="cupomFormHome"><div id="cupomFormBox">
+              <input type="hidden" id="cupId">
+
+              <div class="form-grid">
+                <div class="field">
+                  <label>Código do cupom</label>
+                  <input type="text" id="cupCodigo" placeholder="Ex: BEMVINDO10" maxlength="20" style="text-transform:uppercase;">
+                  <small class="px-dica">O cliente digita isso no checkout. Sem espaços.</small>
+                </div>
+                <div class="field">
+                  <label>Tipo de desconto</label>
+                  <select id="cupTipo">
+                    <option value="percentual">Porcentagem (%)</option>
+                    <option value="fixo">Valor fixo (R$)</option>
+                    <option value="frete">Frete grátis</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-grid">
+                <div class="field" id="cupValorBox">
+                  <label>Valor do desconto</label>
+                  <input type="number" id="cupValor" step="0.01" min="0" placeholder="Ex: 10">
+                  <small class="px-dica" id="cupValorDica">10 = 10% de desconto</small>
+                </div>
+                <div class="field">
+                  <label>Pedido mínimo (R$)</label>
+                  <input type="number" id="cupMinimo" step="0.01" min="0" placeholder="0 = sem mínimo">
+                </div>
+              </div>
+
+              <div class="form-grid">
+                <div class="field">
+                  <label>Válido até</label>
+                  <input type="date" id="cupValidade">
+                  <small class="px-dica">Deixe vazio pra não expirar</small>
+                </div>
+                <div class="field">
+                  <label>Limite de usos</label>
+                  <input type="number" id="cupLimite" min="0" placeholder="0 = ilimitado">
+                </div>
+              </div>
+
+              <div class="field">
+                <label>Quem pode usar</label>
+                <select id="cupQuem">
+                  <option value="todos">Todos os clientes</option>
+                  <option value="logados">Só clientes com conta criada</option>
+                  <option value="primeira">Só primeira compra (cliente novo)</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Uma vez por cliente?</label>
+                <select id="cupUmaVez">
+                  <option value="nao">Não — pode usar várias vezes</option>
+                  <option value="sim">Sim — cada cliente usa só uma vez</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Descrição (o cliente vê)</label>
+                <input type="text" id="cupDesc" placeholder="Ex: 10% de desconto na primeira compra" maxlength="80">
+              </div>
+
+              <div class="form-actions">
+                <button class="btn-primary" id="cupSalvarBtn">Salvar cupom</button>
+                <button class="btn-ghost" id="cupCancelarBtn" style="display:none;">Cancelar</button>
+              </div>
+              <div class="error-msg" id="cupErro"></div>
+            </div></div>
+          </div>
+
+          <div class="admin-list">
+            <h3>Cupons cadastrados</h3>
+            <div id="cupomLista"><div class="loading-row">Carregando...</div></div>
+          </div>
         </div>
 
         <!-- MÓDULOS TAB -->
@@ -1970,7 +2133,10 @@
       </div>
       <div class="field">
         <label>2. Sua senha de gerente</label>
-        <input type="password" id="zerarSenha" placeholder="••••••••" autocomplete="current-password">
+        <div class="senha-wrap">
+          <input type="password" id="zerarSenha" placeholder="••••••••" autocomplete="current-password">
+          <button type="button" class="ver-senha" data-versenha="zerarSenha" aria-label="Mostrar senha">👁</button>
+        </div>
       </div>
 
       <button class="btn-danger" id="zerarConfirmBtn" style="width:100%; padding:16px; font-size:15px;" disabled>
@@ -2270,6 +2436,20 @@
   }
   // alias: o mesmo nome usado no app do cliente
   const generateOrderCode = genOrderCode;
+  // Mostrar/ocultar senha — evita erro de digitação no celular, onde o
+  // teclado corrige sozinho e a pessoa não vê o que escreveu.
+  document.querySelectorAll('[data-versenha]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const campo = document.getElementById(btn.dataset.versenha);
+      if(!campo) return;
+      const mostrando = campo.type === 'text';
+      campo.type = mostrando ? 'password' : 'text';
+      btn.textContent = mostrando ? '👁' : '🙈';
+      btn.setAttribute('aria-label', mostrando ? 'Mostrar senha' : 'Ocultar senha');
+      campo.focus();
+    });
+  });
+
   function escapeHtml(str){ return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
   // Mesa vem do QR/URL do cliente. Mesmo validando na origem, pedidos
@@ -2288,6 +2468,7 @@
       esperado += preco * Number(i.qty || 1);
     });
     esperado += Number(o.deliveryFee) || 0;
+    esperado -= Number(o.desconto) || 0;   // cupom aplicado no pedido
     const gravado = Number(o.total) || 0;
     const dif = gravado - esperado;
     if(Math.abs(dif) <= 0.01) return null;       // tolera arredondamento
@@ -4241,6 +4422,7 @@
       </div>
       <div class="order-items">${o.items.map(i=>i.qty+'x '+escapeHtml(i.name)+(i.forItem?` <em style="color:var(--mustard);">(no ${escapeHtml(i.forItem)})</em>`:'')).join(', ')}</div>
       ${o.notes?`<div class="order-meta" style="color:var(--mustard);">📝 ${escapeHtml(o.notes)}</div>`:''}
+      ${o.cupom ? `<div class="order-meta" style="color:var(--green);">🏷️ Cupom ${escapeHtml(o.cupom)}${Number(o.desconto)>0?' — '+money(o.desconto)+' de desconto':''}</div>` : ''}
       ${(()=>{const d=conferirTotal(o);
         if(!d) return '';
         return `<div class="total-alerta">⚠️ Total não confere — gravado ${money(d.gravado)}, esperado ${money(d.esperado)}</div>`;})()}
@@ -5192,6 +5374,7 @@
       <div class="p-row"><span>Subtotal:</span><span>${money(bill.subtotal)}</span></div>
       ${bill.deliveryFee > 0 ? `<div class="p-row"><span>Taxa de entrega:</span><span>${money(bill.deliveryFee)}</span></div>` : ''}
       ${service > 0 ? `<div class="p-row"><span>Serviço 10%:</span><span>${money(service)}</span></div>` : ''}
+      ${bill.cupom ? `<div class="p-row"><span>Cupom ${escapeHtml(bill.cupom)}:</span><span>- ${money(bill.descontoCupom||0)}</span></div>` : ''}
       ${discount > 0 ? `<div class="p-row"><span>Desconto:</span><span>- ${money(discount)}</span></div>` : ''}
       <div class="p-total"><span>TOTAL</span><span>${money(total)}</span></div>
       <div class="p-line"></div>
@@ -6018,6 +6201,298 @@
     }catch(e){ alert('Não foi possível limpar.'); }
   });
 
+  /* ================= MENSAGENS DOS CLIENTES ================= */
+  let mensagens = [];
+  let msgFiltro = 'todas';
+
+  function watchMensagens(){
+    db.collection('mensagens').orderBy('quando','desc').limit(100)
+      .onSnapshot((snap) => {
+        mensagens = snap.docs.map(d => Object.assign({_id:d.id}, d.data()));
+        const naoLidas = mensagens.filter(m => !m.lida).length;
+        const badge = document.getElementById('msgBadge');
+        if(badge) badge.textContent = naoLidas > 0 ? `(${naoLidas})` : '';
+        if(currentTab() === 'mensagens') renderMensagens();
+      }, (err) => console.warn('mensagens:', err));
+  }
+
+  function renderMensagens(){
+    const box = document.getElementById('msgLista');
+    if(!box) return;
+
+    const naoLidas = mensagens.filter(m => !m.lida).length;
+    const porTipo = {sugestao:0, elogio:0, reclamacao:0};
+    mensagens.forEach(m => { if(porTipo[m.tipo] !== undefined) porTipo[m.tipo]++; });
+
+    document.getElementById('msgKpis').innerHTML = `
+      <div class="kpi-card"><div class="kv">${mensagens.length}</div><div class="kl">Total recebidas</div></div>
+      <div class="kpi-card"><div class="kv">${naoLidas}</div><div class="kl">Não lidas</div></div>
+      <div class="kpi-card"><div class="kv">${porTipo.elogio}</div><div class="kl">😍 Elogios</div></div>
+      <div class="kpi-card"><div class="kv">${porTipo.reclamacao}</div><div class="kl">😟 Problemas</div></div>`;
+
+    const lista = msgFiltro === 'naolidas' ? mensagens.filter(m => !m.lida) : mensagens;
+    if(lista.length === 0){
+      box.innerHTML = '<div class="loading-row">Nenhuma mensagem por aqui.</div>';
+      return;
+    }
+
+    const icones = {sugestao:'💡', elogio:'😍', reclamacao:'😟'};
+    box.innerHTML = lista.map(m => {
+      const d = new Date(m.quando);
+      const tel = (m.telefone||'').replace(/\D/g,'');
+      return `
+      <div class="msg-card ${m.lida ? 'lida' : ''} tipo-${m.tipo || 'sugestao'}">
+        <div class="msg-topo">
+          <span class="msg-tipo">${icones[m.tipo] || '💬'} ${(m.tipo||'sugestão').toUpperCase()}</span>
+          <span class="msg-data">${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
+        </div>
+        <div class="msg-texto">${escapeHtml(m.mensagem || '')}</div>
+        <div class="msg-rodape">
+          <span class="msg-autor">${m.nome ? escapeHtml(m.nome) : 'Anônimo'}${m.telefone ? ' · ' + escapeHtml(m.telefone) : ''}</span>
+          <div class="msg-acoes">
+            ${tel ? `<a class="icon-btn" href="https://wa.me/55${tel}" target="_blank" rel="noopener" title="Responder no WhatsApp">💬</a>` : ''}
+            <button class="icon-btn ${m.lida ? '' : 'on'}" data-msglida="${m._id}" title="${m.lida ? 'Marcar como não lida' : 'Marcar como lida'}">${m.lida ? '📭' : '✓'}</button>
+            <button class="icon-btn danger" data-msgapagar="${m._id}" title="Excluir">🗑</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    box.querySelectorAll('[data-msglida]').forEach(b => b.addEventListener('click', async () => {
+      const m = mensagens.find(x => x._id === b.dataset.msglida);
+      try{ await db.collection('mensagens').doc(b.dataset.msglida).update({lida: !m.lida}); }catch(e){}
+    }));
+    box.querySelectorAll('[data-msgapagar]').forEach(b => b.addEventListener('click', async () => {
+      if(!confirm('Excluir esta mensagem?')) return;
+      try{ await db.collection('mensagens').doc(b.dataset.msgapagar).delete(); showToast('Mensagem excluída'); }catch(e){}
+    }));
+  }
+
+  document.getElementById('msgFiltroTodas')?.addEventListener('click', () => { msgFiltro='todas'; renderMensagens(); });
+  document.getElementById('msgFiltroNaoLidas')?.addEventListener('click', () => { msgFiltro='naolidas'; renderMensagens(); });
+
+  /* ================= CUPONS DE DESCONTO ================= */
+  let cupons = [];
+  let cuponsUnsub = null;
+  let editandoCupom = null;
+
+  function watchCupons(){
+    if(!moduloAtivo('cupons')){
+      if(cuponsUnsub){ cuponsUnsub(); cuponsUnsub = null; cupons = []; }
+      return;
+    }
+    if(cuponsUnsub) return;
+    cuponsUnsub = db.collection('cupons').onSnapshot((snap) => {
+      cupons = snap.docs.map(d => Object.assign({_id: d.id}, d.data()));
+      const badge = document.getElementById('cuponsBadge');
+      if(badge){
+        const ativos = cupons.filter(c => cupomValido(c).ok).length;
+        badge.textContent = ativos > 0 ? `(${ativos})` : '';
+      }
+      if(currentTab() === 'cupons') renderCupons();
+    }, (err) => console.warn('cupons:', err));
+  }
+
+  // Diz se o cupom está valendo hoje — e por que não, se for o caso
+  function cupomValido(cup){
+    if(cup.ativo === false) return {ok:false, motivo:'Pausado'};
+    if(cup.validade){
+      const hoje = todayStr();
+      if(cup.validade < hoje) return {ok:false, motivo:'Expirado'};
+    }
+    const limite = Number(cup.limite) || 0;
+    const usos = Number(cup.usos) || 0;
+    if(limite > 0 && usos >= limite) return {ok:false, motivo:'Esgotado'};
+    return {ok:true};
+  }
+
+  function descreveDesconto(cup){
+    if(cup.tipo === 'frete') return 'Frete grátis';
+    if(cup.tipo === 'fixo') return money(cup.valor) + ' off';
+    return (Number(cup.valor)||0) + '% off';
+  }
+
+  function renderCupons(){
+    const lista = document.getElementById('cupomLista');
+    if(!lista) return;
+
+    const ativos = cupons.filter(c => cupomValido(c).ok).length;
+    const usosTotal = cupons.reduce((s,c) => s + (Number(c.usos)||0), 0);
+    const economia = cupons.reduce((s,c) => s + (Number(c.totalDescontado)||0), 0);
+    document.getElementById('cupomKpis').innerHTML = `
+      <div class="kpi-card"><div class="kv">${cupons.length}</div><div class="kl">Cupons criados</div></div>
+      <div class="kpi-card"><div class="kv">${ativos}</div><div class="kl">Valendo agora</div></div>
+      <div class="kpi-card"><div class="kv">${usosTotal}</div><div class="kl">Vezes usados</div></div>
+      <div class="kpi-card"><div class="kv">${money(economia)}</div><div class="kl">Total descontado</div></div>`;
+
+    if(cupons.length === 0){
+      lista.innerHTML = '<div class="loading-row">Nenhum cupom ainda. Crie o primeiro acima.</div>';
+      return;
+    }
+
+    lista.innerHTML = cupons
+      .sort((a,b) => (b.criadoEm||'').localeCompare(a.criadoEm||''))
+      .map(cup => {
+        const v = cupomValido(cup);
+        const limite = Number(cup.limite) || 0;
+        const usos = Number(cup.usos) || 0;
+        return `
+        <div class="cupom-card ${v.ok ? '' : 'inativo'}">
+          <div class="cup-topo">
+            <span class="cup-codigo">${escapeHtml(cup.codigo)}</span>
+            <span class="cup-status ${v.ok ? 'on' : 'off'}">${v.ok ? 'ATIVO' : v.motivo.toUpperCase()}</span>
+          </div>
+          <div class="cup-desconto">${descreveDesconto(cup)}</div>
+          ${cup.desc ? `<div class="cup-desc">${escapeHtml(cup.desc)}</div>` : ''}
+          <div class="cup-regras">
+            ${Number(cup.minimo) > 0 ? `<span>mín. ${money(cup.minimo)}</span>` : ''}
+            ${cup.validade ? `<span>até ${cup.validade.split('-').reverse().join('/')}</span>` : ''}
+            ${limite > 0 ? `<span>${usos}/${limite} usos</span>` : `<span>${usos} usos</span>`}
+            ${cup.quem === 'logados' ? '<span>só com conta</span>' : ''}
+            ${cup.quem === 'primeira' ? '<span>1ª compra</span>' : ''}
+            ${cup.umaVez === 'sim' ? '<span>1x por cliente</span>' : ''}
+          </div>
+          <div class="cup-acoes">
+            <button class="icon-btn" data-cuppausar="${cup._id}" title="${cup.ativo === false ? 'Reativar' : 'Pausar'}">${cup.ativo === false ? '▶️' : '⏸️'}</button>
+            <button class="icon-btn" data-cupcopiar="${escapeHtml(cup.codigo)}" title="Copiar código">📋</button>
+            <button class="icon-btn" data-cupeditar="${cup._id}" title="Editar">✎</button>
+            <button class="icon-btn danger" data-cupapagar="${cup._id}" title="Excluir">🗑</button>
+          </div>
+        </div>`;
+      }).join('');
+
+    lista.querySelectorAll('[data-cuppausar]').forEach(b => b.addEventListener('click', () => pausarCupom(b.dataset.cuppausar)));
+    lista.querySelectorAll('[data-cupeditar]').forEach(b => b.addEventListener('click', () => editarCupom(b.dataset.cupeditar)));
+    lista.querySelectorAll('[data-cupapagar]').forEach(b => b.addEventListener('click', () => apagarCupom(b.dataset.cupapagar)));
+    lista.querySelectorAll('[data-cupcopiar]').forEach(b => b.addEventListener('click', () => {
+      const txt = b.dataset.cupcopiar;
+      if(navigator.clipboard?.writeText){
+        navigator.clipboard.writeText(txt).then(() => showToast('Código copiado ✓')).catch(()=>{});
+      }
+    }));
+  }
+
+  // dica dinâmica conforme o tipo escolhido
+  document.getElementById('cupTipo')?.addEventListener('change', (e) => {
+    const box = document.getElementById('cupValorBox');
+    const dica = document.getElementById('cupValorDica');
+    if(e.target.value === 'frete'){
+      box.style.display = 'none';
+    }else{
+      box.style.display = 'block';
+      dica.textContent = e.target.value === 'percentual' ? '10 = 10% de desconto' : '10 = R$ 10,00 de desconto';
+    }
+  });
+
+  document.getElementById('novoCupomBtn')?.addEventListener('click', () => {
+    limparFormCupom();
+    document.getElementById('cupomFormTitulo').style.display = 'block';
+    document.getElementById('cupomFormTitulo').textContent = 'Novo cupom';
+    document.getElementById('cupomFormBox').style.display = 'block';
+    document.getElementById('cupCodigo').focus();
+  });
+
+  function limparFormCupom(){
+    editandoCupom = null;
+    ['cupId','cupCodigo','cupValor','cupMinimo','cupValidade','cupLimite','cupDesc'].forEach(id => {
+      const el = document.getElementById(id); if(el) el.value = '';
+    });
+    document.getElementById('cupTipo').value = 'percentual';
+    document.getElementById('cupQuem').value = 'todos';
+    document.getElementById('cupUmaVez').value = 'nao';
+    document.getElementById('cupValorBox').style.display = 'block';
+    document.getElementById('cupErro').textContent = '';
+    document.getElementById('cupCancelarBtn').style.display = 'none';
+    document.getElementById('cupSalvarBtn').textContent = 'Salvar cupom';
+  }
+
+  function editarCupom(id){
+    const cup = cupons.find(c => c._id === id); if(!cup) return;
+    editandoCupom = id;
+    document.getElementById('cupId').value = id;
+    document.getElementById('cupCodigo').value = cup.codigo || '';
+    document.getElementById('cupTipo').value = cup.tipo || 'percentual';
+    document.getElementById('cupValor').value = cup.valor ?? '';
+    document.getElementById('cupMinimo').value = cup.minimo ?? '';
+    document.getElementById('cupValidade').value = cup.validade || '';
+    document.getElementById('cupLimite').value = cup.limite ?? '';
+    document.getElementById('cupQuem').value = cup.quem || 'todos';
+    document.getElementById('cupUmaVez').value = cup.umaVez || 'nao';
+    document.getElementById('cupDesc').value = cup.desc || '';
+    document.getElementById('cupValorBox').style.display = cup.tipo === 'frete' ? 'none' : 'block';
+    document.getElementById('cupomFormTitulo').style.display = 'block';
+    document.getElementById('cupomFormTitulo').textContent = 'Editando: ' + cup.codigo;
+    document.getElementById('cupomFormBox').style.display = 'block';
+    document.getElementById('cupCancelarBtn').style.display = 'inline-block';
+    document.getElementById('cupSalvarBtn').textContent = 'Salvar alterações';
+    document.getElementById('atabCupons').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  document.getElementById('cupCancelarBtn')?.addEventListener('click', limparFormCupom);
+
+  document.getElementById('cupSalvarBtn')?.addEventListener('click', async () => {
+    const codigo = document.getElementById('cupCodigo').value.trim().toUpperCase().replace(/\s/g,'');
+    const tipo = document.getElementById('cupTipo').value;
+    const valor = parseFloat(document.getElementById('cupValor').value) || 0;
+    const err = document.getElementById('cupErro');
+
+    if(!codigo){ err.textContent = 'Digite o código do cupom.'; return; }
+    if(!/^[A-Z0-9]{3,20}$/.test(codigo)){ err.textContent = 'Use só letras e números, de 3 a 20 caracteres.'; return; }
+    if(tipo !== 'frete' && valor <= 0){ err.textContent = 'Informe o valor do desconto.'; return; }
+    if(tipo === 'percentual' && valor > 90){ err.textContent = 'Desconto acima de 90% — confira o valor.'; return; }
+
+    // código repetido?
+    const jaExiste = cupons.find(c => c.codigo === codigo && c._id !== editandoCupom);
+    if(jaExiste){ err.textContent = 'Já existe um cupom com esse código.'; return; }
+
+    const dados = {
+      codigo, tipo, valor,
+      minimo: parseFloat(document.getElementById('cupMinimo').value) || 0,
+      validade: document.getElementById('cupValidade').value || '',
+      limite: parseInt(document.getElementById('cupLimite').value) || 0,
+      quem: document.getElementById('cupQuem').value,
+      umaVez: document.getElementById('cupUmaVez').value,
+      desc: document.getElementById('cupDesc').value.trim(),
+      ativo: true
+    };
+
+    try{
+      if(editandoCupom){
+        await db.collection('cupons').doc(editandoCupom).update(dados);
+        showToast('Cupom atualizado ✓');
+      }else{
+        dados.usos = 0;
+        dados.totalDescontado = 0;
+        dados.criadoEm = new Date().toISOString();
+        dados.criadoPor = currentEmployee ? currentEmployee.name : '';
+        await db.collection('cupons').doc(codigo).set(dados);
+        showToast('🏷️ Cupom criado ✓');
+      }
+      limparFormCupom();
+      document.getElementById('cupomFormBox').style.display = 'none';
+      document.getElementById('cupomFormTitulo').style.display = 'none';
+    }catch(e){
+      err.textContent = 'Não foi possível salvar. Tente de novo.';
+    }
+  });
+
+  async function pausarCupom(id){
+    const cup = cupons.find(c => c._id === id); if(!cup) return;
+    try{
+      await db.collection('cupons').doc(id).update({ativo: cup.ativo === false});
+      showToast(cup.ativo === false ? '▶️ Cupom reativado' : '⏸️ Cupom pausado');
+    }catch(e){ alert('Não foi possível alterar.'); }
+  }
+
+  async function apagarCupom(id){
+    const cup = cupons.find(c => c._id === id); if(!cup) return;
+    if(!confirm(`Excluir o cupom "${cup.codigo}"?\n\nSe é pausa temporária, use o ⏸️ em vez disso.`)) return;
+    try{
+      await db.collection('cupons').doc(id).delete();
+      showToast('Cupom excluído');
+    }catch(e){ alert('Não foi possível excluir.'); }
+  }
+
   /* ================= MÓDULOS (liga/desliga) ================= */
   // Áreas do painel — ligadas por padrão
   const AREAS = [
@@ -6056,6 +6531,8 @@
      desc:'Estima o movimento dos próximos dias com base no seu histórico.', tab:null},
     {key:'filaimpressao', icon:'🖨️', nome:'Fila de impressão (PC + USB)',
      desc:'Manda as comandas pra um computador imprimir na térmica USB. Precisa do script rodando no PC.', tab:null},
+    {key:'cupons',      icon:'🏷️', nome:'Cupons de desconto',
+     desc:'Códigos promocionais que o cliente digita no checkout. Percentual, valor fixo ou frete grátis.', tab:'cupons'},
     {key:'pixels',      icon:'📣', nome:'Pixels de anúncio (Meta / Google / TikTok)',
      desc:'Rastreia visitas, carrinho e compras pro seu gestor de tráfego medir o retorno.', tab:null},
     {key:'relatorios',  icon:'📊', nome:'Relatórios em CSV',
@@ -6084,6 +6561,7 @@
       renderModulos();
       aplicarModulos();
       watchClientes();           // liga ou desliga conforme os módulos
+      watchCupons();
       if(primeiraVez) applyRolePermissions();
     }, (err) => {
       console.warn('features:', err);
@@ -7299,10 +7777,10 @@
   }
 
   /* ---------------- FUNÇÕES E PERMISSÕES ---------------- */
-  const ALL_TABS = ['dashboard','cardapio','adicionais','pedidos','cozinha','tv','mesas','caixa','clientes','entregas','financeiro','estoque','equipe','promocao','loja','modulos','erros'];
+  const ALL_TABS = ['dashboard','cardapio','adicionais','pedidos','cozinha','tv','mesas','caixa','clientes','entregas','financeiro','estoque','equipe','promocao','loja','modulos','erros','cupons','mensagens'];
   const TAB_LABEL = {
     dashboard:'📊 Dashboard', cardapio:'🍔 Cardápio', adicionais:'➕ Adicionais', pedidos:'📋 Pedidos', cozinha:'👨‍🍳 Cozinha', tv:'📺 Painel TV', mesas:'🪑 Mesas',
-    caixa:'💳 Caixa', clientes:'👥 Clientes', entregas:'🛵 Entregas', financeiro:'💰 Financeiro', modulos:'🧩 Módulos', erros:'🐞 Erros', estoque:'📦 Estoque', equipe:'👥 Equipe',
+    caixa:'💳 Caixa', clientes:'👥 Clientes', entregas:'🛵 Entregas', financeiro:'💰 Financeiro', modulos:'🧩 Módulos', erros:'🐞 Erros', cupons:'🏷️ Cupons', mensagens:'💬 Mensagens', estoque:'📦 Estoque', equipe:'👥 Equipe',
     promocao:'📣 Promoção', loja:'🏪 Loja'
   };
   const ROLE_PRESETS = {
@@ -7490,6 +7968,8 @@
     document.getElementById('atabPedidos').style.display = tab === 'pedidos' ? 'block' : 'none';
     document.getElementById('atabAdicionais').style.display = tab === 'adicionais' ? 'block' : 'none';
     document.getElementById('atabModulos').style.display = tab === 'modulos' ? 'block' : 'none';
+    document.getElementById('atabCupons').style.display = tab === 'cupons' ? 'block' : 'none';
+    document.getElementById('atabMensagens').style.display = tab === 'mensagens' ? 'block' : 'none';
     document.getElementById('atabErros').style.display = tab === 'erros' ? 'block' : 'none';
     document.getElementById('atabClientes').style.display = tab === 'clientes' ? 'block' : 'none';
     document.getElementById('atabEntregas').style.display = tab === 'entregas' ? 'block' : 'none';
@@ -7505,6 +7985,8 @@
     if(tab === 'pedidos') renderAdminOrders();
     if(tab === 'adicionais') renderAddonTab();
     if(tab === 'modulos') renderModulos();
+    if(tab === 'cupons') renderCupons();
+    if(tab === 'mensagens') renderMensagens();
     if(tab === 'erros') renderErros();
     if(tab === 'clientes') renderClientes();
     if(tab === 'entregas') renderEntregas();
@@ -7707,6 +8189,7 @@
     watchRegister();
     watchFeatures();
     watchErros();
+    watchMensagens();
     watchFilaAgente();
     updateCartUI();
   }
