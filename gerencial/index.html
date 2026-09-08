@@ -477,6 +477,69 @@
   .erro-meta{display:flex; gap:10px; flex-wrap:wrap; font-size:11.5px; color:rgba(242,233,218,0.45);}
   .erro-tag{background:rgba(240,180,41,0.16); color:var(--mustard); border-radius:999px; padding:2px 9px; font-weight:700;}
 
+  /* ---------- GRUPOS DE ABAS ---------- */
+  .grupos-nav{
+    display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;
+    padding-bottom:14px; border-bottom:1px solid var(--line);
+  }
+  .grupo-btn{
+    flex:1; min-width:110px; background:var(--pitch); border:1px solid var(--line);
+    border-radius:12px; padding:13px 12px; font-size:13.5px; font-weight:700;
+    color:rgba(242,233,218,0.6); cursor:pointer; font-family:inherit;
+    min-height:48px; display:inline-flex; align-items:center;
+    justify-content:center; gap:7px; transition:all .2s;
+  }
+  .grupo-btn:hover{border-color:rgba(229,118,46,0.4);}
+  .grupo-btn.active{
+    background:rgba(229,118,46,0.14); border-color:var(--ember);
+    color:var(--ember);
+  }
+  .gb-badge{
+    background:var(--tomato); color:#fff; border-radius:999px;
+    min-width:20px; height:20px; padding:0 6px; font-size:11px;
+    display:none; align-items:center; justify-content:center; font-weight:900;
+  }
+  @media(max-width:560px){
+    .grupos-nav{gap:6px;}
+    .grupo-btn{min-width:0; font-size:12px; padding:12px 6px;}
+  }
+
+  /* ---------- ACESSOS ---------- */
+  .online-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-bottom:22px;}
+  .online-card{
+    display:flex; gap:11px; align-items:center; background:rgba(76,175,109,0.1);
+    border:1px solid rgba(76,175,109,0.35); border-radius:12px; padding:12px 14px;
+  }
+  .on-ponto{
+    width:10px; height:10px; border-radius:50%; background:var(--green);
+    flex-shrink:0; box-shadow:0 0 0 0 rgba(76,175,109,0.6);
+    animation:pulsaOnline 2s infinite;
+  }
+  @keyframes pulsaOnline{
+    0%{box-shadow:0 0 0 0 rgba(76,175,109,0.55);}
+    70%{box-shadow:0 0 0 9px rgba(76,175,109,0);}
+    100%{box-shadow:0 0 0 0 rgba(76,175,109,0);}
+  }
+  .on-info{min-width:0;}
+  .on-info strong{display:block; font-size:14px; color:var(--cream);}
+  .on-info span{display:block; font-size:11.5px; color:rgba(242,233,218,0.55);}
+  .on-info small{font-size:11px; color:var(--green);}
+
+  .acesso-linha{
+    display:flex; align-items:center; gap:12px; padding:12px 14px;
+    border:1px solid var(--line); border-radius:10px; margin-bottom:8px;
+  }
+  .acesso-linha.ativo{border-color:rgba(76,175,109,0.4); background:rgba(76,175,109,0.05);}
+  .ac-status{font-size:11px; flex-shrink:0;}
+  .ac-info{flex-grow:1; min-width:0;}
+  .ac-info strong{display:block; font-size:13.5px;}
+  .ac-info strong small{font-size:11px; color:rgba(242,233,218,0.45); font-weight:400; margin-left:5px;}
+  .ac-info span{font-size:11.5px; color:rgba(242,233,218,0.5);}
+  .ac-tempo{text-align:right; flex-shrink:0;}
+  .ac-tempo span{display:block; font-size:12.5px; color:rgba(242,233,218,0.65);}
+  .ac-tempo small{font-size:10.5px; color:rgba(242,233,218,0.38);}
+  .ac-agora{color:var(--green) !important; font-weight:700;}
+
   /* ---------- MENSAGENS ---------- */
   .msg-card{border:1px solid var(--line); border-left:3px solid var(--ember);
             border-radius:12px; padding:14px 16px; margin-bottom:11px;}
@@ -1234,26 +1297,44 @@
       </div>
 
       <div id="managerView" style="display:none;">
+        <!-- Abas agrupadas por contexto: a barra de 19 botões rolando
+             lateralmente era difícil de operar no movimento. Agora só o
+             grupo aberto aparece expandido. -->
+        <div class="grupos-nav" id="gruposNav">
+          <button class="grupo-btn active" data-grupo="operacao">🔥 Operação <span class="gb-badge" id="gbOperacao"></span></button>
+          <button class="grupo-btn" data-grupo="gestao">📊 Gestão</button>
+          <button class="grupo-btn" data-grupo="clientes">💛 Clientes <span class="gb-badge" id="gbClientes"></span></button>
+          <button class="grupo-btn" data-grupo="config">⚙️ Ajustes <span class="gb-badge" id="gbConfig"></span></button>
+        </div>
+
         <div class="admin-tabs" id="adminTabsBar">
-          <button class="admin-tab-btn active" data-atab="dashboard">📊 Dashboard</button>
-          <button class="admin-tab-btn" data-atab="cardapio">Cardápio</button>
-          <button class="admin-tab-btn" data-atab="pedidos">Pedidos <span id="pendingBadge"></span></button>
-          <button class="admin-tab-btn" data-atab="adicionais">➕ Adicionais <span id="addonBadge"></span></button>
-          <button class="admin-tab-btn" data-atab="cozinha">👨‍🍳 Cozinha <span id="kitchenBadge"></span></button>
-          <button class="admin-tab-btn" data-atab="tv">📺 Painel TV</button>
-          <button class="admin-tab-btn" data-atab="mesas">🪑 Mesas <span id="openTablesBadge"></span></button>
-          <button class="admin-tab-btn" data-atab="caixa">💳 Caixa <span id="caixaBadge"></span></button>
-          <button class="admin-tab-btn" data-atab="financeiro">Financeiro</button>
-          <button class="admin-tab-btn" data-atab="estoque">Estoque <span id="lowStockBadge"></span></button>
-          <button class="admin-tab-btn" data-atab="equipe">👥 Equipe</button>
-          <button class="admin-tab-btn" data-atab="promocao">📣 Promoção</button>
-          <button class="admin-tab-btn" data-atab="loja">🏪 Loja</button>
-          <button class="admin-tab-btn" data-atab="clientes" style="display:none;">👥 Clientes</button>
-          <button class="admin-tab-btn" data-atab="entregas" style="display:none;">🛵 Entregas</button>
-          <button class="admin-tab-btn" data-atab="erros">🐞 Erros <span id="errosBadge"></span></button>
-          <button class="admin-tab-btn" data-atab="mensagens">💬 Mensagens <span id="msgBadge"></span></button>
-          <button class="admin-tab-btn" data-atab="cupons" style="display:none;">🏷️ Cupons <span id="cuponsBadge"></span></button>
-          <button class="admin-tab-btn" data-atab="modulos">🧩 Módulos</button>
+          <!-- OPERAÇÃO: o que se usa durante o serviço -->
+          <button class="admin-tab-btn active" data-atab="pedidos" data-g="operacao">📋 Pedidos <span id="pendingBadge"></span></button>
+          <button class="admin-tab-btn" data-atab="cozinha" data-g="operacao">👨‍🍳 Cozinha <span id="kitchenBadge"></span></button>
+          <button class="admin-tab-btn" data-atab="mesas" data-g="operacao">🪑 Mesas <span id="openTablesBadge"></span></button>
+          <button class="admin-tab-btn" data-atab="caixa" data-g="operacao">💳 Caixa <span id="caixaBadge"></span></button>
+          <button class="admin-tab-btn" data-atab="tv" data-g="operacao">📺 Painel TV</button>
+          <button class="admin-tab-btn" data-atab="entregas" data-g="operacao" style="display:none;">🛵 Entregas</button>
+
+          <!-- GESTÃO: números e controle -->
+          <button class="admin-tab-btn" data-atab="dashboard" data-g="gestao">📊 Dashboard</button>
+          <button class="admin-tab-btn" data-atab="financeiro" data-g="gestao">💰 Financeiro</button>
+          <button class="admin-tab-btn" data-atab="estoque" data-g="gestao">📦 Estoque <span id="lowStockBadge"></span></button>
+          <button class="admin-tab-btn" data-atab="cardapio" data-g="gestao">🍔 Cardápio</button>
+          <button class="admin-tab-btn" data-atab="adicionais" data-g="gestao">➕ Adicionais <span id="addonBadge"></span></button>
+
+          <!-- CLIENTES: relacionamento -->
+          <button class="admin-tab-btn" data-atab="clientes" data-g="clientes" style="display:none;">👥 Clientes</button>
+          <button class="admin-tab-btn" data-atab="mensagens" data-g="clientes">💬 Mensagens <span id="msgBadge"></span></button>
+          <button class="admin-tab-btn" data-atab="cupons" data-g="clientes" style="display:none;">🏷️ Cupons <span id="cuponsBadge"></span></button>
+          <button class="admin-tab-btn" data-atab="promocao" data-g="clientes">📣 Promoção</button>
+
+          <!-- AJUSTES: configuração, mexe pouco -->
+          <button class="admin-tab-btn" data-atab="loja" data-g="config">🏪 Loja</button>
+          <button class="admin-tab-btn" data-atab="equipe" data-g="config">👥 Equipe</button>
+          <button class="admin-tab-btn" data-atab="acessos" data-g="config">🔐 Acessos <span id="acessosBadge"></span></button>
+          <button class="admin-tab-btn" data-atab="modulos" data-g="config">🧩 Módulos</button>
+          <button class="admin-tab-btn" data-atab="erros" data-g="config">🐞 Erros <span id="errosBadge"></span></button>
         </div>
 
         <!-- DASHBOARD TAB -->
@@ -1503,6 +1584,22 @@
           <div class="error-msg" id="errosMsg"></div>
 
           <div id="errosList"><div class="loading-row">Carregando...</div></div>
+        </div>
+
+        <!-- ACESSOS TAB -->
+        <div id="atabAcessos" style="display:none;">
+          <div class="addon-intro">
+            <div class="ai-icon">🔐</div>
+            <div>
+              <strong>Quem está no sistema</strong>
+              <p>Mostra quem entrou, de qual aparelho e há quanto tempo. Útil pra saber se alguém esqueceu a sessão aberta num celular emprestado.</p>
+            </div>
+          </div>
+          <div id="acessosOnline"></div>
+          <div class="admin-list">
+            <h3>Histórico de acessos</h3>
+            <div id="acessosLista"><div class="loading-row">Carregando...</div></div>
+          </div>
         </div>
 
         <!-- MENSAGENS TAB -->
@@ -6201,6 +6298,210 @@
     }catch(e){ alert('Não foi possível limpar.'); }
   });
 
+  /* ================= REGISTRO DE ACESSOS ================= */
+  // Guarda quem entrou, quando, e mantém um "sinal de vida" a cada minuto.
+  // Assim dá pra saber quem está no sistema AGORA e quem só passou por lá.
+  let sessaoAtual = null;
+  let sinalVida = null;
+
+  function aparelhoResumido(){
+    const ua = navigator.userAgent;
+    if(/iphone/i.test(ua)) return 'iPhone';
+    if(/ipad/i.test(ua)) return 'iPad';
+    if(/android/i.test(ua)) return 'Android';
+    if(/windows/i.test(ua)) return 'Windows';
+    if(/mac/i.test(ua)) return 'Mac';
+    return 'Outro';
+  }
+
+  async function registrarEntrada(){
+    if(!currentEmployee) return;
+    try{
+      const doc = await db.collection('acessos').add({
+        uid: currentEmployee.id,
+        nome: currentEmployee.name,
+        funcao: currentRole || '?',
+        entrada: new Date().toISOString(),
+        ultimoSinal: new Date().toISOString(),
+        saida: null,
+        aparelho: aparelhoResumido(),
+        tela: (window.innerWidth||0) + 'x' + (window.innerHeight||0)
+      });
+      sessaoAtual = doc.id;
+      iniciarSinalVida();
+    }catch(e){ console.warn('acesso:', e); }
+  }
+
+  function iniciarSinalVida(){
+    if(sinalVida) clearInterval(sinalVida);
+    // a cada 60s avisa que ainda está ali
+    sinalVida = setInterval(() => {
+      if(!sessaoAtual) return;
+      db.collection('acessos').doc(sessaoAtual)
+        .update({ultimoSinal: new Date().toISOString()}).catch(()=>{});
+    }, 60000);
+  }
+
+  async function registrarSaida(){
+    if(!sessaoAtual) return;
+    const id = sessaoAtual;
+    sessaoAtual = null;
+    if(sinalVida){ clearInterval(sinalVida); sinalVida = null; }
+    try{
+      await db.collection('acessos').doc(id).update({saida: new Date().toISOString()});
+    }catch(e){}
+  }
+
+  // Fechar a aba não dispara logout — por isso marcamos a saída aqui também
+  window.addEventListener('pagehide', () => {
+    if(sessaoAtual){
+      try{
+        // sendBeacon não funciona com Firestore; usa a chamada normal mesmo
+        db.collection('acessos').doc(sessaoAtual)
+          .update({saida: new Date().toISOString()}).catch(()=>{});
+      }catch(e){}
+    }
+  });
+
+  /* ---------- GRUPOS DE ABAS ---------- */
+  // Só as abas do grupo escolhido ficam visíveis. Reduz de 19 botões
+  // rolando lateralmente pra no máximo 6 por vez.
+  let grupoAtivo = guardar.ler('omarkin_grupo') || 'operacao';
+
+  function aplicarGrupo(){
+    document.querySelectorAll('.grupo-btn').forEach(b =>
+      b.classList.toggle('active', b.dataset.grupo === grupoAtivo));
+
+    document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+      const doGrupo = btn.dataset.g === grupoAtivo;
+      // guarda a visibilidade decidida por permissão/módulo
+      const permitida = btn.dataset.permitida !== 'nao';
+      btn.style.display = (doGrupo && permitida) ? 'inline-flex' : 'none';
+    });
+
+    // se a aba aberta não é deste grupo, abre a primeira do grupo
+    const atual = document.querySelector('.admin-tab-btn.active');
+    if(!atual || atual.dataset.g !== grupoAtivo){
+      const primeira = document.querySelector(`.admin-tab-btn[data-g="${grupoAtivo}"]:not([style*="display: none"])`);
+      if(primeira) primeira.click();
+    }
+    atualizarBadgesGrupo();
+  }
+
+  // Soma os avisos de cada grupo, pra você ver que tem coisa lá sem abrir
+  function atualizarBadgesGrupo(){
+    const somar = (grupo) => {
+      let total = 0;
+      document.querySelectorAll(`.admin-tab-btn[data-g="${grupo}"]`).forEach(btn => {
+        const sp = btn.querySelector('span');
+        if(!sp) return;
+        const m = (sp.textContent||'').match(/\((\d+)\)/);
+        if(m) total += Number(m[1]);
+      });
+      return total;
+    };
+    [['operacao','gbOperacao'], ['clientes','gbClientes'], ['config','gbConfig']].forEach(([g,id]) => {
+      const el = document.getElementById(id);
+      if(!el) return;
+      const n = somar(g);
+      el.textContent = n > 0 ? n : '';
+      el.style.display = n > 0 ? 'inline-flex' : 'none';
+    });
+  }
+
+  document.querySelectorAll('.grupo-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      grupoAtivo = btn.dataset.grupo;
+      guardar.salvar('omarkin_grupo', grupoAtivo);
+      aplicarGrupo();
+    });
+  });
+
+  /* ---------- TELA DE ACESSOS ---------- */
+  let acessos = [];
+
+  function watchAcessos(){
+    if(!myPerms.includes('acessos') && currentRole !== 'gerente') return;
+    db.collection('acessos').orderBy('entrada','desc').limit(80)
+      .onSnapshot((snap) => {
+        acessos = snap.docs.map(d => Object.assign({_id:d.id}, d.data()));
+        const online = acessos.filter(estaOnline).length;
+        const badge = document.getElementById('acessosBadge');
+        if(badge) badge.textContent = online > 0 ? `(${online})` : '';
+        if(currentTab() === 'acessos') renderAcessos();
+      }, (err) => console.warn('acessos:', err));
+  }
+
+  // Considera online quem deu sinal nos últimos 3 minutos e não marcou saída
+  function estaOnline(a){
+    if(a.saida) return false;
+    if(!a.ultimoSinal) return false;
+    return (Date.now() - new Date(a.ultimoSinal)) < 3*60*1000;
+  }
+
+  function tempoRelativo(iso){
+    if(!iso) return '';
+    const min = Math.floor((Date.now() - new Date(iso)) / 60000);
+    if(min < 1) return 'agora';
+    if(min < 60) return `há ${min}min`;
+    const h = Math.floor(min/60);
+    if(h < 24) return `há ${h}h`;
+    return `há ${Math.floor(h/24)}d`;
+  }
+
+  function duracaoSessao(a){
+    const fim = a.saida ? new Date(a.saida) : (a.ultimoSinal ? new Date(a.ultimoSinal) : null);
+    if(!fim || !a.entrada) return '';
+    const min = Math.round((fim - new Date(a.entrada)) / 60000);
+    if(min < 1) return 'menos de 1min';
+    if(min < 60) return `${min}min`;
+    return `${Math.floor(min/60)}h ${min%60}min`;
+  }
+
+  function renderAcessos(){
+    const boxOnline = document.getElementById('acessosOnline');
+    const lista = document.getElementById('acessosLista');
+    if(!lista) return;
+
+    const online = acessos.filter(estaOnline);
+    boxOnline.innerHTML = online.length === 0
+      ? `<div class="conta-aviso" style="margin-bottom:18px;">Ninguém conectado no momento.</div>`
+      : `<div class="online-grid">${online.map(a => `
+          <div class="online-card">
+            <span class="on-ponto"></span>
+            <div class="on-info">
+              <strong>${escapeHtml(a.nome || '?')}</strong>
+              <span>${escapeHtml(a.funcao || '?')} · ${escapeHtml(a.aparelho || '?')}</span>
+              <small>entrou ${tempoRelativo(a.entrada)}</small>
+            </div>
+          </div>`).join('')}</div>`;
+
+    if(acessos.length === 0){
+      lista.innerHTML = '<div class="loading-row">Nenhum acesso registrado ainda.</div>';
+      return;
+    }
+
+    lista.innerHTML = acessos.map(a => {
+      const on = estaOnline(a);
+      const d = new Date(a.entrada);
+      return `
+      <div class="acesso-linha ${on ? 'ativo' : ''}">
+        <span class="ac-status ${on ? 'on' : 'off'}">${on ? '🟢' : '⚪'}</span>
+        <div class="ac-info">
+          <strong>${escapeHtml(a.nome || '?')} <small>${escapeHtml(a.funcao || '')}</small></strong>
+          <span>${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · ${escapeHtml(a.aparelho||'?')}</span>
+        </div>
+        <div class="ac-tempo">
+          ${on ? '<span class="ac-agora">no sistema</span>' : `<span>${duracaoSessao(a)}</span>`}
+          ${a.saida ? `<small>saiu ${tempoRelativo(a.saida)}</small>` : (on ? '' : '<small>sessão encerrada</small>')}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // atualiza os tempos sozinho a cada minuto
+  setInterval(() => { if(currentTab() === 'acessos') renderAcessos(); }, 60000);
+
   /* ================= MENSAGENS DOS CLIENTES ================= */
   let mensagens = [];
   let msgFiltro = 'todas';
@@ -6916,16 +7217,17 @@
 
   // mostra/esconde as abas dos módulos
   function aplicarModulos(){
-    // áreas do painel
+    // Marca quais abas podem aparecer; o display final quem decide é o
+    // grupo ativo (aplicarGrupo), senão os dois brigam pelo mesmo estilo.
     AREAS.forEach(a => {
       const btn = document.querySelector(`.admin-tab-btn[data-atab="${a.key}"]`);
-      if(btn) btn.style.display = (areaAtiva(a.key) && myPerms.includes(a.key)) ? 'inline-flex' : 'none';
+      if(btn) btn.dataset.permitida = (areaAtiva(a.key) && myPerms.includes(a.key)) ? 'sim' : 'nao';
     });
-    // abas que vêm de recursos extras
     MODULOS.filter(m => m.tab).forEach(m => {
       const btn = document.querySelector(`.admin-tab-btn[data-atab="${m.tab}"]`);
-      if(btn) btn.style.display = (moduloAtivo(m.key) && myPerms.includes(m.tab)) ? 'inline-flex' : 'none';
+      if(btn) btn.dataset.permitida = (moduloAtivo(m.key) && myPerms.includes(m.tab)) ? 'sim' : 'nao';
     });
+    if(typeof aplicarGrupo === 'function') setTimeout(aplicarGrupo, 0);
     // o atalho 📺 TV do cabeçalho acompanha a área
     const tvL = document.getElementById('tvLink');
     if(tvL) tvL.style.display = (areaAtiva('tv') && myPerms.includes('tv')) ? 'inline-flex' : 'none';
@@ -7777,10 +8079,10 @@
   }
 
   /* ---------------- FUNÇÕES E PERMISSÕES ---------------- */
-  const ALL_TABS = ['dashboard','cardapio','adicionais','pedidos','cozinha','tv','mesas','caixa','clientes','entregas','financeiro','estoque','equipe','promocao','loja','modulos','erros','cupons','mensagens'];
+  const ALL_TABS = ['dashboard','cardapio','adicionais','pedidos','cozinha','tv','mesas','caixa','clientes','entregas','financeiro','estoque','equipe','promocao','loja','modulos','erros','cupons','mensagens','acessos'];
   const TAB_LABEL = {
     dashboard:'📊 Dashboard', cardapio:'🍔 Cardápio', adicionais:'➕ Adicionais', pedidos:'📋 Pedidos', cozinha:'👨‍🍳 Cozinha', tv:'📺 Painel TV', mesas:'🪑 Mesas',
-    caixa:'💳 Caixa', clientes:'👥 Clientes', entregas:'🛵 Entregas', financeiro:'💰 Financeiro', modulos:'🧩 Módulos', erros:'🐞 Erros', cupons:'🏷️ Cupons', mensagens:'💬 Mensagens', estoque:'📦 Estoque', equipe:'👥 Equipe',
+    caixa:'💳 Caixa', clientes:'👥 Clientes', entregas:'🛵 Entregas', financeiro:'💰 Financeiro', modulos:'🧩 Módulos', erros:'🐞 Erros', cupons:'🏷️ Cupons', mensagens:'💬 Mensagens', acessos:'🔐 Acessos', estoque:'📦 Estoque', equipe:'👥 Equipe',
     promocao:'📣 Promoção', loja:'🏪 Loja'
   };
   const ROLE_PRESETS = {
@@ -7970,6 +8272,7 @@
     document.getElementById('atabModulos').style.display = tab === 'modulos' ? 'block' : 'none';
     document.getElementById('atabCupons').style.display = tab === 'cupons' ? 'block' : 'none';
     document.getElementById('atabMensagens').style.display = tab === 'mensagens' ? 'block' : 'none';
+    document.getElementById('atabAcessos').style.display = tab === 'acessos' ? 'block' : 'none';
     document.getElementById('atabErros').style.display = tab === 'erros' ? 'block' : 'none';
     document.getElementById('atabClientes').style.display = tab === 'clientes' ? 'block' : 'none';
     document.getElementById('atabEntregas').style.display = tab === 'entregas' ? 'block' : 'none';
@@ -7987,6 +8290,7 @@
     if(tab === 'modulos') renderModulos();
     if(tab === 'cupons') renderCupons();
     if(tab === 'mensagens') renderMensagens();
+    if(tab === 'acessos') renderAcessos();
     if(tab === 'erros') renderErros();
     if(tab === 'clientes') renderClientes();
     if(tab === 'entregas') renderEntregas();
@@ -8006,8 +8310,19 @@
       const temPerm = myPerms.includes(t);
       const areaOk = AREAS.some(a => a.key === t) ? areaAtiva(t) : true;
       const modOk = MODULOS.some(m => m.tab === t) ? moduloAtivo(MODULOS.find(m => m.tab === t).key) : true;
-      btn.style.display = (temPerm && areaOk && modOk) ? 'inline-flex' : 'none';
+      // marca a permissão; quem decide o display final é o grupo ativo
+      btn.dataset.permitida = (temPerm && areaOk && modOk) ? 'sim' : 'nao';
     });
+    // esconde grupos que ficaram sem nenhuma aba disponível
+    document.querySelectorAll('.grupo-btn').forEach(gb => {
+      const temAlguma = document.querySelector(`.admin-tab-btn[data-g="${gb.dataset.grupo}"][data-permitida="sim"]`);
+      gb.style.display = temAlguma ? 'inline-flex' : 'none';
+    });
+    if(!document.querySelector(`.admin-tab-btn[data-g="${grupoAtivo}"][data-permitida="sim"]`)){
+      const primeiroGrupo = document.querySelector('.grupo-btn:not([style*="display: none"])');
+      if(primeiroGrupo) grupoAtivo = primeiroGrupo.dataset.grupo;
+    }
+    aplicarGrupo();
     // abre a primeira aba liberada
     // abre a primeira aba que está permitida E ligada nos Módulos
     const disponivel = t => {
@@ -8125,6 +8440,7 @@
       currentRole = profile.role || 'funcionario';
       myPerms = permsOf(profile);
       currentEmployee = {id: user.uid, name: profile.name || user.email};
+      registrarEntrada();
       document.getElementById('managerView').classList.add('carregando');
       if(!listenersStarted){ startDataListeners(); listenersStarted = true; }
       // Reavalia a cada login — corrige o aparelho compartilhado: se a
@@ -8142,6 +8458,7 @@
   });
 
   document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await registrarSaida();
     await auth.signOut();
   });
 
@@ -8190,6 +8507,7 @@
     watchFeatures();
     watchErros();
     watchMensagens();
+    watchAcessos();
     watchFilaAgente();
     updateCartUI();
   }
