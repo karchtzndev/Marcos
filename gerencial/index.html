@@ -504,6 +504,78 @@
     .grupo-btn{min-width:0; font-size:12px; padding:12px 6px;}
   }
 
+  /* ---------- TEMPO DE PREPARO ---------- */
+  .tp-media{font-family:'Anton',sans-serif; font-size:34px; color:var(--ember); text-align:center; margin-bottom:10px;}
+  .tp-media small{font-size:13px; color:rgba(242,233,218,0.5); font-family:'DM Sans',sans-serif; font-weight:400;}
+  .tp-detalhe{display:flex; justify-content:center; gap:16px; font-size:12.5px; color:rgba(242,233,218,0.6); margin-bottom:12px;}
+  .tp-status{text-align:center; font-size:12px; color:rgba(242,233,218,0.45); padding-top:10px; border-top:1px solid var(--line);}
+  .tp-status.ok{color:var(--green);}
+
+  /* ---------- SUB-ABAS ---------- */
+  .sub-tabs{display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid var(--line); padding-bottom:14px;}
+  .sub-tab-btn{
+    background:var(--pitch); border:1px solid var(--line); border-radius:999px;
+    padding:9px 18px; font-size:13px; font-weight:700; color:rgba(242,233,218,0.6);
+    cursor:pointer; font-family:inherit;
+  }
+  .sub-tab-btn.active{background:rgba(229,118,46,0.14); border-color:var(--ember); color:var(--ember);}
+
+  /* ---------- COMISSÃO ---------- */
+  .com-tabela{width:100%; border-collapse:collapse; font-size:13px; margin-top:10px;}
+  .com-tabela th{text-align:left; padding:9px 10px; color:rgba(242,233,218,0.5); font-size:11.5px;
+                 border-bottom:1px solid var(--line); text-transform:uppercase; letter-spacing:0.4px;}
+  .com-tabela td{padding:10px; border-bottom:1px solid rgba(242,233,218,0.06);}
+  .com-tabela tfoot td{border-top:2px solid var(--line); border-bottom:none; padding-top:12px;}
+  .com-valor{color:var(--green); font-weight:700;}
+  .com-nota{font-size:11.5px; color:rgba(242,233,218,0.4); margin-top:10px; line-height:1.5;}
+
+  /* ---------- LEMBRETE DE BACKUP ---------- */
+  .backup-lembrete{
+    position:fixed; left:12px; right:12px; bottom:12px; z-index:200;
+    background:var(--char); border:1px solid var(--mustard); border-radius:14px;
+    padding:13px 15px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
+    transform:translateY(160%); transition:transform .4s cubic-bezier(.2,.9,.3,1);
+  }
+  .backup-lembrete.show{transform:translateY(0);}
+  .backup-lembrete span{flex-grow:1; font-size:13px; color:rgba(242,233,218,0.8); min-width:180px;}
+  .backup-lembrete button{
+    border:none; border-radius:999px; padding:10px 16px; font-size:12.5px;
+    font-weight:700; cursor:pointer; font-family:inherit; min-height:40px;
+  }
+  #backupAgoraBtn{background:var(--mustard); color:var(--pitch);}
+  #backupDepoisBtn{background:none; color:rgba(242,233,218,0.4); padding:10px;}
+
+  /* ---------- CARRINHOS ABANDONADOS E SUMIDOS ---------- */
+  .aband-card{border:1px solid var(--line); border-left:3px solid var(--mustard);
+              border-radius:12px; padding:14px 16px; margin-bottom:11px;}
+  .aband-topo{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+  .aband-tel{font-weight:700; font-size:14px; color:var(--cream);}
+  .aband-quando{font-size:11.5px; color:rgba(242,233,218,0.45);}
+  .aband-itens{font-size:13px; color:rgba(242,233,218,0.7); margin-bottom:6px;}
+  .aband-valor{font-family:'Anton',sans-serif; font-size:17px; color:var(--mustard); margin-bottom:12px;}
+  .aband-btn{
+    display:block; text-align:center; background:#25D366; color:#fff;
+    border-radius:999px; padding:11px; font-size:13.5px; font-weight:700;
+    text-decoration:none; min-height:44px; line-height:22px;
+  }
+  .aband-btn:hover{filter:brightness(1.08);}
+
+  /* ---------- VISITAS AO SITE ---------- */
+  .visita-linha{
+    display:flex; align-items:center; gap:12px; padding:11px 14px;
+    border:1px solid var(--line); border-radius:10px; margin-bottom:7px;
+  }
+  .visita-linha.finalizou{border-color:rgba(76,175,109,0.35); background:rgba(76,175,109,0.05);}
+  .vi-status{font-size:13px; flex-shrink:0;}
+  .vi-info{flex-grow:1; min-width:0; display:flex; flex-direction:column;}
+  .vi-aparelho{font-size:13px; color:var(--cream);}
+  .vi-quando{font-size:11px; color:rgba(242,233,218,0.45);}
+  .vi-resultado{flex-shrink:0; text-align:right;}
+  .vi-pedido{color:var(--green); font-size:12.5px; font-weight:700;}
+  .vi-navegando{color:var(--mustard); font-size:12px;}
+  .vi-saiu{color:rgba(242,233,218,0.4); font-size:12px;}
+
   /* ---------- ACESSOS ---------- */
   .online-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-bottom:22px;}
   .online-card{
@@ -1358,6 +1430,10 @@
               <h3>💰 Quem dá mais lucro</h3>
               <div id="profitRanking"><div class="loading-row">Cadastre o custo dos produtos no Cardápio.</div></div>
             </div>
+            <div class="dash-card">
+              <h3>⏱️ Tempo real de preparo</h3>
+              <div id="tempoPreparoBox"><div class="loading-row">Carregando...</div></div>
+            </div>
           </div>
         </div>
 
@@ -1526,13 +1602,64 @@
 
         <!-- CLIENTES TAB -->
         <div id="atabClientes" style="display:none;">
-          <div id="cliKpis" class="kpi-grid"></div>
-          <div class="admin-list" style="margin-top:0;border-top:none;padding-top:0;">
-            <input type="text" id="cliBusca" placeholder="🔍 Buscar nome ou telefone..." style="width:100%;">
+          <div class="sub-tabs">
+            <button class="sub-tab-btn active" data-sub="fidelidade">👥 Fidelidade</button>
+            <button class="sub-tab-btn" data-sub="visitas">📊 Visitas ao site</button>
+            <button class="sub-tab-btn" data-sub="abandonados">🛒 Carrinhos abandonados <span id="abandBadge"></span></button>
+            <button class="sub-tab-btn" data-sub="sumidos">😴 Clientes sumidos <span id="sumidosBadge"></span></button>
           </div>
-          <div class="admin-list">
-            <h3>Clientes <span style="font-size:12px;font-weight:400;color:rgba(242,233,218,0.45);">— por quanto já gastaram</span></h3>
-            <div id="cliList"><div class="loading-row">Carregando...</div></div>
+
+          <div id="subFidelidade">
+            <div id="cliKpis" class="kpi-grid"></div>
+            <div class="admin-list" style="margin-top:0;border-top:none;padding-top:0;">
+              <input type="text" id="cliBusca" placeholder="🔍 Buscar nome ou telefone..." style="width:100%;">
+            </div>
+            <div class="admin-list">
+              <h3>Clientes <span style="font-size:12px;font-weight:400;color:rgba(242,233,218,0.45);">— por quanto já gastaram</span></h3>
+              <div id="cliList"><div class="loading-row">Carregando...</div></div>
+            </div>
+          </div>
+
+          <div id="subAbandonados" style="display:none;">
+            <div class="addon-intro">
+              <div class="ai-icon">🛒</div>
+              <div>
+                <strong>Carrinhos abandonados</strong>
+                <p>Cliente que digitou o telefone mas não finalizou. É o público mais fácil de recuperar — já demonstrou interesse de verdade.</p>
+              </div>
+            </div>
+            <div id="abandList"><div class="loading-row">Carregando...</div></div>
+          </div>
+
+          <div id="subSumidos" style="display:none;">
+            <div class="addon-intro">
+              <div class="ai-icon">😴</div>
+              <div>
+                <strong>Clientes que sumiram</strong>
+                <p>Já pediram antes, mas não voltam há um tempo. Um cupom pode ser o empurrão que faltava.</p>
+              </div>
+            </div>
+            <div class="form-actions" style="margin-bottom:16px;">
+              <button class="btn-ghost sumidos-filtro active" data-dias="15">15+ dias</button>
+              <button class="btn-ghost sumidos-filtro" data-dias="30">30+ dias</button>
+              <button class="btn-ghost sumidos-filtro" data-dias="60">60+ dias</button>
+            </div>
+            <div id="sumidosList"><div class="loading-row">Carregando...</div></div>
+          </div>
+
+          <div id="subVisitas" style="display:none;">
+            <div class="addon-intro">
+              <div class="ai-icon">📊</div>
+              <div>
+                <strong>Quem visitou o site</strong>
+                <p>Cliente não precisa de conta pra navegar — aqui você vê quantas visitas viram pedido de verdade, e quantas saíram sem finalizar.</p>
+              </div>
+            </div>
+            <div id="visitaKpis" class="kpi-grid"></div>
+            <div class="admin-list">
+              <h3>Últimas visitas <span style="font-size:12px;font-weight:400;color:rgba(242,233,218,0.45);">— 100 mais recentes</span></h3>
+              <div id="visitaLista"><div class="loading-row">Carregando...</div></div>
+            </div>
           </div>
         </div>
 
@@ -1807,6 +1934,50 @@
               <button class="btn-ghost" id="csvVendas">📥 Vendas por dia</button>
               <button class="btn-ghost" id="csvProdutos">📥 Produtos vendidos</button>
             </div>
+          </div>
+
+          <div class="admin-list" id="pdfRelatorioBox" style="display:none;">
+            <h3>📄 Relatório em PDF</h3>
+            <p style="font-size:13px;color:rgba(242,233,218,0.6);margin-bottom:14px;">
+              Já formatado, pronto pra imprimir ou entregar ao contador sem editar nada.
+            </p>
+            <div class="form-grid">
+              <div class="field">
+                <label>Período</label>
+                <select id="pdfPeriodo">
+                  <option value="7">Últimos 7 dias</option>
+                  <option value="15">Últimos 15 dias</option>
+                  <option value="30" selected>Últimos 30 dias</option>
+                  <option value="90">Últimos 90 dias</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn-primary" id="pdfGerarBtn">📄 Gerar relatório PDF</button>
+            </div>
+            <div class="error-msg" id="pdfMsg"></div>
+          </div>
+
+          <div class="admin-list" id="comissaoBox" style="display:none;">
+            <h3>💵 Comissão por atendente</h3>
+            <p style="font-size:13px;color:rgba(242,233,218,0.6);margin-bottom:14px;">
+              Quanto cada pessoa da equipe fechou no caixa, pra calcular comissão se você pagar por vendas.
+            </p>
+            <div class="form-grid">
+              <div class="field">
+                <label>Período</label>
+                <select id="comPeriodo">
+                  <option value="1">Hoje</option>
+                  <option value="7" selected>Últimos 7 dias</option>
+                  <option value="30">Últimos 30 dias</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>% de comissão</label>
+                <input type="number" id="comPercentual" value="5" min="0" max="100" step="0.5">
+              </div>
+            </div>
+            <div id="comissaoResultado"></div>
           </div>
 
           <div class="dash-card" style="margin-bottom:26px;">
@@ -2428,6 +2599,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"
         onerror="document.getElementById('falhaConexao').style.display='flex'"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyA-7sy4ox0ErDZAw7prhXYJ3MaSA7G_scY",
@@ -4197,41 +4370,47 @@
   }
 
   /* ---------------- BACKUP ---------------- */
+  // Função reaproveitada tanto pelo botão manual quanto pelo automático.
+  async function gerarBackup(){
+    const backup = {exportedAt: new Date().toISOString(), version: 2, store: {}, orders: [], users: [], stats: [], closings: []};
+    for(const d of ['menu','info','promo','inventory','cashflow','fixedcosts','register']){
+      try{
+        const snap = await db.collection('store').doc(d).get();
+        backup.store[d] = snap.exists ? snap.data() : null;
+      }catch(e){ backup.store[d] = null; }
+    }
+    const collect = async (name, limit) => {
+      try{
+        let q = db.collection(name);
+        if(name === 'orders') q = q.orderBy('createdAt','desc').limit(limit || 3000);
+        const snap = await q.get();
+        return snap.docs.map(d => Object.assign({_id: d.id}, d.data()));
+      }catch(e){ return []; }
+    };
+    backup.orders   = await collect('orders', 3000);
+    backup.users    = await collect('users');
+    backup.stats    = await collect('stats');
+    backup.closings = await collect('closings');
+    return backup;
+  }
+
+  function baixarBackup(backup, sufixo){
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = "omarkin-backup-" + todayStr() + (sufixo||'') + ".json";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   document.getElementById('exportDataBtn').addEventListener('click', async () => {
     const msg = document.getElementById('backupMsg');
     msg.style.color = ""; msg.textContent = "Gerando backup...";
     try{
-      const backup = {exportedAt: new Date().toISOString(), version: 2, store: {}, orders: [], users: [], stats: [], closings: []};
-
-      // documentos de configuração
-      for(const d of ['menu','info','promo','inventory','cashflow','fixedcosts','register']){
-        try{
-          const snap = await db.collection('store').doc(d).get();
-          backup.store[d] = snap.exists ? snap.data() : null;
-        }catch(e){ backup.store[d] = null; } // sem permissão: segue sem travar
-      }
-
-      // coleções (o formato antigo salvava docs que não existem mais)
-      const collect = async (name, limit) => {
-        try{
-          let q = db.collection(name);
-          if(name === 'orders') q = q.orderBy('createdAt','desc').limit(limit || 3000);
-          const snap = await q.get();
-          return snap.docs.map(d => Object.assign({_id: d.id}, d.data()));
-        }catch(e){ return []; }
-      };
-      backup.orders   = await collect('orders', 3000);
-      backup.users    = await collect('users');
-      backup.stats    = await collect('stats');
-      backup.closings = await collect('closings');
-
-      const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = "omarkin-backup-" + todayStr() + ".json";
-      a.click();
-      URL.revokeObjectURL(url);
+      const backup = await gerarBackup();
+      baixarBackup(backup);
+      await db.collection('store').doc('backupInfo').set({ultimoBackup: new Date().toISOString()}, {merge:true});
       msg.style.color = "var(--green)";
       msg.textContent = `Backup baixado ✓ (${backup.orders.length} pedidos, ${backup.stats.length} dias de histórico)`;
     }catch(e){
@@ -4240,6 +4419,43 @@
       msg.textContent = "Não foi possível gerar o backup.";
     }
   });
+
+  // ---------- BACKUP "AUTOMÁTICO" ----------
+  // Sendo honesto sobre o que isso é: o sistema não tem servidor próprio
+  // rodando sozinho, então não existe um robô fazendo backup de madrugada.
+  // O que ele faz: toda vez que um GERENTE abre o painel, confere quando
+  // foi o último backup — se já passou uma semana, avisa com um botão de
+  // um toque só. Na prática, como o painel é aberto todo dia, isso cobre
+  // o problema real: "esqueci de fazer backup" vira "o sistema me lembrou".
+  async function verificarBackupSemanal(){
+    if(currentRole !== 'gerente') return;
+    if(document.querySelector('.backup-lembrete')) return;  // já tem um na tela
+    try{
+      const doc = await db.collection('store').doc('backupInfo').get();
+      const ultimo = doc.exists ? doc.data().ultimoBackup : null;
+      const dias = ultimo ? (Date.now() - new Date(ultimo)) / (24*60*60*1000) : 999;
+      if(dias < 7) return;
+
+      const banner = document.createElement('div');
+      banner.className = 'backup-lembrete';
+      banner.innerHTML = `
+        <span>💾 Já fazem ${ultimo ? Math.floor(dias)+' dias' : 'muito tempo'} desde o último backup.</span>
+        <button id="backupAgoraBtn">Baixar agora</button>
+        <button id="backupDepoisBtn" aria-label="Lembrar depois">✕</button>`;
+      document.body.appendChild(banner);
+      requestAnimationFrame(() => banner.classList.add('show'));
+
+      document.getElementById('backupAgoraBtn').addEventListener('click', async () => {
+        banner.querySelector('#backupAgoraBtn').textContent = 'Gerando...';
+        const backup = await gerarBackup();
+        baixarBackup(backup, '-semanal');
+        await db.collection('store').doc('backupInfo').set({ultimoBackup: new Date().toISOString()}, {merge:true});
+        banner.remove();
+        showToast('💾 Backup semanal salvo ✓');
+      });
+      document.getElementById('backupDepoisBtn').addEventListener('click', () => banner.remove());
+    }catch(e){ /* nunca trava o painel por causa disso */ }
+  }
 
   document.getElementById('importDataBtn').addEventListener('click', () => document.getElementById('importDataInput').click());
   document.getElementById('importDataInput').addEventListener('change', (e) => {
@@ -6303,6 +6519,7 @@
   // Assim dá pra saber quem está no sistema AGORA e quem só passou por lá.
   let sessaoAtual = null;
   let sinalVida = null;
+  let uidDaSessaoAtual = null;   // evita registrar entrada duplicada
 
   function aparelhoResumido(){
     const ua = navigator.userAgent;
@@ -6343,6 +6560,7 @@
   }
 
   async function registrarSaida(){
+    uidDaSessaoAtual = null;
     if(!sessaoAtual) return;
     const id = sessaoAtual;
     sessaoAtual = null;
@@ -6417,12 +6635,296 @@
     });
   });
 
+  /* ---------- SUB-ABAS DE CLIENTES ---------- */
+  const SUB_IDS = ['fidelidade','abandonados','sumidos','visitas'];
+  document.querySelectorAll('.sub-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const sub = btn.dataset.sub;
+      SUB_IDS.forEach(s => {
+        const el = document.getElementById('sub' + s.charAt(0).toUpperCase() + s.slice(1));
+        if(el) el.style.display = (s === sub) ? 'block' : 'none';
+      });
+      if(sub === 'visitas') renderVisitas();
+      if(sub === 'abandonados') renderAbandonados();
+      if(sub === 'sumidos') renderSumidos();
+    });
+  });
+
+  /* ---------- CARRINHOS ABANDONADOS ---------- */
+  function renderAbandonados(){
+    const box = document.getElementById('abandList');
+    if(!box) return;
+
+    // visita com telefone digitado, que NÃO virou pedido, dos últimos 3 dias
+    const limite = Date.now() - 3*24*60*60*1000;
+    const lista = visitas.filter(v =>
+      v.telefoneDigitado && !v.finalizou && new Date(v.entrada||0) > limite
+    );
+
+    document.getElementById('abandBadge').textContent = lista.length > 0 ? `(${lista.length})` : '';
+
+    if(lista.length === 0){
+      box.innerHTML = '<div class="loading-row">Nenhum carrinho abandonado nos últimos 3 dias 🎉</div>';
+      return;
+    }
+
+    box.innerHTML = lista.map(v => {
+      const tel = String(v.telefoneDigitado||'').replace(/\D/g,'');
+      const itens = (v.carrinhoNoAbandono||[]).join(', ');
+      const msg = encodeURIComponent(
+        `Oi! Vi que você chegou a montar um pedido aqui n'O Markin mas não finalizou 😅\n\n` +
+        `Separei 10% de desconto pra você fechar agora: use o cupom *VOLTA10*\n\n` +
+        `Bora matar essa fome? 🍔`
+      );
+      return `
+      <div class="aband-card">
+        <div class="aband-topo">
+          <span class="aband-tel">${escapeHtml(v.telefoneDigitado)}</span>
+          <span class="aband-quando">${tempoRelativo(v.entrada)}</span>
+        </div>
+        <div class="aband-itens">${escapeHtml(itens || 'carrinho vazio')}</div>
+        <div class="aband-valor">${money(v.valorCarrinho||0)}</div>
+        <a class="aband-btn" href="https://wa.me/55${tel}?text=${msg}" target="_blank" rel="noopener">
+          💬 Chamar no WhatsApp com cupom
+        </a>
+      </div>`;
+    }).join('');
+  }
+
+  /* ---------- CLIENTES SUMIDOS ---------- */
+  let sumidosDias = 15;
+  document.querySelectorAll('.sumidos-filtro').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.sumidos-filtro').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      sumidosDias = Number(btn.dataset.dias);
+      renderSumidos();
+    });
+  });
+
+  function renderSumidos(){
+    const box = document.getElementById('sumidosList');
+    if(!box) return;
+
+    const limite = Date.now() - sumidosDias*24*60*60*1000;
+    const lista = Object.entries(clientes || {})
+      .map(([tel, c]) => Object.assign({tel}, c))
+      .filter(c => c.ultimo && new Date(c.ultimo).getTime() < limite && Number(c.pedidos) > 0)
+      .sort((a,b) => new Date(a.ultimo) - new Date(b.ultimo));  // sumido há mais tempo primeiro
+
+    document.getElementById('sumidosBadge').textContent = lista.length > 0 ? `(${lista.length})` : '';
+
+    if(lista.length === 0){
+      box.innerHTML = `<div class="loading-row">Ninguém sumido há mais de ${sumidosDias} dias.</div>`;
+      return;
+    }
+
+    box.innerHTML = lista.map(c => {
+      const dias = Math.floor((Date.now() - new Date(c.ultimo)) / (24*60*60*1000));
+      const msg = encodeURIComponent(
+        `Oi ${c.nome||''}! Faz tempo que você não aparece aqui n'O Markin 😢\n\n` +
+        `Que tal voltar com 15% de desconto? Use o cupom *SAUDADE15*\n\n` +
+        `Esperamos você! 🍔`
+      );
+      return `
+      <div class="aband-card">
+        <div class="aband-topo">
+          <span class="aband-tel">${escapeHtml(c.nome || c.tel)}</span>
+          <span class="aband-quando">sumido há ${dias} dias</span>
+        </div>
+        <div class="aband-itens">${c.pedidos||0} pedido(s) no total · última compra ${money(c.gasto||0)} acumulado</div>
+        <a class="aband-btn" href="https://wa.me/55${c.tel}?text=${msg}" target="_blank" rel="noopener">
+          💬 Chamar de volta com cupom
+        </a>
+      </div>`;
+    }).join('');
+  }
+
+  /* ---------- VISITAS AO SITE ---------- */
+  let visitas = [];
+  let visitasUnsub = null;
+
+  function watchVisitas(){
+    if(!moduloAtivo('clientes')){
+      if(visitasUnsub){ visitasUnsub(); visitasUnsub = null; visitas = []; }
+      return;
+    }
+    if(visitasUnsub) return;
+    visitasUnsub = db.collection('visitas').orderBy('entrada','desc').limit(100)
+      .onSnapshot((snap) => {
+        visitas = snap.docs.map(d => Object.assign({_id:d.id}, d.data()));
+        if(currentTab() === 'clientes') renderVisitas();
+      }, (err) => console.warn('visitas:', err));
+  }
+
+  function renderVisitas(){
+    const box = document.getElementById('visitaLista');
+    if(!box) return;
+
+    const hoje = todayStr();
+    const visitasHoje = visitas.filter(v => (v.entrada||'').startsWith(hoje));
+    const finalizaramHoje = visitasHoje.filter(v => v.finalizou).length;
+    const taxaHoje = visitasHoje.length ? Math.round((finalizaramHoje/visitasHoje.length)*100) : 0;
+    const finalizaramTotal = visitas.filter(v => v.finalizou).length;
+
+    document.getElementById('visitaKpis').innerHTML = `
+      <div class="kpi-card"><div class="kv">${visitasHoje.length}</div><div class="kl">Visitas hoje</div></div>
+      <div class="kpi-card"><div class="kv">${finalizaramHoje}</div><div class="kl">Viraram pedido hoje</div></div>
+      <div class="kpi-card"><div class="kv">${taxaHoje}%</div><div class="kl">Taxa de conversão hoje</div></div>
+      <div class="kpi-card"><div class="kv">${visitas.length ? Math.round((finalizaramTotal/visitas.length)*100) : 0}%</div><div class="kl">Conversão geral (100 últimas)</div></div>`;
+
+    if(visitas.length === 0){
+      box.innerHTML = '<div class="loading-row">Nenhuma visita registrada ainda.</div>';
+      return;
+    }
+
+    box.innerHTML = visitas.map(v => {
+      const d = new Date(v.entrada);
+      const ativa = v.ultimaAtividade && (Date.now() - new Date(v.ultimaAtividade)) < 5*60*1000 && !v.finalizou;
+      return `
+      <div class="visita-linha ${v.finalizou ? 'finalizou' : ''}">
+        <span class="vi-status">${v.finalizou ? '✅' : ativa ? '🟡' : '⚪'}</span>
+        <div class="vi-info">
+          <span class="vi-aparelho">${escapeHtml(v.aparelho||'?')}</span>
+          <span class="vi-quando">${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
+        </div>
+        <div class="vi-resultado">
+          ${v.finalizou
+            ? `<span class="vi-pedido">Pedido ${escapeHtml(v.codigoPedido||'')}</span>`
+            : ativa
+              ? `<span class="vi-navegando">navegando...</span>`
+              : `<span class="vi-saiu">saiu sem pedir</span>`}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  /* ---------- RELATÓRIO EM PDF ---------- */
+  document.getElementById('pdfGerarBtn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('pdfGerarBtn');
+    const msg = document.getElementById('pdfMsg');
+    const dias = Number(document.getElementById('pdfPeriodo').value);
+    btn.disabled = true; btn.textContent = 'Gerando...';
+    msg.textContent = '';
+
+    try{
+      if(typeof window.jspdf === 'undefined') throw new Error('Biblioteca de PDF não carregou. Confira sua internet.');
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      const statsPeriodo = statsRange(dias)
+        .slice()
+        .sort((a,b) => a.date.localeCompare(b.date));
+
+      const totalFat = statsPeriodo.reduce((s,v) => s + (Number(v.revenue)||0), 0);
+      const totalPedidos = statsPeriodo.reduce((s,v) => s + (Number(v.orderCount)||0), 0);
+      const ticketMedio = totalPedidos ? totalFat/totalPedidos : 0;
+
+      // cabeçalho
+      doc.setFontSize(18); doc.setFont(undefined,'bold');
+      doc.text("O Markin Chef's Burguer", 14, 18);
+      doc.setFontSize(11); doc.setFont(undefined,'normal');
+      doc.text(`Relatório financeiro — últimos ${dias} dias`, 14, 26);
+      doc.setFontSize(9); doc.setTextColor(120);
+      doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`, 14, 32);
+      doc.setTextColor(0);
+
+      // resumo
+      doc.setFontSize(12); doc.setFont(undefined,'bold');
+      doc.text('Resumo do período', 14, 44);
+      doc.autoTable({
+        startY: 48,
+        head: [['Faturamento total', 'Pedidos', 'Ticket médio']],
+        body: [[money(totalFat), String(totalPedidos), money(ticketMedio)]],
+        theme: 'grid', headStyles:{fillColor:[229,118,46]}
+      });
+
+      // tabela dia a dia
+      let y = doc.lastAutoTable.finalY + 12;
+      doc.setFontSize(12); doc.setFont(undefined,'bold');
+      doc.text('Faturamento por dia', 14, y);
+      doc.autoTable({
+        startY: y+4,
+        head: [['Data', 'Pedidos', 'Faturamento']],
+        body: statsPeriodo.map(v => [
+          v.date.split('-').reverse().join('/'),
+          String(v.orderCount||0),
+          money(v.revenue||0)
+        ]),
+        theme: 'striped', headStyles:{fillColor:[229,118,46]}
+      });
+
+      doc.save(`relatorio-omarkin-${todayStr()}.pdf`);
+      msg.style.color = 'var(--green)';
+      msg.textContent = 'PDF gerado ✓';
+    }catch(e){
+      console.error(e);
+      msg.style.color = 'var(--tomato)';
+      msg.textContent = e.message || 'Não foi possível gerar o PDF.';
+    }
+    btn.disabled = false; btn.textContent = '📄 Gerar relatório PDF';
+  });
+
+  /* ---------- COMISSÃO POR ATENDENTE ---------- */
+  function calcularComissao(){
+    const dias = Number(document.getElementById('comPeriodo').value);
+    const pct = Number(document.getElementById('comPercentual').value) || 0;
+    const box = document.getElementById('comissaoResultado');
+    if(!box) return;
+
+    const limite = new Date(); limite.setDate(limite.getDate() - dias);
+    const limiteISO = limite.toISOString();
+
+    const porFuncionario = {};
+    orders.forEach(o => {
+      if(!o.paid && o.status !== 'entregue') return;   // só pedidos concluídos/pagos
+      if(!o.handledBy) return;
+      if((o.updatedAt||o.createdAt||'') < limiteISO) return;
+      if(!porFuncionario[o.handledBy]) porFuncionario[o.handledBy] = {vendas:0, pedidos:0};
+      porFuncionario[o.handledBy].vendas += Number(o.total)||0;
+      porFuncionario[o.handledBy].pedidos += 1;
+    });
+
+    const linhas = Object.entries(porFuncionario).sort((a,b) => b[1].vendas - a[1].vendas);
+    if(linhas.length === 0){
+      box.innerHTML = '<div class="loading-row">Nenhum pedido com responsável identificado nesse período.</div>';
+      return;
+    }
+
+    const totalGeral = linhas.reduce((s,[,v]) => s+v.vendas, 0);
+    box.innerHTML = `
+      <table class="com-tabela">
+        <thead><tr><th>Funcionário</th><th>Pedidos</th><th>Vendas</th><th>Comissão (${pct}%)</th></tr></thead>
+        <tbody>
+          ${linhas.map(([nome,v]) => `
+            <tr>
+              <td>${escapeHtml(nome)}</td>
+              <td>${v.pedidos}</td>
+              <td>${money(v.vendas)}</td>
+              <td class="com-valor">${money(v.vendas * pct/100)}</td>
+            </tr>`).join('')}
+        </tbody>
+        <tfoot><tr>
+          <td><b>Total</b></td><td></td><td><b>${money(totalGeral)}</b></td>
+          <td class="com-valor"><b>${money(totalGeral * pct/100)}</b></td>
+        </tr></tfoot>
+      </table>
+      <p class="com-nota">⚠️ Baseado no campo "quem atendeu" de cada pedido. Pedidos sem essa informação não entram na conta.</p>`;
+  }
+  document.getElementById('comPeriodo')?.addEventListener('change', calcularComissao);
+  document.getElementById('comPercentual')?.addEventListener('input', calcularComissao);
+
   /* ---------- TELA DE ACESSOS ---------- */
   let acessos = [];
 
+  let acessosUnsub = null;
   function watchAcessos(){
     if(!myPerms.includes('acessos') && currentRole !== 'gerente') return;
-    db.collection('acessos').orderBy('entrada','desc').limit(80)
+    if(acessosUnsub) return;   // já escutando — sem isso, uma segunda chamada
+                                // dobraria a lista toda vez que atualizasse
+    acessosUnsub = db.collection('acessos').orderBy('entrada','desc').limit(80)
       .onSnapshot((snap) => {
         acessos = snap.docs.map(d => Object.assign({_id:d.id}, d.data()));
         const online = acessos.filter(estaOnline).length;
@@ -6506,8 +7008,10 @@
   let mensagens = [];
   let msgFiltro = 'todas';
 
+  let mensagensUnsub = null;
   function watchMensagens(){
-    db.collection('mensagens').orderBy('quando','desc').limit(100)
+    if(mensagensUnsub) return;
+    mensagensUnsub = db.collection('mensagens').orderBy('quando','desc').limit(100)
       .onSnapshot((snap) => {
         mensagens = snap.docs.map(d => Object.assign({_id:d.id}, d.data()));
         const naoLidas = mensagens.filter(m => !m.lida).length;
@@ -6862,6 +7366,7 @@
       renderModulos();
       aplicarModulos();
       watchClientes();           // liga ou desliga conforme os módulos
+      watchVisitas();            // mesma trava de módulo do watchClientes
       watchCupons();
       if(primeiraVez) applyRolePermissions();
     }, (err) => {
@@ -7251,6 +7756,10 @@
     }
     const rel = document.getElementById('relatoriosBox');
     if(rel) rel.style.display = moduloAtivo('relatorios') ? 'block' : 'none';
+    const pdfB = document.getElementById('pdfRelatorioBox');
+    if(pdfB) pdfB.style.display = moduloAtivo('relatorios') ? 'block' : 'none';
+    const comB = document.getElementById('comissaoBox');
+    if(comB) comB.style.display = (currentRole === 'gerente') ? 'block' : 'none';
   }
 
   /* ================= ADICIONAIS (aba própria) ================= */
@@ -8019,15 +8528,44 @@
   // Grava SÓ os campos alterados. Antes usávamos .set() (substituição total),
   // o que fazia o caixa e a cozinha apagarem o trabalho um do outro ao mexer
   // no mesmo pedido quase ao mesmo tempo.
+  // Guarda quais pedidos já contribuíram uma amostra pro tempo de preparo
+  // nesta sessão do painel — evita contar duas vezes no clique rápido.
+  const pedidosComAmostraRegistrada = new Set();
+
   async function setOrderStatus(code, status){
     const order = orders.find(o => o.code === code); if(!order) return;
     const wasDelivered = order.status === 'entregue';
 
+    const agora = new Date().toISOString();
     const patch = {
       status,
-      updatedAt: new Date().toISOString(),
+      updatedAt: agora,
       handledBy: currentEmployee ? currentEmployee.name : (order.handledBy || "Gerente")
     };
+
+    // Guarda o horário de CADA etapa — é o que permite medir o tempo real
+    // de preparo depois, em vez do cliente ver um número chutado por você.
+    patch['tempos.' + status] = agora;
+
+    // Quando o pedido fica pronto, já calcula quanto levou desde que foi
+    // aceito. Isso alimenta a média que aparece pro próximo cliente.
+    // Trava contra clique rápido demais: "pronto" seguido de "entregue" em
+    // menos de 1s (antes do servidor confirmar o primeiro) faria a MESMA
+    // amostra entrar duas vezes na média. Baixo risco — é só o número
+    // exibido pro próximo cliente, não dinheiro nem estoque — mas a
+    // correção é barata, então vale fazer.
+    if((status === 'pronto' || (status === 'entregue' && !order.tempos?.pronto))
+       && !pedidosComAmostraRegistrada.has(code)){
+      const aceitoEm = order.tempos?.aceito;
+      if(aceitoEm){
+        const minutos = Math.round((new Date(agora) - new Date(aceitoEm)) / 60000);
+        if(minutos > 0 && minutos < 180){   // descarta valores absurdos (pedido esquecido aberto)
+          patch.duracaoPreparoMin = minutos;
+          pedidosComAmostraRegistrada.add(code);
+          registrarTempoPreparo(minutos);
+        }
+      }
+    }
 
     // Comanda sai sozinha ao aceitar, se o módulo estiver ligado
     // Brinde entra ANTES da comanda ser impressa, senão sai comanda sem ele
@@ -8060,6 +8598,55 @@
 
   // Marca a baixa de estoque de forma atômica; devolve true só pra quem
   // conseguiu marcar primeiro.
+  // ---------- TEMPO REAL DE PREPARO (visão do painel) ----------
+  function watchTempoPreparoDash(){
+    db.collection('store').doc('tempoPreparo').onSnapshot((doc) => {
+      const box = document.getElementById('tempoPreparoBox');
+      if(!box) return;
+      if(!doc.exists || !(doc.data().amostras||[]).length){
+        box.innerHTML = '<div class="loading-row">Ainda sem pedidos suficientes pra calcular.</div>';
+        return;
+      }
+      const amostras = doc.data().amostras;
+      const media = Math.round(amostras.reduce((s,n)=>s+n,0) / amostras.length);
+      const maisRapido = Math.min(...amostras);
+      const maisLento = Math.max(...amostras);
+      const usandoNoSite = amostras.length >= 5;
+      box.innerHTML = `
+        <div class="tp-media">${media} <small>min em média</small></div>
+        <div class="tp-detalhe">
+          <span>🚀 mais rápido: ${maisRapido}min</span>
+          <span>🐢 mais lento: ${maisLento}min</span>
+        </div>
+        <div class="tp-status ${usandoNoSite ? 'ok' : ''}">
+          ${usandoNoSite
+            ? `✓ Já sendo mostrado pro cliente (${amostras.length} pedidos medidos)`
+            : `Faltam ${5-amostras.length} pedido(s) pra começar a usar essa média no site`}
+        </div>`;
+    }, (err) => console.warn('tempoPreparo:', err));
+  }
+
+  // ---------- TEMPO REAL DE PREPARO ----------
+  // Guarda uma média móvel dos últimos preparos, por tipo de pedido.
+  // O cliente passa a ver "cerca de 22 minutos" baseado no que realmente
+  // acontece na cozinha, não um número fixo digitado uma vez e esquecido.
+  async function registrarTempoPreparo(minutos){
+    try{
+      await db.collection('store').doc('tempoPreparo').set({
+        amostras: firebase.firestore.FieldValue.arrayUnion(minutos),
+        atualizadoEm: new Date().toISOString()
+      }, {merge:true});
+      // mantém só as últimas 30 amostras — evita o documento crescer pra sempre
+      const doc = await db.collection('store').doc('tempoPreparo').get();
+      const amostras = doc.data()?.amostras || [];
+      if(amostras.length > 30){
+        await db.collection('store').doc('tempoPreparo').set({
+          amostras: amostras.slice(-30)
+        }, {merge:true});
+      }
+    }catch(e){ console.warn('tempo de preparo:', e); }
+  }
+
   async function claimStockDeduction(code){
     const ref = db.collection('orders').doc(code);
     try{
@@ -8298,7 +8885,7 @@
     if(tab === 'mesas') renderTables();
     if(tab === 'caixa') renderCaixa();
     if(tab === 'dashboard') renderDashboard();
-    if(tab === 'financeiro') { renderFinKpis(); renderCashflowList(); renderFixedCostList(); }
+    if(tab === 'financeiro') { renderFinKpis(); renderCashflowList(); renderFixedCostList(); calcularComissao(); }
     if(tab === 'estoque') renderStockList();
     if(tab === 'equipe') { renderEmployeeList(); renderEmployeeRanking(); }
     if(tab === 'promocao') renderPromoForm();
@@ -8440,7 +9027,20 @@
       currentRole = profile.role || 'funcionario';
       myPerms = permsOf(profile);
       currentEmployee = {id: user.uid, name: profile.name || user.email};
-      registrarEntrada();
+      // O Firebase pode disparar onAuthStateChanged mais de uma vez pro
+      // MESMO login (uma vez com o usuário em cache, outra confirmando com
+      // o servidor) — sem essa trava, cada disparo virava uma entrada nova
+      // no histórico de acessos, duplicando tudo. Só registra de novo se
+      // for um UID diferente do que já está com sessão aberta nesta aba.
+      // O lembrete de backup fica DENTRO desta trava de propósito — o
+      // Firebase pode disparar este evento 2x pro mesmo login (mesmo bug
+      // que já corrigimos pro histórico de acessos), e sem isso apareceriam
+      // dois banners de backup empilhados na tela 4 segundos depois.
+      if(uidDaSessaoAtual !== user.uid){
+        uidDaSessaoAtual = user.uid;
+        registrarEntrada();
+        setTimeout(verificarBackupSemanal, 4000);
+      }
       document.getElementById('managerView').classList.add('carregando');
       if(!listenersStarted){ startDataListeners(); listenersStarted = true; }
       // Reavalia a cada login — corrige o aparelho compartilhado: se a
@@ -8508,6 +9108,8 @@
     watchErros();
     watchMensagens();
     watchAcessos();
+    watchVisitas();
+    watchTempoPreparoDash();
     watchFilaAgente();
     updateCartUI();
   }

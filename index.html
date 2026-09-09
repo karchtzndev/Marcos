@@ -2473,7 +2473,8 @@
   }
   let storeWhatsappNumber = "";
   let storeIsOpen = true;
-  let storePrepTime = 25;
+  let storePrepTime = 25;      // valor de fallback, enquanto a média real não chega
+  let tempoPreparoReal = null;  // preenchido com dado de verdade, se existir
   let features = {};
   let storeDeliveryTime = 20;
   let storeClosedMsg = "";
@@ -2641,6 +2642,7 @@
       bumpDailyStats(order);
       registrarCliente(order);
       registrarUsoCupom(order);
+      marcarVisitaFinalizada(order.code);
       // Purchase com valor: é o que permite calcular retorno do anúncio
       rastrear('Purchase', {
         value: order.total,
@@ -2744,7 +2746,9 @@
 
   function etaText(order){
     if(order.status === 'entregue') return "";
-    const prep = Number(storePrepTime) || 25;
+    // Usa o tempo REAL medido nos últimos preparos quando disponível —
+    // mais honesto que um número fixo digitado uma vez no painel.
+    const prep = tempoPreparoReal || Number(storePrepTime) || 25;
     const deliv = Number(storeDeliveryTime) || 20;
     const started = new Date(order.createdAt).getTime();
     const totalMin = prep + (order.orderType === 'entrega' ? deliv : 0);
@@ -3021,6 +3025,95 @@
     }
     btn.disabled = false; btn.textContent = 'Enviar mensagem';
   });
+
+  // Busca a média real de preparo, calculada a partir dos últimos pedidos
+  // de verdade. Só troca o valor fixo se houver dado suficiente — com
+  // poucas amostras, um preparo muito rápido ou muito lento distorceria
+  // a previsão pro próximo cliente.
+  function watchTempoPreparo(){
+    try{
+      db.collection('store').doc('tempoPreparo').onSnapshot((doc) => {
+        if(!doc.exists) return;
+        const amostras = doc.data().amostras || [];
+        if(amostras.length < 5) return;   // poucas amostras, mantém o valor padrão
+        const media = amostras.reduce((s,n) => s+n, 0) / amostras.length;
+        tempoPreparoReal = Math.round(media);
+      });
+    }catch(e){ /* segue com o valor padrão */ }
+  }
+
+  /* ================= VISITAS AO SITE ================= */
+  // Diferente da equipe, cliente não loga pra navegar — a maioria nem cria
+  // conta. Aqui "visita" é a sessão de navegação, e o que importa mesmo é
+  // saber se ela terminou em pedido ou foi embora no meio do caminho.
+  let visitaId = null;
+  const VISITA_KEY = 'omarkin_visita_id';
+  const VISITA_VALIDADE = 30 * 60 * 1000;   // 30min sem ação = sessão nova
+
+  function novoIdVisita(){
+    return 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+  }
+
+  async function registrarVisita(){
+    try{
+      const salvo = JSON.parse(guardar.ler(VISITA_KEY) || 'null');
+      const agora = Date.now();
+      if(salvo && salvo.id && (agora - salvo.em) < VISITA_VALIDADE){
+        visitaId = salvo.id;
+        guardar.salvar(VISITA_KEY, JSON.stringify({id: visitaId, em: agora}));
+        // só atualiza o "visto por último", não cria visita nova
+        db.collection('visitas').doc(visitaId).set({
+          ultimaAtividade: new Date().toISOString()
+        }, {merge:true}).catch(()=>{});
+        return;
+      }
+
+      visitaId = novoIdVisita();
+      guardar.salvar(VISITA_KEY, JSON.stringify({id: visitaId, em: agora}));
+
+      await db.collection('visitas').doc(visitaId).set({
+        entrada: new Date().toISOString(),
+        ultimaAtividade: new Date().toISOString(),
+        aparelho: /iphone|ipad/i.test(navigator.userAgent) ? 'iPhone/iPad'
+                 : /android/i.test(navigator.userAgent) ? 'Android' : 'Computador',
+        origem: document.referrer ? new URL(document.referrer).hostname : 'direto',
+        finalizou: false,
+        codigoPedido: ''
+      });
+    }catch(e){ /* rastreio nunca pode travar a navegação do cliente */ }
+  }
+
+  // Salva o telefone e o carrinho na visita, com atraso pra não gravar a
+  // cada tecla — só quando a pessoa realmente parar de digitar. É o que
+  // permite identificar quem abandonou o carrinho DEPOIS de já demonstrar
+  // interesse (digitou o telefone), que é o público mais fácil de recuperar.
+  let atrasoSalvarCarrinho = null;
+  function salvarCarrinhoNaVisita(){
+    if(atrasoSalvarCarrinho) clearTimeout(atrasoSalvarCarrinho);
+    atrasoSalvarCarrinho = setTimeout(() => {
+      if(!visitaId) return;
+      const tel = document.getElementById('ckPhone')?.value?.trim();
+      if(!tel || tel.replace(/\D/g,'').length < 10) return;   // telefone incompleto, não vale
+      const itens = cart.filter(i => !i.forItem).map(i => `${i.qty}x ${i.name}`);
+      db.collection('visitas').doc(visitaId).set({
+        telefoneDigitado: tel,
+        carrinhoNoAbandono: itens,
+        valorCarrinho: cartTotal(),
+        ultimaAtividade: new Date().toISOString()
+      }, {merge:true}).catch(()=>{});
+    }, 1500);
+  }
+  document.getElementById('ckPhone')?.addEventListener('input', salvarCarrinhoNaVisita);
+
+  // Marca que essa visita virou pedido de verdade
+  function marcarVisitaFinalizada(codigoPedido){
+    if(!visitaId) return;
+    db.collection('visitas').doc(visitaId).set({
+      finalizou: true,
+      codigoPedido: codigoPedido,
+      finalizadoEm: new Date().toISOString()
+    }, {merge:true}).catch(()=>{});
+  }
 
   /* ================= HISTÓRICO E REPETIR PEDIDO ================= */
   // Busca os pedidos por telefone. Funciona logado ou não — quem já pediu
@@ -3935,6 +4028,8 @@
   }
 
   iniciarAuthCliente();
+  registrarVisita();
+  watchTempoPreparo();
   watchProducts();
   watchPromo();
   watchStoreInfo();
