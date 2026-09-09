@@ -512,11 +512,19 @@
   .tp-status.ok{color:var(--green);}
 
   /* ---------- SUB-ABAS ---------- */
-  .sub-tabs{display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid var(--line); padding-bottom:14px;}
+  /* CORRIGIDO: sem overflow-x nem quebra de linha, o 4º botão (o de texto
+     mais longo, "Clientes sumidos") saía da tela em aparelhos estreitos.
+     Mesmo tratamento já usado na barra de baixo (.admin-tabs), que tem o
+     mesmo estilo de pílula e o mesmo problema em potencial. */
+  .sub-tabs{
+    display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid var(--line);
+    padding-bottom:14px; overflow-x:auto; flex-wrap:nowrap;
+    -webkit-overflow-scrolling:touch;
+  }
   .sub-tab-btn{
     background:var(--pitch); border:1px solid var(--line); border-radius:999px;
     padding:9px 18px; font-size:13px; font-weight:700; color:rgba(242,233,218,0.6);
-    cursor:pointer; font-family:inherit;
+    cursor:pointer; font-family:inherit; white-space:nowrap; flex-shrink:0;
   }
   .sub-tab-btn.active{background:rgba(229,118,46,0.14); border-color:var(--ember); color:var(--ember);}
 
