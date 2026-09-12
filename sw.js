@@ -1,5 +1,6 @@
-const CACHE = "omarkin-cliente-v43";
+const CACHE = "omarkin-cliente-v44";
 const ASSETS = ["/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png", "/mascot.jpg"];
+const STATIC_RE = /\.(png|jpg|jpeg|webp|ico|svg)$/;
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
@@ -21,8 +22,28 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if(url.origin !== location.origin) return;          // Firebase, fontes, etc.
   if(url.pathname.startsWith('/gerencial')) return;   // painel tem cache próprio
+  if(url.pathname.startsWith('/chamada')) return;     // painel de chamada tem cache próprio
 
-  // Busca na rede e guarda uma cópia; se a rede falhar, serve do cache.
+  // Ícones e imagens: stale-while-revalidate — mostra o cache na hora e
+  // atualiza em segundo plano. Não mudam a cada deploy, não precisam
+  // esperar a rede.
+  if(STATIC_RE.test(url.pathname)){
+    e.respondWith(
+      caches.match(e.request).then(cached => {
+        const network = fetch(e.request).then(resp => {
+          if(resp && resp.status === 200 && resp.type === 'basic'){
+            const copia = resp.clone();
+            caches.open(CACHE).then(c => c.put(e.request, copia)).catch(()=>{});
+          }
+          return resp;
+        }).catch(() => cached);
+        return cached || network;
+      })
+    );
+    return;
+  }
+
+  // HTML/manifest: busca na rede e guarda uma cópia; se a rede falhar, serve do cache.
   e.respondWith(
     fetch(e.request)
       .then(resp => {

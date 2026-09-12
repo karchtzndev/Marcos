@@ -9149,22 +9149,31 @@
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
+    // Um único reload por ciclo de vida da página. Antes o 'statechange'
+    // agendava um reload em 1s E o 'controllerchange' recarregava na hora —
+    // os dois disparam juntos quando o SW novo assume (skipWaiting), o que
+    // podia gerar reloads concorrentes e o app "piscando"/recarregando sozinho.
+    let jaRecarregou = false;
+    const recarregar = () => {
+      if(jaRecarregou) return;
+      jaRecarregou = true;
+      window.location.reload();
+    };
+
     navigator.serviceWorker.register('sw.js').then(reg => {
-      // detecta quando uma versão nova do SW instala e recarrega automaticamente
+      // detecta quando uma versão nova do SW instala
       reg.addEventListener('updatefound', () => {
         const newSW = reg.installing;
         newSW.addEventListener('statechange', () => {
           if(newSW.state === 'installed' && navigator.serviceWorker.controller){
-            // nova versão pronta — recarrega em 1s
-            setTimeout(() => window.location.reload(), 1000);
+            setTimeout(recarregar, 1000);
           }
         });
       });
     }).catch(()=>{});
-    // se o SW assumiu o controle agora (primeira ativação), recarrega pra garantir
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      window.location.reload();
-    });
+
+    // se o SW assumiu o controle (nova versão ativou), recarrega — mas só uma vez
+    navigator.serviceWorker.addEventListener('controllerchange', recarregar);
   });
 }
 </script>
