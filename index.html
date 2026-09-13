@@ -32,7 +32,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="O Markin">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="/mascot.jpg" media="(min-width: 400px)">
 <style>
   :root{
     --pitch:#120e0b; --char:#1c1613; --cream:#f2e9da;
@@ -1539,6 +1541,8 @@
         onerror="document.getElementById('falhaConexao').style.display='flex'"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"
         onerror="document.getElementById('falhaConexao').style.display='flex'"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"
+        onerror="document.getElementById('falhaConexao').style.display='flex'"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyA-7sy4ox0ErDZAw7prhXYJ3MaSA7G_scY",
@@ -1552,11 +1556,12 @@
   // Antes eu marcava sucesso cedo demais — se o Firebase falhasse, essa
   // linha escondia o aviso de erro e o script travava logo em seguida,
   // sem deixar rastro nenhum na tela.
-  let db, authCliente;
+  let db, authCliente, functionsCliente;
   try{
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
     authCliente = firebase.auth();
+    functionsCliente = firebase.functions();
     window.__firebaseOk = true;
     clearTimeout(window.__vigiaFirebase);
     const falhaEl = document.getElementById('falhaConexao');
@@ -2721,6 +2726,7 @@
     document.getElementById('trackCodeInput').value = code;
     openOverlay('trackOverlay');
     doTrack(code);
+    if(payment === 'pix' && features.pixAutomatico === true) gerarPagamentoPix(code);
 
     // Guarda os dados do cliente pra facilitar o próximo pedido
     try{

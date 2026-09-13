@@ -14,6 +14,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Gerencial">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -7383,6 +7385,8 @@
      desc:'Estima o movimento dos próximos dias com base no seu histórico.', tab:null},
     {key:'filaimpressao', icon:'🖨️', nome:'Fila de impressão (PC + USB)',
      desc:'Manda as comandas pra um computador imprimir na térmica USB. Precisa do script rodando no PC.', tab:null},
+    {key:'pixAutomatico', icon:'💳', nome:'Pix automático (Mercado Pago)',
+     desc:'Gera QR Code Pix de verdade no checkout e confirma o pagamento sozinho. Precisa da conta no Mercado Pago configurada — veja o README.', tab:null},
     {key:'cupons',      icon:'🏷️', nome:'Cupons de desconto',
      desc:'Códigos promocionais que o cliente digita no checkout. Percentual, valor fixo ou frete grátis.', tab:'cupons'},
     {key:'pixels',      icon:'📣', nome:'Pixels de anúncio (Meta / Google / TikTok)',
@@ -7753,6 +7757,9 @@
     if(key === 'fiado' && !novo){
       const emAberto = orders.filter(o => (o.paymentMethods||[]).some(x => x.method === 'fiado')).length;
       if(emAberto > 0 && !confirm(`Há ${emAberto} pedido(s) pagos em fiado neste turno.\n\nDesligar só esconde a forma de pagamento — os valores continuam registrados.\n\nContinuar?`)) return;
+    }
+    if(key === 'pixAutomatico' && novo){
+      if(!confirm('Ligar o Pix automático?\n\nSó funciona depois de configurar a conta do Mercado Pago e publicar as Cloud Functions (veja o README, seção "Ativando o Pix automático"). Se ligar antes disso, o cliente vai ver uma mensagem de erro ao tentar pagar com Pix.\n\nJá configurou tudo isso?')) return;
     }
 
     try{

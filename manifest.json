@@ -11,6 +11,22 @@
   "background_color": "#120e0b",
   "theme_color": "#120e0b",
   "categories": ["food", "shopping"],
+  "shortcuts": [
+    {
+      "name": "Novo Pedido",
+      "short_name": "Pedido",
+      "description": "Faça um novo pedido",
+      "url": "/?shortcut=novo-pedido",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Meus Pedidos",
+      "short_name": "Histórico",
+      "description": "Veja seus pedidos anteriores",
+      "url": "/?shortcut=meus-pedidos",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
