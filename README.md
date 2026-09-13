@@ -42,12 +42,34 @@ Cache Storage (sobrou cache de versão antiga?).
 
 ## Regras do Firestore
 
-O arquivo `FIRESTORE-REGRAS.txt` é a fonte da verdade, mas **editá-lo não muda
-nada sozinho**. Depois de alterar, publique no console do Firebase:
-Firestore Database → aba Regras → colar → Publicar.
+`firestore.rules` é o arquivo que vai pro ar. O `FIRESTORE-REGRAS.txt` é a
+mesma coisa com os comentários explicando cada decisão — quando mudar um,
+mude o outro.
+
+Publicar (só na primeira vez é preciso fazer login):
+
+```bash
+firebase login
+```
+
+```bash
+firebase deploy --only firestore:rules,firestore:indexes
+```
+
+O Firebase valida a sintaxe no servidor: se houver erro, o deploy falha e as
+regras atuais continuam intactas. Alternativa manual: Console do Firebase →
+Firestore Database → aba Regras → colar o conteúdo → Publicar.
 
 As permissões são por área (`cardapio`, `caixa`, `financeiro`, `estoque`…) e
 ficam no documento do usuário em `users/{uid}`.
+
+### Histórico de pedidos do cliente
+
+Listar pedidos é permitido só para a equipe **ou** para o dono da conta
+(`clienteUid == auth.uid`). Por isso o pedido guarda `clienteUid` quando há
+login. Quem pede sem conta tem o histórico montado a partir dos códigos
+salvos no próprio aparelho (`omarkin_pedidos` no localStorage), buscados um a
+um — listar por telefone seria inseguro, já que telefone é adivinhável.
 
 ## Firebase
 

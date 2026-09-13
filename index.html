@@ -1614,6 +1614,7 @@
   // Antes o carrinho só existia na memória: recarregar a página ou o
   // navegador descartar a aba fazia o cliente perder o pedido montado.
   const CART_KEY = 'omarkin_cart';
+  const PEDIDOS_KEY = 'omarkin_pedidos';   // códigos dos pedidos feitos neste aparelho
   const CART_VALIDADE = 6 * 60 * 60 * 1000;   // 6 horas
 
   function carregarCarrinho(){
@@ -2650,6 +2651,11 @@
       const dailyNumber = await generateDailyNumber();
       order = {
         code, dailyNumber,
+        // Vincula o pedido à conta quando há login: é o que permite listar o
+        // histórico com segurança (a regra confere clienteUid == auth.uid).
+        // Sem login o campo nem existe — o histórico vem dos códigos salvos
+        // neste aparelho.
+        ...(clienteLogado?.uid ? { clienteUid: clienteLogado.uid } : {}),
         customerName: name, phone, address, table, orderType: selectedOrderType, payment, notes,
         items: cart.map(c => ({name:c.name, price:c.price, qty:c.qty, forItem:c.forItem || ""})),
         subtotal: cartSubtotal(),
@@ -2718,6 +2724,10 @@
         }
       }));
       if(selectedOrderType === 'mesa' && table) guardar.salvar('omarkin_mesa', table, true);
+      // Guarda o código deste pedido no aparelho. É assim que quem não tem
+      // conta vê o histórico: buscamos um a um pelos códigos que já são dele.
+      const meus = JSON.parse(guardar.ler(PEDIDOS_KEY) || '[]');
+      guardar.salvar(PEDIDOS_KEY, JSON.stringify([code, ...meus.filter(c => c !== code)].slice(0, 10)));
     }catch(e){}
 
     // Abre o WhatsApp da loja com o pedido completo
@@ -3141,43 +3151,56 @@
   }
 
   /* ================= HISTÓRICO E REPETIR PEDIDO ================= */
-  // Busca os pedidos por telefone. Funciona logado ou não — quem já pediu
-  // e informou o telefone consegue ver e repetir.
-  async function buscarHistorico(telefone){
-    const tel = (telefone || '').replace(/\D/g,'');
-    if(!tel) return [];
-    try{
-      const snap = await db.collection('orders')
-        .where('phone','==', telefone)
-        .orderBy('createdAt','desc')
-        .limit(10).get();
-      return snap.docs.map(d => d.data());
-    }catch(e){
-      // Sem índice composto o Firestore recusa: tenta sem ordenar
+  // Antes isto buscava por telefone (.where('phone','==',...)). A regra do
+  // Firestore só libera LISTAR pedidos pra equipe, então a busca sempre falhava
+  // e o catch devolvia lista vazia — o histórico do cliente estava morto, em
+  // silêncio. Liberar listagem por telefone seria pior: telefone é adivinhável
+  // e daria pra varrer os pedidos dos outros. Então são dois caminhos:
+  //   • com conta  -> lista pelo clienteUid (a regra confere contra o auth.uid)
+  //   • sem conta  -> busca um a um os códigos salvos neste aparelho
+  async function buscarHistorico(){
+    if(clienteLogado?.uid){
       try{
-        const snap = await db.collection('orders').where('phone','==', telefone).limit(10).get();
-        return snap.docs.map(d => d.data())
-          .sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
-      }catch(e2){ return []; }
+        const snap = await db.collection('orders')
+          .where('clienteUid','==', clienteLogado.uid)
+          .orderBy('createdAt','desc')
+          .limit(10).get();
+        return snap.docs.map(d => d.data());
+      }catch(e){
+        // Sem o índice composto o Firestore recusa: tenta sem ordenar
+        try{
+          const snap = await db.collection('orders')
+            .where('clienteUid','==', clienteLogado.uid).limit(10).get();
+          return snap.docs.map(d => d.data())
+            .sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
+        }catch(e2){ /* cai no histórico local abaixo */ }
+      }
     }
-  }
-
-  function telefoneDoCliente(){
-    if(clienteLogado?.telefone) return clienteLogado.telefone;
-    const salvos = JSON.parse(guardar.ler('omarkin_customer') || 'null') || {};
-    return salvos.phone || '';
+    // Sem conta (ou se a listagem falhou): os códigos guardados aqui já são
+    // dele, e ler pedido por código é permitido.
+    let codigos = [];
+    try{ codigos = JSON.parse(guardar.ler(PEDIDOS_KEY) || '[]'); }catch(e){ codigos = []; }
+    if(!codigos.length) return [];
+    const docs = await Promise.all(codigos.slice(0,10).map(c =>
+      db.collection('orders').doc(c).get()
+        .then(d => d.exists ? d.data() : null)
+        .catch(() => null)
+    ));
+    return docs.filter(Boolean)
+      .sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
   }
 
   async function renderHistorico(){
     const box = document.getElementById('contaHistorico');
     if(!box) return;
-    const tel = telefoneDoCliente();
-    if(!tel){
-      box.innerHTML = `<div class="conta-aviso">Faça um pedido informando seu telefone pra ver o histórico aqui.</div>`;
+    let temCodigosLocais = false;
+    try{ temCodigosLocais = (JSON.parse(guardar.ler(PEDIDOS_KEY) || '[]')).length > 0; }catch(e){}
+    if(!clienteLogado?.uid && !temCodigosLocais){
+      box.innerHTML = `<div class="conta-aviso">Faça um pedido pra ver o histórico aqui. Com uma conta, ele te acompanha em qualquer aparelho.</div>`;
       return;
     }
     box.innerHTML = `<div class="conta-aviso">Buscando seus pedidos...</div>`;
-    const pedidos = await buscarHistorico(tel);
+    const pedidos = await buscarHistorico();
     if(pedidos.length === 0){
       box.innerHTML = `<div class="conta-aviso">Nenhum pedido ainda. O primeiro já conta pra fidelidade!</div>`;
       return;
