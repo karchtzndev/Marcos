@@ -221,6 +221,10 @@
   (function(){
     var jaEnviados = {};
     function enviar(msg, detalhe){
+      // "Script error." sem arquivo/linha é sempre script de outro domínio
+      // (CDN, extensão) — o navegador esconde os detalhes por segurança e
+      // não há nenhuma pista aproveitável. Só inflava a contagem à toa.
+      if(!msg || /^Script error\.?$/i.test(String(msg).trim())) return;
       try{
         if(!window.firebase || !firebase.firestore) return;
         var chave = String(msg).slice(0,120);
@@ -242,8 +246,11 @@
       }catch(e){}
     }
     window.addEventListener('error', function(e){
+      // CORRIGIDO: local não vai mais embutido na mensagem — isso quebrava
+      // o agrupamento de erros iguais a cada deploy (linhas se deslocam) e
+      // fazia o mesmo bug parecer vários bugs diferentes na aba de erros.
       var local = 'Arquivo: '+(e.filename||'?')+' · Linha: '+(e.lineno||'?')+':'+(e.colno||'?');
-      enviar((e.message||'Erro desconhecido')+' | '+local, local);
+      enviar(e.message||'Erro desconhecido', local);
     });
     window.addEventListener('unhandledrejection', function(e){
       var r = e.reason;

@@ -586,6 +586,8 @@
   .vi-saiu{color:rgba(242,233,218,0.4); font-size:12px;}
 
   /* ---------- ACESSOS ---------- */
+  .online-resumo{font-family:'Anton',sans-serif; font-size:15px; letter-spacing:0.5px; color:var(--green); margin-bottom:14px; display:flex; align-items:center; gap:8px;}
+  .online-resumo::before{content:''; width:9px; height:9px; border-radius:50%; background:var(--green); box-shadow:0 0 0 4px rgba(76,175,109,0.18);}
   .online-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-bottom:22px;}
   .online-card{
     display:flex; gap:11px; align-items:center; background:rgba(76,175,109,0.1);
@@ -1413,7 +1415,7 @@
           <!-- AJUSTES: configuração, mexe pouco -->
           <button class="admin-tab-btn" data-atab="loja" data-g="config">🏪 Loja</button>
           <button class="admin-tab-btn" data-atab="equipe" data-g="config">👥 Equipe</button>
-          <button class="admin-tab-btn" data-atab="acessos" data-g="config">🔐 Acessos <span id="acessosBadge"></span></button>
+          <button class="admin-tab-btn" data-atab="acessos" data-g="config">🔐 Acessos</button>
           <button class="admin-tab-btn" data-atab="modulos" data-g="config">🧩 Módulos</button>
           <button class="admin-tab-btn" data-atab="erros" data-g="config">🐞 Erros <span id="errosBadge"></span></button>
         </div>
@@ -2571,6 +2573,10 @@
   (function(){
     var jaEnviados = {};
     function enviar(msg, detalhe){
+      // "Script error." sem arquivo/linha é sempre script de outro domínio
+      // (CDN, extensão) — o navegador esconde os detalhes por segurança e
+      // não há nenhuma pista aproveitável. Só inflava a contagem à toa.
+      if(!msg || /^Script error\.?$/i.test(String(msg).trim())) return;
       try{
         if(!window.firebase || !firebase.firestore) return;
         var chave = String(msg).slice(0,120);
@@ -2592,8 +2598,11 @@
       }catch(e){}
     }
     window.addEventListener('error', function(e){
+      // CORRIGIDO: local não vai mais embutido na mensagem — isso quebrava
+      // o agrupamento de erros iguais a cada deploy (linhas se deslocam) e
+      // fazia o mesmo bug parecer vários bugs diferentes na aba de erros.
       var local = 'Arquivo: '+(e.filename||'?')+' · Linha: '+(e.lineno||'?')+':'+(e.colno||'?');
-      enviar((e.message||'Erro desconhecido')+' | '+local, local);
+      enviar(e.message||'Erro desconhecido', local);
     });
     window.addEventListener('unhandledrejection', function(e){
       var r = e.reason;
@@ -6107,13 +6116,24 @@
       return;
     }
     if(clientesUnsub) return; // já escutando
-    clientesUnsub = db.collection('customers').onSnapshot((snap) => {
-      clientes = {};
-      snap.docs.forEach(d => clientes[d.id] = Object.assign({tel: d.id}, d.data()));
-      const t = currentTab();
-      if(t === 'clientes') renderClientes();
-      if(t === 'pedidos') renderAdminOrders();
-    }, (err) => console.warn('customers:', err));
+    // CORRIGIDO: era o único listener do painel sem limit — crescia pra
+    // sempre junto com a base de clientes. Limitado aos 500 mais recentes
+    // (bem acima do volume atual); cliente que não pediu há muito tempo cai
+    // fora do ranking de fidelidade/gasto até pedir de novo. Se a loja
+    // crescer muito além disso, vale paginar em vez de só subir o número.
+    clientesUnsub = db.collection('customers')
+      .orderBy('ultimo', 'desc').limit(500)
+      .onSnapshot((snap) => {
+        clientes = {};
+        snap.docs.forEach(d => clientes[d.id] = Object.assign({tel: d.id}, d.data()));
+        // CORRIGIDO: chamava renderAdminOrders() direto, furando o
+        // scheduleRender(). Como todo pedido novo também atualiza o
+        // cadastro do cliente, cada pedido redesenhava a lista DUAS vezes
+        // seguidas (listener de pedidos + listener de clientes).
+        const t = currentTab();
+        if(t === 'clientes') renderClientes();
+        else if(t === 'pedidos') scheduleRender();
+      }, (err) => console.warn('customers:', err));
   }
 
   // Atualiza o cadastro do cliente quando um pedido é criado
@@ -6367,6 +6387,11 @@
   let errosUnsub = null;
 
   function watchErros(){
+    // CORRIGIDO: antes começava pra todo mundo, sempre — 200 leituras a cada
+    // login, mesmo pra quem nunca abre essa aba. Com 6 pessoas abrindo o
+    // painel várias vezes ao dia, isso sozinho comia uma fatia grande da
+    // cota diária do Firestore à toa.
+    if(!myPerms.includes('erros') && currentRole !== 'gerente') return;
     if(errosUnsub) return;
     errosUnsub = db.collection('errorLog')
       .orderBy('quando','desc').limit(200)
@@ -6403,10 +6428,16 @@
       return;
     }
 
-    // agrupa erros iguais pra não virar uma lista repetitiva
+    // Agrupa erros iguais pra não virar uma lista repetitiva. A chave é
+    // mensagem + página (não inclui mais o arquivo/linha — antes ia embutido
+    // na própria mensagem, e qualquer deploy deslocando uma linha fazia o
+    // MESMO bug contar como um grupo novo, zerando o contador de repetição
+    // exatamente do problema mais importante: o que se repete). A página
+    // continua na chave pra não misturar um bug do cliente com outro do
+    // painel que por acaso tenham a mesma frase de erro.
     const grupos = {};
     errosLog.forEach(e => {
-      const k = (e.mensagem||'').slice(0,150);
+      const k = (e.mensagem||'').slice(0,150) + '@' + (e.pagina||'');
       if(!grupos[k]) grupos[k] = {msg:e.mensagem, itens:[]};
       grupos[k].itens.push(e);
     });
@@ -6429,6 +6460,7 @@
           <div class="erro-msg">${escapeHtml(g.msg || 'sem mensagem')}</div>
           <div class="erro-meta">
             <span>📍 ${escapeHtml(ult.pagina || '?')}</span>
+            ${ult.detalhe ? `<span>${escapeHtml(ult.detalhe)}</span>` : ''}
             ${ult.modoComputador ? '<span class="erro-tag">modo computador</span>' : ''}
             ${ult.online === false ? '<span class="erro-tag">sem internet</span>' : ''}
             <span>📱 ${escapeHtml((ult.plataforma||'?'))} · ${escapeHtml(ult.tela||'?')}</span>
@@ -6444,7 +6476,7 @@
                     'Total: ' + errosLog.length + ' erro(s)', ''];
     const grupos = {};
     errosLog.forEach(e => {
-      const k = (e.mensagem||'').slice(0,150);
+      const k = (e.mensagem||'').slice(0,150) + '@' + (e.pagina||'');
       if(!grupos[k]) grupos[k] = [];
       grupos[k].push(e);
     });
@@ -6936,9 +6968,8 @@
     acessosUnsub = db.collection('acessos').orderBy('entrada','desc').limit(80)
       .onSnapshot((snap) => {
         acessos = snap.docs.map(d => Object.assign({_id:d.id}, d.data()));
-        const online = acessos.filter(estaOnline).length;
-        const badge = document.getElementById('acessosBadge');
-        if(badge) badge.textContent = online > 0 ? `(${online})` : '';
+        // A quantidade de gente online só aparece dentro da aba (a pedido:
+        // nada de número fixo grudado no botão o tempo todo).
         if(currentTab() === 'acessos') renderAcessos();
       }, (err) => console.warn('acessos:', err));
   }
@@ -6975,9 +7006,13 @@
     if(!lista) return;
 
     const online = acessos.filter(estaOnline);
-    boxOnline.innerHTML = online.length === 0
+    // A quantidade só aparece aqui dentro (a pedido: nada fixo no botão da
+    // aba o tempo todo) — por isso o resumo vem em destaque, antes da lista.
+    const resumo = online.length === 0
       ? `<div class="conta-aviso" style="margin-bottom:18px;">Ninguém conectado no momento.</div>`
-      : `<div class="online-grid">${online.map(a => `
+      : `<div class="online-resumo">${online.length} ${online.length === 1 ? 'pessoa online' : 'pessoas online'}</div>`;
+    boxOnline.innerHTML = resumo + (online.length === 0 ? '' :
+      `<div class="online-grid">${online.map(a => `
           <div class="online-card">
             <span class="on-ponto"></span>
             <div class="on-info">
@@ -6985,7 +7020,7 @@
               <span>${escapeHtml(a.funcao || '?')} · ${escapeHtml(a.aparelho || '?')}</span>
               <small>entrou ${tempoRelativo(a.entrada)}</small>
             </div>
-          </div>`).join('')}</div>`;
+          </div>`).join('')}</div>`);
 
     if(acessos.length === 0){
       lista.innerHTML = '<div class="loading-row">Nenhum acesso registrado ainda.</div>';
@@ -7019,6 +7054,9 @@
 
   let mensagensUnsub = null;
   function watchMensagens(){
+    // CORRIGIDO: mesma economia do watchErros — só escuta pra quem tem
+    // acesso à aba, em vez de puxar 100 documentos pra todo mundo sempre.
+    if(!myPerms.includes('mensagens') && currentRole !== 'gerente') return;
     if(mensagensUnsub) return;
     mensagensUnsub = db.collection('mensagens').orderBy('quando','desc').limit(100)
       .onSnapshot((snap) => {
@@ -9114,8 +9152,10 @@
     watchEmployees();
     watchRegister();
     watchFeatures();
-    watchErros();
-    watchMensagens();
+    // watchErros() e watchMensagens() NÃO começam aqui — ficam a cargo de
+    // ajustarListenersPorPermissao(), chamada logo após esta função em todo
+    // login, pra só escutar (e no aparelho compartilhado, também parar de
+    // escutar) quem realmente tem acesso a essas abas.
     watchAcessos();
     watchVisitas();
     watchTempoPreparoDash();
@@ -9144,6 +9184,21 @@
     }else{
       if(cashflowUnsub){ if(typeof cashflowUnsub === 'function') cashflowUnsub(); cashflowUnsub = null; cashflow = []; }
       if(fixedCostsUnsub){ if(typeof fixedCostsUnsub === 'function') fixedCostsUnsub(); fixedCostsUnsub = null; fixedCosts = []; }
+    }
+
+    // erros/mensagens: mesma lógica — liga pra quem tem acesso, desliga pra
+    // quem não tem (aparelho compartilhado entre turnos com permissões
+    // diferentes).
+    if(myPerms.includes('erros') || currentRole === 'gerente'){
+      watchErros();
+    }else if(errosUnsub){
+      errosUnsub(); errosUnsub = null; errosLog = [];
+    }
+
+    if(myPerms.includes('mensagens') || currentRole === 'gerente'){
+      watchMensagens();
+    }else if(mensagensUnsub){
+      mensagensUnsub(); mensagensUnsub = null; mensagens = [];
     }
   }
 })();

@@ -1456,10 +1456,16 @@
     var jaEnviados = {};   // evita gravar o mesmo erro repetido
 
     function registrar(msg, detalhe){
+      // "Script error." sem arquivo/linha é sempre um script de outro
+      // domínio (CDN de fonte, extensão do navegador) que o navegador
+      // esconde por segurança — nunca dá pra saber o que foi. Gravar isso
+      // só inflava a contagem de erros sem nenhuma pista aproveitável.
+      if(!msg || /^Script error\.?$/i.test(String(msg).trim())) return;
+
       if(!caixa) garantirCaixa();
       if(caixa && textoEl){
         var hora = new Date().toLocaleTimeString('pt-BR');
-        var linha = '[' + hora + '] ' + msg;
+        var linha = '[' + hora + '] ' + msg + (detalhe ? '\n' + detalhe : '');
         textoEl.textContent = textoEl.textContent
           ? textoEl.textContent + '\n\n' + linha
           : linha;
@@ -1493,9 +1499,15 @@
       }catch(e){}
     }
     window.addEventListener('error', function(e){
+      // CORRIGIDO: antes o local (arquivo/linha) ia embutido dentro da
+      // própria mensagem gravada. Isso quebrava o agrupamento de erros
+      // iguais no painel a cada deploy — qualquer edição no arquivo desloca
+      // as linhas, então o "mesmo" bug virava um grupo novo, fazendo o
+      // contador parecer que o problema nunca se repete (quando na
+      // verdade é sempre o mesmo). Agora mensagem e local vão separados.
       var local = 'Arquivo: ' + (e.filename || '?') +
                   ' · Linha: ' + (e.lineno || '?') + ':' + (e.colno || '?');
-      registrar((e.message || 'Erro desconhecido') + '\n' + local, local);
+      registrar(e.message || 'Erro desconhecido', local);
     });
     window.addEventListener('unhandledrejection', function(e){
       var motivo = e.reason;
