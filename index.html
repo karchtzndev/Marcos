@@ -3,7 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>O Markin — Peça já</title>
+<title>O Markin Chef's Burguer — Peça já</title>
+<meta name="description" content="Hambúrguer artesanal do O Markin Chef's Burguer. Monte seu pedido pelo site, escolha entrega, retirada ou mesa, e acompanhe cada etapa em tempo real.">
+<link rel="canonical" href="https://omarkin-site-vercel.vercel.app/">
+
+<!-- Preview ao compartilhar o link (WhatsApp, Instagram, Facebook) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="O Markin Chef's Burguer">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:url" content="https://omarkin-site-vercel.vercel.app/">
+<meta property="og:title" content="O Markin Chef's Burguer — Peça já">
+<meta property="og:description" content="Hambúrguer artesanal. Peça pelo site e acompanhe seu pedido em tempo real.">
+<meta property="og:image" content="https://omarkin-site-vercel.vercel.app/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Mascote do O Markin Chef's Burguer">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="O Markin Chef's Burguer — Peça já">
+<meta name="twitter:description" content="Hambúrguer artesanal. Peça pelo site e acompanhe seu pedido em tempo real.">
+<meta name="twitter:image" content="https://omarkin-site-vercel.vercel.app/og-image.jpg">
+
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="icon" href="/icon-192.png">
@@ -2440,8 +2459,14 @@
 
   function generateOrderCode(){
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sem I,O,0,1 (confusão visual)
+    // 7 caracteres = ~34 bilhões de combinações. Com 5 eram 33 milhões — pouco
+    // pra um documento que qualquer um pode ler sabendo o código, e que guarda
+    // nome, telefone e endereço do cliente. Códigos antigos continuam válidos.
     let s = "";
-    for(let i = 0; i < 5; i++) s += chars[Math.floor(Math.random()*chars.length)];
+    const buf = new Uint32Array(7);
+    // Math.random não é imprevisível; crypto evita que alguém deduza a sequência.
+    (self.crypto || window.crypto).getRandomValues(buf);
+    for(let i = 0; i < 7; i++) s += chars[buf[i] % chars.length];
     return "MK-" + s;
   }
 

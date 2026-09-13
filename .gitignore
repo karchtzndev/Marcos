@@ -1,0 +1,16 @@
+# Vercel
+.vercel/
+
+# Dependências (o projeto não usa build, mas evita acidente)
+node_modules/
+
+# Pacotes e backups
+*.zip
+*.rar
+backup*.json
+
+# Sistema operacional / OneDrive
+Thumbs.db
+desktop.ini
+.DS_Store
+~$*

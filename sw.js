@@ -1,5 +1,6 @@
-const CACHE = "omarkin-cliente-v44";
-const ASSETS = ["/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png", "/mascot.jpg"];
+const CACHE = "omarkin-cliente-v45";
+const ASSETS = ["/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png",
+                "/icon-maskable-192.png", "/icon-maskable-512.png", "/apple-touch-icon.png", "/mascot.jpg"];
 const STATIC_RE = /\.(png|jpg|jpeg|webp|ico|svg)$/;
 
 self.addEventListener('install', (e) => {
@@ -8,11 +9,17 @@ self.addEventListener('install', (e) => {
 });
 
 self.addEventListener('activate', (e) => {
-  // Apaga só os caches ANTIGOS. Antes eu apagava todos, inclusive o que
-  // acabara de ser criado — o offline ficava sempre vazio.
+  // Apaga só as versões ANTIGAS DESTE app. Antes eu apagava todos, inclusive o
+  // que acabara de ser criado — o offline ficava sempre vazio.
+  // E o caches.keys() enxerga a origem inteira: sem o filtro por prefixo, abrir
+  // o painel gerencial apagava o cache do app do cliente (e vice-versa), então
+  // quem usava os dois no mesmo celular ficava sempre sem offline.
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(
+        keys.filter(k => k.startsWith('omarkin-cliente-') && k !== CACHE)
+            .map(k => caches.delete(k))
+      ))
       .then(() => self.clients.claim())
   );
 });

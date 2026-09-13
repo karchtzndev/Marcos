@@ -1,5 +1,7 @@
-const CACHE = "omarkin-gerencial-v64";
-const ASSETS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./mascot.jpg"];
+const CACHE = "omarkin-gerencial-v65";
+// Ícones e mascote vivem na raiz (mesmo domínio) — não são mais duplicados aqui.
+const ASSETS = ["./", "./index.html", "./manifest.json",
+                "/icon-192.png", "/icon-512.png", "/mascot.jpg"];
 const STATIC_RE = /\.(png|jpg|jpeg|webp|ico|svg)$/;
 
 self.addEventListener('install', (e) => {
@@ -8,9 +10,14 @@ self.addEventListener('install', (e) => {
 });
 
 self.addEventListener('activate', (e) => {
+  // Só as versões antigas DESTE app: o caches.keys() enxerga a origem inteira,
+  // e sem o filtro por prefixo o painel apagava o cache do app do cliente.
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(
+        keys.filter(k => k.startsWith('omarkin-gerencial-') && k !== CACHE)
+            .map(k => caches.delete(k))
+      ))
       .then(() => self.clients.claim())
   );
 });
