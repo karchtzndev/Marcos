@@ -1,4 +1,4 @@
-const CACHE = "omarkin-gerencial-v65";
+const CACHE = "omarkin-gerencial-v66";
 // Ícones e mascote vivem na raiz (mesmo domínio) — não são mais duplicados aqui.
 const ASSETS = ["./", "./index.html", "./manifest.json",
                 "/icon-192.png", "/icon-512.png", "/mascot.jpg"];
