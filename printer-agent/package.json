@@ -1,0 +1,12 @@
+{
+  "name": "omarkin-printer-agent",
+  "version": "1.0.0",
+  "description": "Roda no computador do balcão: lê a fila de impressão do Firestore e manda pra impressora térmica USB.",
+  "main": "agent.js",
+  "scripts": {
+    "start": "node agent.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}

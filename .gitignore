@@ -29,3 +29,6 @@ printer-agent/service-account.json
 functions/.env
 functions/.env.*
 functions/.runtimeconfig.json
+
+.vercel
+.env*

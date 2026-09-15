@@ -99,6 +99,151 @@
   .fry:nth-child(4){left:62px; transform:rotate(-6deg); height:66px;}
   .fry:nth-child(5){left:80px; transform:rotate(12deg); height:74px; bottom:80px;}
   .fry:nth-child(6){left:98px; transform:rotate(18deg);}
+
+  /* Estilos para visitas ao site */
+  .visitas-container {
+    margin-top: 24px;
+  }
+
+  .visitas-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .tab-btn {
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    color: var(--cream);
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+
+  .tab-btn.active {
+    background: rgba(229, 118, 46, 0.15);
+    color: var(--ember);
+    border-bottom: 2px solid var(--ember);
+  }
+
+  .tab-content {
+    display: none;
+    margin-bottom: 24px;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  .visita-item {
+    background: var(--char);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .visita-item.ativa {
+    border-color: rgba(229, 118, 46, 0.3);
+  }
+
+  .visita-item.finalizada {
+    border-color: rgba(76, 175, 109, 0.3);
+  }
+
+  .visita-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  .status-icon {
+    font-size: 18px;
+  }
+
+  .visita-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .visita-device, .visita-time, .visita-duration {
+    font-size: 14px;
+    color: var(--cream);
+  }
+
+  .visita-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+  }
+
+  .finalizar-btn {
+    background: var(--ember);
+    color: var(--pitch);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .finalizar-btn:hover {
+    background: var(--ember-deep);
+  }
+
+  .order-code {
+    color: var(--green);
+    font-weight: bold;
+  }
+
+  .sem-visitas, .sem-visitas-tab {
+    text-align: center;
+    padding: 24px;
+    color: rgba(242, 233, 218, 0.5);
+    font-size: 14px;
+  }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  #visitaGrafico {
+    margin-top: 24px;
+    text-align: center;
+  }
+
+  .export-buttons {
+    display: flex;
+    gap: 12px;
+    margin: 24px 0;
+  }
+
+  .export-btn {
+    background: var(--ember);
+    color: var(--pitch);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .export-btn:hover {
+    background: var(--ember-deep);
+  }
   .badge-stamp{position:absolute; top:-6px; left:-24px; width:104px; height:104px; z-index:4; background:transparent;}
 
   .section{padding:100px 0;}
@@ -6788,23 +6933,54 @@
   /* ---------- VISITAS AO SITE ---------- */
   let visitas = [];
   let visitasUnsub = null;
+  let visitasAbandonadas = [];
+  let visitasFinalizadas = [];
+  let visitasHoje = [];
+  let visitasGrafico = [];
+
+  // Função para atualizar visitas em tempo real
+  function atualizarVisitas() {
+    const hoje = new Date().toISOString().split('T')[0];
+    visitasHoje = visitas.filter(v => v.entrada && v.entrada.startsWith(hoje));
+
+    // Classificar visitas como abandonadas ou finalizadas
+    visitasAbandonadas = visitasHoje.filter(v => !v.saida && !v.finalizado);
+    visitasFinalizadas = visitasHoje.filter(v => v.finalizado || v.saida);
+
+    // Preparar dados para gráfico
+    visitasGrafico = Array(24).fill(0);
+    visitasHoje.forEach(v => {
+      const hora = new Date(v.entrada).getHours();
+      visitasGrafico[hora]++;
+    });
+  }
 
   function watchVisitas(){
     if(!moduloAtivo('clientes')){
-      if(visitasUnsub){ visitasUnsub(); visitasUnsub = null; visitas = []; }
+      if(visitasUnsub) {
+        visitasUnsub();
+        visitasUnsub = null;
+        visitas = [];
+        atualizarVisitas();
+      }
       return;
     }
     if(visitasUnsub) return;
     visitasUnsub = db.collection('visitas').orderBy('entrada','desc').limit(100)
       .onSnapshot((snap) => {
-        visitas = snap.docs.map(d => Object.assign({_id:d.id}, d.data()));
-        if(currentTab() === 'clientes') renderVisitas();
+        visitas = snap.docs.map(d => Object.assign({_id: d.id}, d.data()));
+        atualizarVisitas();
+        renderVisitas();
       }, (err) => console.warn('visitas:', err));
   }
 
-  function renderVisitas(){
+  function renderVisitas() {
+    console.log('Renderizando visitas...', visitas.length);
     const box = document.getElementById('visitaLista');
-    if(!box) return;
+    if (!box) {
+      console.error('Elemento visitaLista não encontrado');
+      return;
+    }
 
     const hoje = todayStr();
     const visitasHoje = visitas.filter(v => (v.entrada||'').startsWith(hoje));
@@ -6813,35 +6989,65 @@
     const finalizaramTotal = visitas.filter(v => v.finalizou).length;
 
     document.getElementById('visitaKpis').innerHTML = `
-      <div class="kpi-card"><div class="kv">${visitasHoje.length}</div><div class="kl">Visitas hoje</div></div>
-      <div class="kpi-card"><div class="kv">${finalizaramHoje}</div><div class="kl">Viraram pedido hoje</div></div>
-      <div class="kpi-card"><div class="kv">${taxaHoje}%</div><div class="kl">Taxa de conversão hoje</div></div>
-      <div class="kpi-card"><div class="kv">${visitas.length ? Math.round((finalizaramTotal/visitas.length)*100) : 0}%</div><div class="kl">Conversão geral (100 últimas)</div></div>`;
-
-    if(visitas.length === 0){
-      box.innerHTML = '<div class="loading-row">Nenhuma visita registrada ainda.</div>';
-      return;
-    }
-
-    box.innerHTML = visitas.map(v => {
-      const d = new Date(v.entrada);
-      const ativa = v.ultimaAtividade && (Date.now() - new Date(v.ultimaAtividade)) < 5*60*1000 && !v.finalizou;
-      return `
-      <div class="visita-linha ${v.finalizou ? 'finalizou' : ''}">
-        <span class="vi-status">${v.finalizou ? '✅' : ativa ? '🟡' : '⚪'}</span>
-        <div class="vi-info">
-          <span class="vi-aparelho">${escapeHtml(v.aparelho||'?')}</span>
-          <span class="vi-quando">${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-value">${visitasHoje.length}</div>
+          <div class="kpi-label">Visitas hoje</div>
         </div>
-        <div class="vi-resultado">
-          ${v.finalizou
-            ? `<span class="vi-pedido">Pedido ${escapeHtml(v.codigoPedido||'')}</span>`
-            : ativa
-              ? `<span class="vi-navegando">navegando...</span>`
-              : `<span class="vi-saiu">saiu sem pedir</span>`}
+        <div class="kpi-card">
+          <div class="kpi-value">${finalizaramHoje}</div>
+          <div class="kpi-label">Viraram pedido</div>
         </div>
+        <div class="kpi-card">
+          <div class="kpi-value">${taxaHoje}%</div>
+          <div class="kpi-label">Taxa hoje</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value">${visitas.length ? Math.round((finalizaramTotal/visitas.length)*100) : 0}%</div>
+          <div class="kpi-label">Conversão geral</div>
+        </div>
+      </div>
+
+      <!-- Botões de exportação -->
+      <div class="export-buttons">
+        <button class="export-btn" onclick="exportarCSV()">Exportar para CSV</button>
+        <button class="export-btn" onclick="exportarPDF()">Exportar para PDF</button>
       </div>`;
-    }).join('');
+
+    // Adicionar elemento para o gráfico de visitas
+    const graficoContainer = document.createElement('div');
+    graficoContainer.id = 'visitaGraficoContainer';
+    graficoContainer.style.marginTop = '24px';
+    graficoContainer.style.textAlign = 'center';
+    graficoContainer.innerHTML = '<div id="visitaGrafico"></div>';
+    box.appendChild(graficoContainer);
+
+    // Renderizar estatísticas e gráficos
+    renderEstatisticas();
+    renderGraficoVisitas();
+
+    // Renderizar lista de visitas com abas
+    const visitasAtivas = visitasHoje.filter(v => !v.finalizado && !v.saida);
+    const visitasFinalizadas = visitasHoje.filter(v => v.finalizado || v.saida);
+
+    box.innerHTML = visitasHoje.length ? `
+      <div class="visitas-container">
+        <div class="visitas-tabs">
+          <button class="tab-btn active" onclick="showTab('ativas')">Ativas (${visitasAtivas.length})</button>
+          <button class="tab-btn" onclick="showTab('finalizadas')">Finalizadas (${visitasFinalizadas.length})</button>
+          <button class="tab-btn" onclick="showTab('abandonadas')">Abandonadas (${visitasAbandonadas.length})</button>
+        </div>
+
+        <div id="tabAtivas" class="tab-content active">
+          ${renderVisitasLista(visitasAtivas, true)}
+        </div>
+        <div id="tabFinalizadas" class="tab-content">
+          ${renderVisitasLista(visitasFinalizadas, false)}
+        </div>
+        <div id="tabAbandonadas" class="tab-content">
+          ${renderVisitasLista(visitasAbandonadas, true)}
+        </div>
+      </div>` : '<div class="sem-visitas">Nenhuma visita registrada ainda.</div>';
   }
 
   /* ---------- RELATÓRIO EM PDF ---------- */
@@ -6853,6 +7059,205 @@
     msg.textContent = '';
 
     try{
+
+  }
+
+  function exportarCSV() {
+    const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent([
+      "ID,Dispositivo,Hora de Entrada,Hora de Saída,Status,Código do Pedido,Tempo de Visita (min)",
+      ...visitas.map(v => {
+        const entrada = v.entrada ? new Date(v.entrada).toLocaleString('pt-BR') : '';
+        const saida = v.saida ? new Date(v.saida).toLocaleString('pt-BR') : '';
+        const tempoVisita = v.saida ? Math.round((new Date(v.saida) - new Date(v.entrada)) / 60000) : '';
+        return `${v._id},${escapeHtml(v.aparelho || '')},${entrada},${saida},${v.finalizado ? 'Finalizada' : v.saida ? 'Concluída' : 'Aberta'},${escapeHtml(v.codigoPedido || '')},${tempoVisita}`;
+      })
+    ].join("\n"));
+
+    const link = document.createElement('a');
+    link.href = csvContent;
+    link.download = 'visitas_markin.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function exportarPDF() {
+    if (typeof window.jspdf === 'undefined') {
+      alert('Biblioteca jsPDF não carregada. Por favor, verifique sua conexão com a internet.');
+      return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.setFont('DM Sans', 'bold');
+    doc.text('Relatório de Visitas - O Markin', 14, 18);
+
+    doc.setFontSize(12);
+    doc.text(`Período: ${new Date().toLocaleDateString('pt-BR')}`, 14, 26);
+    doc.setFontSize(10);
+    doc.text(`Total de visitas: ${visitas.length}`, 14, 32);
+    doc.setFontSize(10);
+    doc.text(`Visitas hoje: ${visitasHoje.length}`, 14, 38);
+
+    // Adicionar tabela
+    doc.setFontSize(10);
+    doc.text('Detalhes das visitas:', 14, 48);
+    doc.setFontSize(8);
+    doc.text('ID, Dispositivo, Entrada, Saída, Status, Pedido, Tempo (min)', 14, 55);
+
+    visitas.slice(0, 20).forEach((v, i) => {
+      const entrada = v.entrada ? new Date(v.entrada).toLocaleString('pt-BR') : '';
+      const saida = v.saida ? new Date(v.saida).toLocaleString('pt-BR') : '';
+      const tempoVisita = v.saida ? Math.round((new Date(v.saida) - new Date(v.entrada)) / 60000) : '';
+      doc.text(`${v._id.substring(0, 8)}, ${v.aparelho || ''}, ${entrada}, ${saida}, ${v.finalizado ? 'Finalizada' : v.saida ? 'Concluída' : 'Aberta'}, ${v.codigoPedido || ''}, ${tempoVisita}`, 14, 60 + (i * 8));
+    });
+
+    doc.save('relatorio_visitas_markin.pdf');
+  }
+
+  try {
+
+  }
+
+  function renderVisitasLista(visitas, showAcao) {
+    if (visitas.length === 0) {
+      return '<div class="sem-visitas-tab">Nenhuma visita nesta categoria.</div>';
+    }
+
+    return visitas.map(v => {
+      const d = new Date(v.entrada);
+      const tempoVisita = v.saida ? Math.round((new Date(v.saida) - d) / 60000) : null;
+      return `
+      <div class="visita-item ${v.finalizado ? 'finalizada' : 'ativa'}">
+        <div class="visita-status">
+          <span class="status-icon">${v.finalizado ? '✅' : v.saida ? '🟢' : '⚪'}</span>
+          <span class="status-text">${v.finalizado ? 'Finalizada' : v.saida ? 'Concluída' : 'Aberta'}</span>
+        </div>
+        <div class="visita-info">
+          <div class="visita-device">📱 ${escapeHtml(v.aparelho || 'Desconhecido')}</div>
+          <div class="visita-time">${d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}</div>
+          ${tempoVisita ? `<div class="visita-duration">Tempo: ${tempoVisita} min</div>` : ''}
+        </div>
+        <div class="visita-actions">
+          ${v.finalizado ? `<span class="order-code">Pedido: ${escapeHtml(v.codigoPedido || '')}</span>` : ''}
+          ${showAcao && !v.finalizado ? `<button class="finalizar-btn" onclick="finalizarVisita('${v._id}')">Marcar como Finalizada</button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderEstatisticas() {
+    const estatBox = document.getElementById('visitaKpis');
+    if (!estatBox) return;
+
+    const hoje = new Date().toISOString().split('T')[0];
+    const visitasHoje = visitas.filter(v => v.entrada && v.entrada.startsWith(hoje));
+    const finalizadas = visitasHoje.filter(v => v.finalizado || v.saida).length;
+    const taxaConversao = visitasHoje.length > 0 ? Math.round((finalizadas / visitasHoje.length) * 100) : 0;
+    const taxaConversaoTotal = visitas.length > 0 ? Math.round((visitas.filter(v => v.finalizado || v.saida).length / visitas.length) * 100) : 0;
+
+    estatBox.innerHTML = `
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-value">${visitasHoje.length}</div>
+          <div class="kpi-label">Visitas hoje</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value">${finalizadas}</div>
+          <div class="kpi-label">Viraram pedido</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value">${taxaConversao}%</div>
+          <div class="kpi-label">Taxa hoje</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value">${taxaConversaoTotal}%</div>
+          <div class="kpi-label">Conversão geral</div>
+        </div>
+      </div>`;
+  }
+
+  function renderGraficoVisitas() {
+    const graficoBox = document.getElementById('visitaGrafico');
+    if (!graficoBox) return;
+
+    // Limpar conteúdo anterior
+    graficoBox.innerHTML = '';
+
+    // Criar elemento canvas
+    const canvas = document.createElement('canvas');
+    canvas.id = 'visitasChart';
+    canvas.width = 300;
+    canvas.height = 150;
+    graficoBox.appendChild(canvas);
+
+    // Criar contexto
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#f2e9da';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Desenhar eixo X e Y
+    ctx.strokeStyle = '#1c1613';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, canvas.height - 30);
+    ctx.lineTo(canvas.width, canvas.height - 30);
+    ctx.stroke();
+
+    // Desenhar barras
+    const barWidth = (canvas.width / 24) - 2;
+    let maxVisits = Math.max(...visitasGrafico, 1);
+
+    visitasGrafico.forEach((count, i) => {
+      if (count > 0) {
+        const barHeight = (count / maxVisits) * (canvas.height - 40);
+        ctx.fillStyle = '#e5762e';
+        ctx.fillRect(i * (barWidth + 2), canvas.height - 30 - barHeight, barWidth, barHeight);
+        ctx.fillStyle = '#120e0b';
+        ctx.font = '10px DM Sans';
+        ctx.textAlign = 'center';
+        ctx.fillText(count, i * (barWidth + 2) + barWidth / 2, canvas.height - 30 - barHeight - 5);
+      }
+    });
+
+    // Desenhar horas
+    ctx.textAlign = 'center';
+    ctx.font = '10px DM Sans';
+    visitasGrafico.forEach((_, i) => {
+      if (i % 2 === 0) { // Mostrar apenas algumas horas para não sobrecarregar
+        ctx.fillText(`${i}:00`, i * (barWidth + 2) + barWidth / 2, canvas.height - 15);
+      }
+    });
+  }
+
+  function showTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
+    document.querySelector(`.tab-btn[onclick="showTab('${tab}')"]`).classList.add('active');
+  }
+
+  function finalizarVisita(id) {
+    if (!id) return;
+
+    const visitaIndex = visitas.findIndex(v => v._id === id);
+    if (visitaIndex === -1) return;
+
+    // Atualizar localmente
+    visitas[visitaIndex].finalizado = true;
+    visitas[visitaIndex].saida = new Date().toISOString();
+    atualizarVisitas();
+    renderVisitas();
+
+    // Salvar no Firebase
+    db.collection('visitas').doc(id).update({
+      finalizado: true,
+      saida: new Date().toISOString()
+    }).catch(err => console.error('Erro ao atualizar visita:', err));
+  }
+
+  try {
       if(typeof window.jspdf === 'undefined') throw new Error('Biblioteca de PDF não carregou. Confira sua internet.');
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
@@ -7417,7 +7822,8 @@
       renderModulos();
       aplicarModulos();
       watchClientes();           // liga ou desliga conforme os módulos
-      watchVisitas();            // mesma trava de módulo do watchClientes
+      watchVisitas();
+    renderVisitas();            // mesma trava de módulo do watchClientes
       watchCupons();
       if(primeiraVez) applyRolePermissions();
     }, (err) => {
@@ -9097,6 +9503,9 @@
       }
       document.getElementById('managerView').classList.add('carregando');
       if(!listenersStarted){ startDataListeners(); listenersStarted = true; }
+      // Inicializar visitas ao site
+      watchVisitas();
+      renderVisitas();
       // Reavalia a cada login — corrige o aparelho compartilhado: se a
       // pessoa anterior não tinha acesso a Dashboard/Financeiro, essas
       // escutas nunca tinham começado. Agora começam pra quem tem, e
