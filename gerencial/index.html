@@ -2975,7 +2975,11 @@
         products = doc.data().items;
       }else{
         products = defaultProducts;
-        try{ await db.collection('store').doc('menu').set({items: defaultProducts}); }catch(e){}
+        try {
+        await db.collection('store').doc('menu').set({items: defaultProducts});
+      } catch (e) {
+        console.error('Erro ao restaurar cardápio padrão:', e);
+      }
       }
       renderMenu();
       renderAdminList();
@@ -2987,7 +2991,13 @@
     });
   }
   async function saveProducts(){
-    try{ await db.collection('store').doc('menu').set({items: products}); showToast("Cardápio atualizado ✓"); }
+    try {
+      await db.collection('store').doc('menu').set({items: products});
+      showToast("Cardápio atualizado ✓");
+    } catch (e) {
+      console.error('Erro ao atualizar cardápio:', e);
+      showToast("Erro ao atualizar cardápio");
+    }
     catch(e){ alert("Não foi possível salvar. Tente novamente."); }
   }
   function catLabel(cat){ return {burguers:"Hambúrgueres", entradas:"Entradas", bebidas:"Bebidas", adicionais:"Adicionais", combo:"Combo"}[cat] || cat; }
@@ -3441,7 +3451,11 @@
 
   function initAudio(){
     if(!audioCtx){
-      try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){}
+      try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) {
+      console.error('Erro ao criar AudioContext:', e);
+    }
     }
     if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
   }
@@ -3783,7 +3797,7 @@
   async function enviarParaFila(tipo, titulo){
     const html = document.getElementById('printArea').innerHTML;
     if(!html.trim()) return false;
-    try{
+    try {
       await comLimite(db.collection('printQueue').add({
         tipo: tipo || 'comanda',
         titulo: titulo || '',
@@ -3793,6 +3807,9 @@
         criadoPor: currentEmployee ? currentEmployee.name : '',
         status: 'pendente'
       }), 5000, 'fila de impressão');
+    } catch (e) {
+      console.error('Erro ao adicionar item à fila de impressão:', e);
+    }
       return true;
     }catch(e){
       console.error('fila:', e);
@@ -3822,9 +3839,13 @@
 
     // 2º) Android com RawBT: manda direto, sem abrir janela
     if(mode !== 'a4' && modoImpressao() === 'rawbt'){
-      try{
+      try {
         enviarParaRawBT(htmlParaEscPos(html));
         showToast('🖨️ Enviado para a impressora');
+      } catch (e) {
+        console.error('Erro ao enviar para impressora RawBT:', e);
+        showToast('Erro ao imprimir');
+      }
         return;
       }catch(e){
         console.warn('RawBT falhou, usando o navegador:', e);
@@ -3901,8 +3922,16 @@
     const set = (id, n) => { const el = document.getElementById(id); if(el) el.textContent = n > 0 ? `(${n})` : ''; };
     set('pendingBadge', orders.filter(o => !['entregue','cancelado'].includes(o.status)).length);
     set('kitchenBadge', orders.filter(o => ['aceito','preparo'].includes(o.status)).length);
-    try{ set('openTablesBadge', openTables().length); }catch(e){}
-    try{ set('caixaBadge', pendingBills().length); }catch(e){}
+    try {
+      set('openTablesBadge', openTables().length);
+    } catch (e) {
+      console.error('Erro ao atualizar badge de mesas:', e);
+    }
+    try {
+      set('caixaBadge', pendingBills().length);
+    } catch (e) {
+      console.error('Erro ao atualizar badge de caixa:', e);
+    }
   }
   function saveOrder(order){
     const p = db.collection('orders').doc(order.code).set(order);
@@ -4010,10 +4039,13 @@
     errEl.textContent = "";
     const finalImage = pendingPromoImage !== null ? pendingPromoImage : (promoData.image || "");
     const newPromo = { active: selectedPromoActive, title, message, image: finalImage, updatedAt: Date.now().toString() };
-    try{
+    try {
       await db.collection('store').doc('promo').set(newPromo);
       showToast("Aviso salvo ✓");
-    }catch(e){ alert("Não foi possível salvar. A imagem pode estar grande demais — tente uma foto menor."); }
+    } catch (e) {
+      console.error('Erro ao salvar promoção:', e);
+      alert("Não foi possível salvar. A imagem pode estar grande demais — tente uma foto menor.");
+    }
   });
 
   /* ---------------- DADOS DA LOJA ---------------- */
@@ -4033,7 +4065,7 @@
     const min = agora.getHours()*60 + agora.getMinutes();
     const minAj = (h && h.fim > 24*60 && min < h.inicio) ? min + 24*60 : min;
     const deveria = h ? (minAj >= h.inicio && minAj < h.fim) : false;
-    try{
+    try {
       await db.collection('store').doc('info').set({
         isOpen: aberta,
         manualOverride: moduloAtivo('horario') ? {esperado: deveria, em: new Date().toISOString()} : null
@@ -4114,19 +4146,26 @@
       whatsapp: document.getElementById('lojaWhatsapp').value.trim(),
       instagram: document.getElementById('lojaInstagram').value.trim()
     };
-    try{
+    try {
       await db.collection('store').doc('info').set(info);
       showToast("Dados da loja salvos ✓");
       document.getElementById('lojaError').textContent = "";
-    }catch(e){ document.getElementById('lojaError').textContent = "Não foi possível salvar. Tente novamente."; }
+    } catch (e) {
+      console.error('Erro ao salvar dados da loja:', e);
+      document.getElementById('lojaError').textContent = "Não foi possível salvar. Tente novamente.";
+    }
   });
 
   function copiarFallback(el){
-    try{
+    try {
       el.select();
       el.setSelectionRange(0, 99999);
       document.execCommand('copy');
       showToast("Endereço copiado ✓");
+    } catch (e) {
+      console.error('Erro ao copiar texto:', e);
+      showToast("Não foi possível copiar");
+    }
     }catch(e){
       showToast("Selecione o endereço e copie manualmente");
     }
@@ -4442,10 +4481,13 @@
     ];
     const linhas = [];
     for(const col of cols){
-      try{
+      try {
         const snap = await db.collection(col.c).get();
         linhas.push({nome: col.nome, n: snap.size});
-      }catch(e){ linhas.push({nome: col.nome, n: '?'}); }
+      } catch (e) {
+        console.error('Erro ao contar itens na coleção:', e);
+        linhas.push({nome: col.nome, n: '?'});
+      }
     }
     const total = linhas.reduce((s,l) => s + (typeof l.n === 'number' ? l.n : 0), 0);
     document.getElementById('zerarResumo').innerHTML = total === 0
@@ -4475,10 +4517,16 @@
 
     // Confirma que é mesmo o gerente na frente do aparelho
     btn.disabled = true; btn.textContent = 'Verificando senha...';
-    try{
+    try {
       const cred = firebase.auth.EmailAuthProvider.credential(auth.currentUser.email, senha);
       await auth.currentUser.reauthenticateWithCredential(cred);
-    }catch(e){
+    } catch (e) {
+      console.error('Erro ao reautenticar:', e);
+      errEl.textContent = 'Senha incorreta.';
+      btn.disabled = false;
+      btn.textContent = 'Apagar tudo permanentemente';
+      return;
+    }
       btn.disabled = false; btn.textContent = 'Apagar tudo permanentemente';
       errEl.textContent = e.code === 'auth/too-many-requests'
         ? 'Muitas tentativas. Aguarde alguns minutos.'
@@ -4496,8 +4544,8 @@
     const cols = ['orders','stats','customers','closings','calls'];
     let apagados = 0;
 
-    try{
-      for(const col of cols){
+    try {
+      for(const col of cols) {
         prog.innerHTML = `<div class="zr-prog">🧹 Limpando ${col}...</div>`;
         apagados += await apagarColecao(col);
       }
@@ -4539,18 +4587,24 @@
   async function gerarBackup(){
     const backup = {exportedAt: new Date().toISOString(), version: 2, store: {}, orders: [], users: [], stats: [], closings: []};
     for(const d of ['menu','info','promo','inventory','cashflow','fixedcosts','register']){
-      try{
+      try {
         const snap = await db.collection('store').doc(d).get();
         backup.store[d] = snap.exists ? snap.data() : null;
-      }catch(e){ backup.store[d] = null; }
+      } catch (e) {
+        console.error('Erro ao buscar documento de armazenamento:', e);
+        backup.store[d] = null;
+      }
     }
     const collect = async (name, limit) => {
-      try{
+      try {
         let q = db.collection(name);
         if(name === 'orders') q = q.orderBy('createdAt','desc').limit(limit || 3000);
         const snap = await q.get();
         return snap.docs.map(d => Object.assign({_id: d.id}, d.data()));
-      }catch(e){ return []; }
+      } catch (e) {
+        console.error('Erro ao coletar dados:', e);
+        return [];
+      }
     };
     backup.orders   = await collect('orders', 3000);
     backup.users    = await collect('users');
@@ -4595,7 +4649,7 @@
   async function verificarBackupSemanal(){
     if(currentRole !== 'gerente') return;
     if(document.querySelector('.backup-lembrete')) return;  // já tem um na tela
-    try{
+    try {
       const doc = await db.collection('store').doc('backupInfo').get();
       const ultimo = doc.exists ? doc.data().ultimoBackup : null;
       const dias = ultimo ? (Date.now() - new Date(ultimo)) / (24*60*60*1000) : 999;
@@ -4807,7 +4861,11 @@
       catch(e){ return false; }
     },
     apagar(chave, sessao){
-      try{ (sessao ? sessionStorage : localStorage).removeItem(chave); }
+      try {
+        (sessao ? sessionStorage : localStorage).removeItem(chave);
+      } catch (e) {
+        console.error('Erro ao remover item do storage:', e);
+      }
       catch(e){}
     }
   };
@@ -5492,7 +5550,7 @@
     const errEl = document.getElementById('registerError');
     if(isNaN(amount) || amount < 0){ errEl.textContent = "Informe o valor do fundo de troco."; return; }
     errEl.textContent = "";
-    try{
+    try {
       await comLimite(db.collection('store').doc('register').set({
         isOpen: true, openingAmount: amount,
         openedAt: new Date().toISOString(),
@@ -5500,7 +5558,10 @@
       }), 5000, 'abrir caixa');
       showToast("Caixa aberto ✓");
       document.getElementById('openingAmount').value = "";
-    }catch(e){ errEl.textContent = "Não foi possível abrir o caixa."; }
+    } catch (e) {
+      console.error('Erro ao abrir caixa:', e);
+      errEl.textContent = "Não foi possível abrir o caixa.";
+    }
   });
 
   document.getElementById('closeRegisterBtn').addEventListener('click', async () => {
@@ -5514,7 +5575,7 @@
       : ("FALTANDO " + money(Math.abs(diff)));
     if(!confirm(`Fechar o caixa?\n\nEsperado: ${money(expected)}\nContado: ${money(counted)}\nDiferença: ${diffTxt}`)) return;
     errEl.textContent = "";
-    try{
+    try {
       const bills = pendingBills();
       if(bills.length > 0 && !confirm(`Atenção: ainda há ${bills.length} conta(s) em aberto. Fechar mesmo assim?`)) return;
       const now = new Date().toISOString();
@@ -6753,9 +6814,11 @@
     const id = sessaoAtual;
     sessaoAtual = null;
     if(sinalVida){ clearInterval(sinalVida); sinalVida = null; }
-    try{
+    try {
       await db.collection('acessos').doc(id).update({saida: new Date().toISOString()});
-    }catch(e){}
+    } catch (e) {
+      console.error('Erro ao registrar saída:', e);
+    }
   }
 
   // Fechar a aba não dispara logout — por isso marcamos a saída aqui também
@@ -7058,8 +7121,11 @@
     btn.disabled = true; btn.textContent = 'Gerando...';
     msg.textContent = '';
 
-    try{
+    try {
 
+  } catch (e) {
+    console.error('Erro ao gerar PDF:', e);
+    msg.textContent = 'Erro ao gerar relatório. Tente novamente.';
   }
 
   function exportarCSV() {
@@ -7519,11 +7585,21 @@
 
     box.querySelectorAll('[data-msglida]').forEach(b => b.addEventListener('click', async () => {
       const m = mensagens.find(x => x._id === b.dataset.msglida);
-      try{ await db.collection('mensagens').doc(b.dataset.msglida).update({lida: !m.lida}); }catch(e){}
+      try {
+        await db.collection('mensagens').doc(b.dataset.msglida).update({lida: !m.lida});
+      } catch (e) {
+        console.error('Erro ao atualizar mensagem como lida:', e);
+      }
     }));
     box.querySelectorAll('[data-msgapagar]').forEach(b => b.addEventListener('click', async () => {
       if(!confirm('Excluir esta mensagem?')) return;
-      try{ await db.collection('mensagens').doc(b.dataset.msgapagar).delete(); showToast('Mensagem excluída'); }catch(e){}
+      try {
+        await db.collection('mensagens').doc(b.dataset.msgapagar).delete();
+        showToast('Mensagem excluída');
+      } catch (e) {
+        console.error('Erro ao excluir mensagem:', e);
+        showToast('Erro ao excluir mensagem');
+      }
     }));
   }
 
