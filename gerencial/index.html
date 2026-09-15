@@ -7096,9 +7096,9 @@
     box.innerHTML = visitasHoje.length ? `
       <div class="visitas-container">
         <div class="visitas-tabs">
-          <button class="tab-btn active" onclick="showTab('ativas')">Ativas (${visitasAtivas.length})</button>
-          <button class="tab-btn" onclick="showTab('finalizadas')">Finalizadas (${visitasFinalizadas.length})</button>
-          <button class="tab-btn" onclick="showTab('abandonadas')">Abandonadas (${visitasAbandonadas.length})</button>
+          <button class="tab-btn active" onclick="window.showTab && window.showTab('ativas') || eval('showTab(\'ativas\')')">Ativas (${visitasAtivas.length})</button>
+          <button class="tab-btn" onclick="window.showTab && window.showTab('finalizadas') || eval('showTab(\'finalizadas\')')">Finalizadas (${visitasFinalizadas.length})</button>
+          <button class="tab-btn" onclick="window.showTab && window.showTab('abandonadas') || eval('showTab(\'abandonadas\')')">Abandonadas (${visitasAbandonadas.length})</button>
         </div>
 
         <div id="tabAtivas" class="tab-content active">
@@ -7322,6 +7322,10 @@
       saida: new Date().toISOString()
     }).catch(err => console.error('Erro ao atualizar visita:', err));
   }
+
+  // Expor funções para o escopo global
+  window.showTab = showTab;
+  window.finalizarVisita = finalizarVisita;
 
   try {
       if(typeof window.jspdf === 'undefined') throw new Error('Biblioteca de PDF não carregou. Confira sua internet.');
