@@ -3,10 +3,15 @@
   "version": "1.0.0",
   "description": "Aplicativos PWA da Software Factory",
   "main": "index.js",
+  "dependencies": {
+    "axios": "^1.7.0",
+    "@sentry/browser": "^8.0.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 0",
     "lint": "echo \"No linting errors\" && exit 0",
-    "build": "echo \"Build completed\""
+    "build": "echo \"Build completed\"",
+    "monitor": "node monitoring/uptime-check.js"
   },
   "keywords": [],
   "author": "",
