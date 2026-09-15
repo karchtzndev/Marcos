@@ -1,4 +1,4 @@
-const CACHE = "omarkin-cliente-v47";
+const CACHE = "omarkin-cliente-v48";
 const ASSETS = ["/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png",
                 "/icon-maskable-192.png", "/icon-maskable-512.png", "/apple-touch-icon.png", "/mascot.jpg"];
 const STATIC_RE = /\.(png|jpg|jpeg|webp|ico|svg)$/;
