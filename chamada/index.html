@@ -4,9 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>O Markin — Painel de Chamada</title>
-<meta name="robots" content="noindex, nofollow">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -160,7 +157,7 @@
 
 <!-- Libera o som (navegador exige um toque antes de tocar áudio) -->
 <div class="start-screen" id="startScreen">
-  <img src="/mascot.jpg" alt="O Markin">
+  <img src="mascot.jpg" alt="O Markin">
   <h1>PAINEL DE CHAMADA</h1>
   <p>Toque no botão para iniciar. Deixe esta tela aberta na TV — os pedidos prontos aparecem aqui com aviso sonoro.</p>
   <button class="start-btn" id="startBtn">▶ INICIAR PAINEL</button>
@@ -171,7 +168,7 @@
 <div class="tv">
   <div class="stage">
     <a href="../gerencial/" class="brand" title="Voltar ao painel">
-      <img src="/mascot.jpg" alt="">
+      <img src="mascot.jpg" alt="">
       <div class="brand-txt">
         <small>O MARKIN</small>
         <strong>Chef's Burguer</strong>
@@ -223,10 +220,6 @@
   (function(){
     var jaEnviados = {};
     function enviar(msg, detalhe){
-      // "Script error." sem arquivo/linha é sempre script de outro domínio
-      // (CDN, extensão) — o navegador esconde os detalhes por segurança e
-      // não há nenhuma pista aproveitável. Só inflava a contagem à toa.
-      if(!msg || /^Script error\.?$/i.test(String(msg).trim())) return;
       try{
         if(!window.firebase || !firebase.firestore) return;
         var chave = String(msg).slice(0,120);
@@ -248,11 +241,8 @@
       }catch(e){}
     }
     window.addEventListener('error', function(e){
-      // CORRIGIDO: local não vai mais embutido na mensagem — isso quebrava
-      // o agrupamento de erros iguais a cada deploy (linhas se deslocam) e
-      // fazia o mesmo bug parecer vários bugs diferentes na aba de erros.
       var local = 'Arquivo: '+(e.filename||'?')+' · Linha: '+(e.lineno||'?')+':'+(e.colno||'?');
-      enviar(e.message||'Erro desconhecido', local);
+      enviar((e.message||'Erro desconhecido')+' | '+local, local);
     });
     window.addEventListener('unhandledrejection', function(e){
       var r = e.reason;
@@ -274,8 +264,7 @@
     projectId: "omarkin-burguer-39bda",
     storageBucket: "omarkin-burguer-39bda.firebasestorage.app",
     messagingSenderId: "476114578010",
-    appId: "1:476114578010:web:fb22f3159e86edf0a5c663",
-    vapidKey: "BGlGOypPeEMwOY8lfECSylhIp_jQfSYk_hu7LTCbUXKFtPFnp_5E3mHJqj7YFfLu3QcKOiyNRO0sehq5psWrPQk"
+    appId: "1:476114578010:web:fb22f3159e86edf0a5c663"
   };
   let db;
   try{

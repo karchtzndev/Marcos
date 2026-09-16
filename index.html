@@ -3,26 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>O Markin Chef's Burguer — Peça já</title>
-<meta name="description" content="Hambúrguer artesanal do O Markin Chef's Burguer. Monte seu pedido pelo site, escolha entrega, retirada ou mesa, e acompanhe cada etapa em tempo real.">
-<link rel="canonical" href="https://omarkin-site-vercel.vercel.app/">
-
-<!-- Preview ao compartilhar o link (WhatsApp, Instagram, Facebook) -->
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="O Markin Chef's Burguer">
-<meta property="og:locale" content="pt_BR">
-<meta property="og:url" content="https://omarkin-site-vercel.vercel.app/">
-<meta property="og:title" content="O Markin Chef's Burguer — Peça já">
-<meta property="og:description" content="Hambúrguer artesanal. Peça pelo site e acompanhe seu pedido em tempo real.">
-<meta property="og:image" content="https://omarkin-site-vercel.vercel.app/og-image.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Mascote do O Markin Chef's Burguer">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="O Markin Chef's Burguer — Peça já">
-<meta name="twitter:description" content="Hambúrguer artesanal. Peça pelo site e acompanhe seu pedido em tempo real.">
-<meta name="twitter:image" content="https://omarkin-site-vercel.vercel.app/og-image.jpg">
-
+<title>O Markin — Peça já</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="icon" href="/icon-192.png">
@@ -32,9 +13,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="O Markin">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="/mascot.jpg" media="(min-width: 400px)">
 <style>
   :root{
     --pitch:#120e0b; --char:#1c1613; --cream:#f2e9da;
@@ -1458,16 +1437,10 @@
     var jaEnviados = {};   // evita gravar o mesmo erro repetido
 
     function registrar(msg, detalhe){
-      // "Script error." sem arquivo/linha é sempre um script de outro
-      // domínio (CDN de fonte, extensão do navegador) que o navegador
-      // esconde por segurança — nunca dá pra saber o que foi. Gravar isso
-      // só inflava a contagem de erros sem nenhuma pista aproveitável.
-      if(!msg || /^Script error\.?$/i.test(String(msg).trim())) return;
-
       if(!caixa) garantirCaixa();
       if(caixa && textoEl){
         var hora = new Date().toLocaleTimeString('pt-BR');
-        var linha = '[' + hora + '] ' + msg + (detalhe ? '\n' + detalhe : '');
+        var linha = '[' + hora + '] ' + msg;
         textoEl.textContent = textoEl.textContent
           ? textoEl.textContent + '\n\n' + linha
           : linha;
@@ -1501,15 +1474,9 @@
       }catch(e){}
     }
     window.addEventListener('error', function(e){
-      // CORRIGIDO: antes o local (arquivo/linha) ia embutido dentro da
-      // própria mensagem gravada. Isso quebrava o agrupamento de erros
-      // iguais no painel a cada deploy — qualquer edição no arquivo desloca
-      // as linhas, então o "mesmo" bug virava um grupo novo, fazendo o
-      // contador parecer que o problema nunca se repete (quando na
-      // verdade é sempre o mesmo). Agora mensagem e local vão separados.
       var local = 'Arquivo: ' + (e.filename || '?') +
                   ' · Linha: ' + (e.lineno || '?') + ':' + (e.colno || '?');
-      registrar(e.message || 'Erro desconhecido', local);
+      registrar((e.message || 'Erro desconhecido') + '\n' + local, local);
     });
     window.addEventListener('unhandledrejection', function(e){
       var motivo = e.reason;
@@ -1541,8 +1508,6 @@
         onerror="document.getElementById('falhaConexao').style.display='flex'"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"
         onerror="document.getElementById('falhaConexao').style.display='flex'"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"
-        onerror="document.getElementById('falhaConexao').style.display='flex'"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyA-7sy4ox0ErDZAw7prhXYJ3MaSA7G_scY",
@@ -1550,19 +1515,17 @@
     projectId: "omarkin-burguer-39bda",
     storageBucket: "omarkin-burguer-39bda.firebasestorage.app",
     messagingSenderId: "476114578010",
-    appId: "1:476114578010:web:fb22f3159e86edf0a5c663",
-    vapidKey: "BGlGOypPeEMwOY8lfECSylhIp_jQfSYk_hu7LTCbUXKFtPFnp_5E3mHJqj7YFfLu3QcKOiyNRO0sehq5psWrPQk"
+    appId: "1:476114578010:web:fb22f3159e86edf0a5c663"
   };
   // Só marca sucesso DEPOIS de confirmar que o SDK carregou de verdade.
   // Antes eu marcava sucesso cedo demais — se o Firebase falhasse, essa
   // linha escondia o aviso de erro e o script travava logo em seguida,
   // sem deixar rastro nenhum na tela.
-  let db, authCliente, functionsCliente;
+  let db, authCliente;
   try{
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
     authCliente = firebase.auth();
-    functionsCliente = firebase.functions();
     window.__firebaseOk = true;
     clearTimeout(window.__vigiaFirebase);
     const falhaEl = document.getElementById('falhaConexao');
@@ -1632,7 +1595,6 @@
   // Antes o carrinho só existia na memória: recarregar a página ou o
   // navegador descartar a aba fazia o cliente perder o pedido montado.
   const CART_KEY = 'omarkin_cart';
-  const PEDIDOS_KEY = 'omarkin_pedidos';   // códigos dos pedidos feitos neste aparelho
   const CART_VALIDADE = 6 * 60 * 60 * 1000;   // 6 horas
 
   function carregarCarrinho(){
@@ -2478,14 +2440,8 @@
 
   function generateOrderCode(){
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sem I,O,0,1 (confusão visual)
-    // 7 caracteres = ~34 bilhões de combinações. Com 5 eram 33 milhões — pouco
-    // pra um documento que qualquer um pode ler sabendo o código, e que guarda
-    // nome, telefone e endereço do cliente. Códigos antigos continuam válidos.
     let s = "";
-    const buf = new Uint32Array(7);
-    // Math.random não é imprevisível; crypto evita que alguém deduza a sequência.
-    (self.crypto || window.crypto).getRandomValues(buf);
-    for(let i = 0; i < 7; i++) s += chars[buf[i] % chars.length];
+    for(let i = 0; i < 5; i++) s += chars[Math.floor(Math.random()*chars.length)];
     return "MK-" + s;
   }
 
@@ -2669,11 +2625,6 @@
       const dailyNumber = await generateDailyNumber();
       order = {
         code, dailyNumber,
-        // Vincula o pedido à conta quando há login: é o que permite listar o
-        // histórico com segurança (a regra confere clienteUid == auth.uid).
-        // Sem login o campo nem existe — o histórico vem dos códigos salvos
-        // neste aparelho.
-        ...(clienteLogado?.uid ? { clienteUid: clienteLogado.uid } : {}),
         customerName: name, phone, address, table, orderType: selectedOrderType, payment, notes,
         items: cart.map(c => ({name:c.name, price:c.price, qty:c.qty, forItem:c.forItem || ""})),
         subtotal: cartSubtotal(),
@@ -2727,7 +2678,6 @@
     document.getElementById('trackCodeInput').value = code;
     openOverlay('trackOverlay');
     doTrack(code);
-    if(payment === 'pix' && features.pixAutomatico === true) gerarPagamentoPix(code);
 
     // Guarda os dados do cliente pra facilitar o próximo pedido
     try{
@@ -2743,10 +2693,6 @@
         }
       }));
       if(selectedOrderType === 'mesa' && table) guardar.salvar('omarkin_mesa', table, true);
-      // Guarda o código deste pedido no aparelho. É assim que quem não tem
-      // conta vê o histórico: buscamos um a um pelos códigos que já são dele.
-      const meus = JSON.parse(guardar.ler(PEDIDOS_KEY) || '[]');
-      guardar.salvar(PEDIDOS_KEY, JSON.stringify([code, ...meus.filter(c => c !== code)].slice(0, 10)));
     }catch(e){}
 
     // Abre o WhatsApp da loja com o pedido completo
@@ -3170,56 +3116,43 @@
   }
 
   /* ================= HISTÓRICO E REPETIR PEDIDO ================= */
-  // Antes isto buscava por telefone (.where('phone','==',...)). A regra do
-  // Firestore só libera LISTAR pedidos pra equipe, então a busca sempre falhava
-  // e o catch devolvia lista vazia — o histórico do cliente estava morto, em
-  // silêncio. Liberar listagem por telefone seria pior: telefone é adivinhável
-  // e daria pra varrer os pedidos dos outros. Então são dois caminhos:
-  //   • com conta  -> lista pelo clienteUid (a regra confere contra o auth.uid)
-  //   • sem conta  -> busca um a um os códigos salvos neste aparelho
-  async function buscarHistorico(){
-    if(clienteLogado?.uid){
+  // Busca os pedidos por telefone. Funciona logado ou não — quem já pediu
+  // e informou o telefone consegue ver e repetir.
+  async function buscarHistorico(telefone){
+    const tel = (telefone || '').replace(/\D/g,'');
+    if(!tel) return [];
+    try{
+      const snap = await db.collection('orders')
+        .where('phone','==', telefone)
+        .orderBy('createdAt','desc')
+        .limit(10).get();
+      return snap.docs.map(d => d.data());
+    }catch(e){
+      // Sem índice composto o Firestore recusa: tenta sem ordenar
       try{
-        const snap = await db.collection('orders')
-          .where('clienteUid','==', clienteLogado.uid)
-          .orderBy('createdAt','desc')
-          .limit(10).get();
-        return snap.docs.map(d => d.data());
-      }catch(e){
-        // Sem o índice composto o Firestore recusa: tenta sem ordenar
-        try{
-          const snap = await db.collection('orders')
-            .where('clienteUid','==', clienteLogado.uid).limit(10).get();
-          return snap.docs.map(d => d.data())
-            .sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
-        }catch(e2){ /* cai no histórico local abaixo */ }
-      }
+        const snap = await db.collection('orders').where('phone','==', telefone).limit(10).get();
+        return snap.docs.map(d => d.data())
+          .sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
+      }catch(e2){ return []; }
     }
-    // Sem conta (ou se a listagem falhou): os códigos guardados aqui já são
-    // dele, e ler pedido por código é permitido.
-    let codigos = [];
-    try{ codigos = JSON.parse(guardar.ler(PEDIDOS_KEY) || '[]'); }catch(e){ codigos = []; }
-    if(!codigos.length) return [];
-    const docs = await Promise.all(codigos.slice(0,10).map(c =>
-      db.collection('orders').doc(c).get()
-        .then(d => d.exists ? d.data() : null)
-        .catch(() => null)
-    ));
-    return docs.filter(Boolean)
-      .sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
+  }
+
+  function telefoneDoCliente(){
+    if(clienteLogado?.telefone) return clienteLogado.telefone;
+    const salvos = JSON.parse(guardar.ler('omarkin_customer') || 'null') || {};
+    return salvos.phone || '';
   }
 
   async function renderHistorico(){
     const box = document.getElementById('contaHistorico');
     if(!box) return;
-    let temCodigosLocais = false;
-    try{ temCodigosLocais = (JSON.parse(guardar.ler(PEDIDOS_KEY) || '[]')).length > 0; }catch(e){}
-    if(!clienteLogado?.uid && !temCodigosLocais){
-      box.innerHTML = `<div class="conta-aviso">Faça um pedido pra ver o histórico aqui. Com uma conta, ele te acompanha em qualquer aparelho.</div>`;
+    const tel = telefoneDoCliente();
+    if(!tel){
+      box.innerHTML = `<div class="conta-aviso">Faça um pedido informando seu telefone pra ver o histórico aqui.</div>`;
       return;
     }
     box.innerHTML = `<div class="conta-aviso">Buscando seus pedidos...</div>`;
-    const pedidos = await buscarHistorico();
+    const pedidos = await buscarHistorico(tel);
     if(pedidos.length === 0){
       box.innerHTML = `<div class="conta-aviso">Nenhum pedido ainda. O primeiro já conta pra fidelidade!</div>`;
       return;

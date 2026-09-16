@@ -4,18 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>O Markin — Gerencial</title>
-<meta name="robots" content="noindex, nofollow">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
 <meta name="theme-color" content="#120e0b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Gerencial">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -99,151 +96,6 @@
   .fry:nth-child(4){left:62px; transform:rotate(-6deg); height:66px;}
   .fry:nth-child(5){left:80px; transform:rotate(12deg); height:74px; bottom:80px;}
   .fry:nth-child(6){left:98px; transform:rotate(18deg);}
-
-  /* Estilos para visitas ao site */
-  .visitas-container {
-    margin-top: 24px;
-  }
-
-  .visitas-tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .tab-btn {
-    padding: 8px 16px;
-    background: transparent;
-    border: none;
-    color: var(--cream);
-    cursor: pointer;
-    font-size: 14px;
-    border-radius: 4px;
-    transition: all 0.2s;
-  }
-
-  .tab-btn.active {
-    background: rgba(229, 118, 46, 0.15);
-    color: var(--ember);
-    border-bottom: 2px solid var(--ember);
-  }
-
-  .tab-content {
-    display: none;
-    margin-bottom: 24px;
-  }
-
-  .tab-content.active {
-    display: block;
-  }
-
-  .visita-item {
-    background: var(--char);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .visita-item.ativa {
-    border-color: rgba(229, 118, 46, 0.3);
-  }
-
-  .visita-item.finalizada {
-    border-color: rgba(76, 175, 109, 0.3);
-  }
-
-  .visita-status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-  }
-
-  .status-icon {
-    font-size: 18px;
-  }
-
-  .visita-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .visita-device, .visita-time, .visita-duration {
-    font-size: 14px;
-    color: var(--cream);
-  }
-
-  .visita-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 8px;
-  }
-
-  .finalizar-btn {
-    background: var(--ember);
-    color: var(--pitch);
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .finalizar-btn:hover {
-    background: var(--ember-deep);
-  }
-
-  .order-code {
-    color: var(--green);
-    font-weight: bold;
-  }
-
-  .sem-visitas, .sem-visitas-tab {
-    text-align: center;
-    padding: 24px;
-    color: rgba(242, 233, 218, 0.5);
-    font-size: 14px;
-  }
-
-  .kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-
-  #visitaGrafico {
-    margin-top: 24px;
-    text-align: center;
-  }
-
-  .export-buttons {
-    display: flex;
-    gap: 12px;
-    margin: 24px 0;
-  }
-
-  .export-btn {
-    background: var(--ember);
-    color: var(--pitch);
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .export-btn:hover {
-    background: var(--ember-deep);
-  }
   .badge-stamp{position:absolute; top:-6px; left:-24px; width:104px; height:104px; z-index:4; background:transparent;}
 
   .section{padding:100px 0;}
@@ -733,8 +585,6 @@
   .vi-saiu{color:rgba(242,233,218,0.4); font-size:12px;}
 
   /* ---------- ACESSOS ---------- */
-  .online-resumo{font-family:'Anton',sans-serif; font-size:15px; letter-spacing:0.5px; color:var(--green); margin-bottom:14px; display:flex; align-items:center; gap:8px;}
-  .online-resumo::before{content:''; width:9px; height:9px; border-radius:50%; background:var(--green); box-shadow:0 0 0 4px rgba(76,175,109,0.18);}
   .online-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-bottom:22px;}
   .online-card{
     display:flex; gap:11px; align-items:center; background:rgba(76,175,109,0.1);
@@ -1262,7 +1112,7 @@
 <header>
   <div class="wrap nav">
     <a href="/" class="brand brand-link" title="Voltar para o site">
-      <img src="/mascot.jpg" alt="Mascote O Markin" class="brand-badge">
+      <img src="mascot.jpg" alt="Mascote O Markin" class="brand-badge">
       <div class="brand-text"><div class="l1">O MARKIN</div><div class="l2">Chef's Burguer</div></div>
     </a>
     <nav>
@@ -1412,7 +1262,7 @@
   <div class="wrap">
     <div class="foot-grid">
       <div class="foot-brand">
-        <div class="brand"><img src="/mascot.jpg" alt="Mascote O Markin" class="brand-badge"><div class="brand-text"><div class="l1">O MARKIN</div><div class="l2">Chef's Burguer</div></div></div>
+        <div class="brand"><img src="mascot.jpg" alt="Mascote O Markin" class="brand-badge"><div class="brand-text"><div class="l1">O MARKIN</div><div class="l2">Chef's Burguer</div></div></div>
         <p>Hambúrgueres artesanais feitos na chapa, com ingredientes selecionados e muito sabor em cada mordida.</p>
       </div>
       <div class="foot-col"><h4>Navegação</h4><ul><li><a href="#cardapio">Cardápio</a></li><li><a href="#sobre">Sobre nós</a></li><li><a href="#local">Localização</a></li></ul></div>
@@ -1490,7 +1340,7 @@
   <div class="panel">
     <div class="panel-head">
       <a href="/" class="panel-logo" title="Voltar para o site">
-        <img src="/mascot.jpg" alt="O Markin">
+        <img src="mascot.jpg" alt="O Markin">
         <div class="pl-txt">
           <strong>Painel do Chef</strong>
           <small>↩ voltar ao site</small>
@@ -1507,7 +1357,7 @@
     <div class="panel-body">
 
       <div id="loginView" class="login-box">
-        <img src="/mascot.jpg" alt="Mascote O Markin" class="login-mascot">
+        <img src="mascot.jpg" alt="Mascote O Markin" class="login-mascot">
         <p>Entre com seu e-mail e senha.</p>
         <div class="field"><input type="email" id="authEmail" placeholder="E-mail" autocomplete="username"></div>
         <div class="field">
@@ -1522,7 +1372,7 @@
       </div>
 
       <div id="loadingView" class="login-box">
-        <img src="/mascot.jpg" alt="Mascote O Markin" class="login-mascot">
+        <img src="mascot.jpg" alt="Mascote O Markin" class="login-mascot">
         <p>Verificando acesso...</p>
       </div>
 
@@ -1562,7 +1412,7 @@
           <!-- AJUSTES: configuração, mexe pouco -->
           <button class="admin-tab-btn" data-atab="loja" data-g="config">🏪 Loja</button>
           <button class="admin-tab-btn" data-atab="equipe" data-g="config">👥 Equipe</button>
-          <button class="admin-tab-btn" data-atab="acessos" data-g="config">🔐 Acessos</button>
+          <button class="admin-tab-btn" data-atab="acessos" data-g="config">🔐 Acessos <span id="acessosBadge"></span></button>
           <button class="admin-tab-btn" data-atab="modulos" data-g="config">🧩 Módulos</button>
           <button class="admin-tab-btn" data-atab="erros" data-g="config">🐞 Erros <span id="errosBadge"></span></button>
         </div>
@@ -2720,10 +2570,6 @@
   (function(){
     var jaEnviados = {};
     function enviar(msg, detalhe){
-      // "Script error." sem arquivo/linha é sempre script de outro domínio
-      // (CDN, extensão) — o navegador esconde os detalhes por segurança e
-      // não há nenhuma pista aproveitável. Só inflava a contagem à toa.
-      if(!msg || /^Script error\.?$/i.test(String(msg).trim())) return;
       try{
         if(!window.firebase || !firebase.firestore) return;
         var chave = String(msg).slice(0,120);
@@ -2745,11 +2591,8 @@
       }catch(e){}
     }
     window.addEventListener('error', function(e){
-      // CORRIGIDO: local não vai mais embutido na mensagem — isso quebrava
-      // o agrupamento de erros iguais a cada deploy (linhas se deslocam) e
-      // fazia o mesmo bug parecer vários bugs diferentes na aba de erros.
       var local = 'Arquivo: '+(e.filename||'?')+' · Linha: '+(e.lineno||'?')+':'+(e.colno||'?');
-      enviar(e.message||'Erro desconhecido', local);
+      enviar((e.message||'Erro desconhecido')+' | '+local, local);
     });
     window.addEventListener('unhandledrejection', function(e){
       var r = e.reason;
@@ -2773,8 +2616,7 @@
     projectId: "omarkin-burguer-39bda",
     storageBucket: "omarkin-burguer-39bda.firebasestorage.app",
     messagingSenderId: "476114578010",
-    appId: "1:476114578010:web:fb22f3159e86edf0a5c663",
-    vapidKey: "BGlGOypPeEMwOY8lfECSylhIp_jQfSYk_hu7LTCbUXKFtPFnp_5E3mHJqj7YFfLu3QcKOiyNRO0sehq5psWrPQk"
+    appId: "1:476114578010:web:fb22f3159e86edf0a5c663"
   };
   let db, auth, secondaryApp;
   try{
@@ -2976,11 +2818,7 @@
         products = doc.data().items;
       }else{
         products = defaultProducts;
-        try {
-        await db.collection('store').doc('menu').set({items: defaultProducts});
-      } catch (e) {
-        console.error('Erro ao restaurar cardápio padrão:', e);
-      }
+        try{ await db.collection('store').doc('menu').set({items: defaultProducts}); }catch(e){}
       }
       renderMenu();
       renderAdminList();
@@ -2992,13 +2830,8 @@
     });
   }
   async function saveProducts(){
-    try {
-      await db.collection('store').doc('menu').set({items: products});
-      showToast("Cardápio atualizado ✓");
-    } catch (e) {
-      console.error('Erro ao atualizar cardápio:', e);
-      showToast("Erro ao atualizar cardápio");
-    }
+    try{ await db.collection('store').doc('menu').set({items: products}); showToast("Cardápio atualizado ✓"); }
+    catch(e){ alert("Não foi possível salvar. Tente novamente."); }
   }
   function catLabel(cat){ return {burguers:"Hambúrgueres", entradas:"Entradas", bebidas:"Bebidas", adicionais:"Adicionais", combo:"Combo"}[cat] || cat; }
 
@@ -3451,11 +3284,7 @@
 
   function initAudio(){
     if(!audioCtx){
-      try {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    } catch (e) {
-      console.error('Erro ao criar AudioContext:', e);
-    }
+      try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){}
     }
     if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
   }
@@ -3797,7 +3626,7 @@
   async function enviarParaFila(tipo, titulo){
     const html = document.getElementById('printArea').innerHTML;
     if(!html.trim()) return false;
-    try {
+    try{
       await comLimite(db.collection('printQueue').add({
         tipo: tipo || 'comanda',
         titulo: titulo || '',
@@ -3807,9 +3636,6 @@
         criadoPor: currentEmployee ? currentEmployee.name : '',
         status: 'pendente'
       }), 5000, 'fila de impressão');
-    } catch (e) {
-      console.error('Erro ao adicionar item à fila de impressão:', e);
-    }
       return true;
     }catch(e){
       console.error('fila:', e);
@@ -3839,13 +3665,9 @@
 
     // 2º) Android com RawBT: manda direto, sem abrir janela
     if(mode !== 'a4' && modoImpressao() === 'rawbt'){
-      try {
+      try{
         enviarParaRawBT(htmlParaEscPos(html));
         showToast('🖨️ Enviado para a impressora');
-      } catch (e) {
-        console.error('Erro ao enviar para impressora RawBT:', e);
-        showToast('Erro ao imprimir');
-      }
         return;
       }catch(e){
         console.warn('RawBT falhou, usando o navegador:', e);
@@ -3922,16 +3744,8 @@
     const set = (id, n) => { const el = document.getElementById(id); if(el) el.textContent = n > 0 ? `(${n})` : ''; };
     set('pendingBadge', orders.filter(o => !['entregue','cancelado'].includes(o.status)).length);
     set('kitchenBadge', orders.filter(o => ['aceito','preparo'].includes(o.status)).length);
-    try {
-      set('openTablesBadge', openTables().length);
-    } catch (e) {
-      console.error('Erro ao atualizar badge de mesas:', e);
-    }
-    try {
-      set('caixaBadge', pendingBills().length);
-    } catch (e) {
-      console.error('Erro ao atualizar badge de caixa:', e);
-    }
+    try{ set('openTablesBadge', openTables().length); }catch(e){}
+    try{ set('caixaBadge', pendingBills().length); }catch(e){}
   }
   function saveOrder(order){
     const p = db.collection('orders').doc(order.code).set(order);
@@ -4039,13 +3853,10 @@
     errEl.textContent = "";
     const finalImage = pendingPromoImage !== null ? pendingPromoImage : (promoData.image || "");
     const newPromo = { active: selectedPromoActive, title, message, image: finalImage, updatedAt: Date.now().toString() };
-    try {
+    try{
       await db.collection('store').doc('promo').set(newPromo);
       showToast("Aviso salvo ✓");
-    } catch (e) {
-      console.error('Erro ao salvar promoção:', e);
-      alert("Não foi possível salvar. A imagem pode estar grande demais — tente uma foto menor.");
-    }
+    }catch(e){ alert("Não foi possível salvar. A imagem pode estar grande demais — tente uma foto menor."); }
   });
 
   /* ---------------- DADOS DA LOJA ---------------- */
@@ -4065,7 +3876,7 @@
     const min = agora.getHours()*60 + agora.getMinutes();
     const minAj = (h && h.fim > 24*60 && min < h.inicio) ? min + 24*60 : min;
     const deveria = h ? (minAj >= h.inicio && minAj < h.fim) : false;
-    try {
+    try{
       await db.collection('store').doc('info').set({
         isOpen: aberta,
         manualOverride: moduloAtivo('horario') ? {esperado: deveria, em: new Date().toISOString()} : null
@@ -4146,26 +3957,19 @@
       whatsapp: document.getElementById('lojaWhatsapp').value.trim(),
       instagram: document.getElementById('lojaInstagram').value.trim()
     };
-    try {
+    try{
       await db.collection('store').doc('info').set(info);
       showToast("Dados da loja salvos ✓");
       document.getElementById('lojaError').textContent = "";
-    } catch (e) {
-      console.error('Erro ao salvar dados da loja:', e);
-      document.getElementById('lojaError').textContent = "Não foi possível salvar. Tente novamente.";
-    }
+    }catch(e){ document.getElementById('lojaError').textContent = "Não foi possível salvar. Tente novamente."; }
   });
 
   function copiarFallback(el){
-    try {
+    try{
       el.select();
       el.setSelectionRange(0, 99999);
       document.execCommand('copy');
       showToast("Endereço copiado ✓");
-    } catch (e) {
-      console.error('Erro ao copiar texto:', e);
-      showToast("Não foi possível copiar");
-    }
     }catch(e){
       showToast("Selecione o endereço e copie manualmente");
     }
@@ -4481,13 +4285,10 @@
     ];
     const linhas = [];
     for(const col of cols){
-      try {
+      try{
         const snap = await db.collection(col.c).get();
         linhas.push({nome: col.nome, n: snap.size});
-      } catch (e) {
-        console.error('Erro ao contar itens na coleção:', e);
-        linhas.push({nome: col.nome, n: '?'});
-      }
+      }catch(e){ linhas.push({nome: col.nome, n: '?'}); }
     }
     const total = linhas.reduce((s,l) => s + (typeof l.n === 'number' ? l.n : 0), 0);
     document.getElementById('zerarResumo').innerHTML = total === 0
@@ -4517,16 +4318,10 @@
 
     // Confirma que é mesmo o gerente na frente do aparelho
     btn.disabled = true; btn.textContent = 'Verificando senha...';
-    try {
+    try{
       const cred = firebase.auth.EmailAuthProvider.credential(auth.currentUser.email, senha);
       await auth.currentUser.reauthenticateWithCredential(cred);
-    } catch (e) {
-      console.error('Erro ao reautenticar:', e);
-      errEl.textContent = 'Senha incorreta.';
-      btn.disabled = false;
-      btn.textContent = 'Apagar tudo permanentemente';
-      return;
-    }
+    }catch(e){
       btn.disabled = false; btn.textContent = 'Apagar tudo permanentemente';
       errEl.textContent = e.code === 'auth/too-many-requests'
         ? 'Muitas tentativas. Aguarde alguns minutos.'
@@ -4544,8 +4339,8 @@
     const cols = ['orders','stats','customers','closings','calls'];
     let apagados = 0;
 
-    try {
-      for(const col of cols) {
+    try{
+      for(const col of cols){
         prog.innerHTML = `<div class="zr-prog">🧹 Limpando ${col}...</div>`;
         apagados += await apagarColecao(col);
       }
@@ -4587,24 +4382,18 @@
   async function gerarBackup(){
     const backup = {exportedAt: new Date().toISOString(), version: 2, store: {}, orders: [], users: [], stats: [], closings: []};
     for(const d of ['menu','info','promo','inventory','cashflow','fixedcosts','register']){
-      try {
+      try{
         const snap = await db.collection('store').doc(d).get();
         backup.store[d] = snap.exists ? snap.data() : null;
-      } catch (e) {
-        console.error('Erro ao buscar documento de armazenamento:', e);
-        backup.store[d] = null;
-      }
+      }catch(e){ backup.store[d] = null; }
     }
     const collect = async (name, limit) => {
-      try {
+      try{
         let q = db.collection(name);
         if(name === 'orders') q = q.orderBy('createdAt','desc').limit(limit || 3000);
         const snap = await q.get();
         return snap.docs.map(d => Object.assign({_id: d.id}, d.data()));
-      } catch (e) {
-        console.error('Erro ao coletar dados:', e);
-        return [];
-      }
+      }catch(e){ return []; }
     };
     backup.orders   = await collect('orders', 3000);
     backup.users    = await collect('users');
@@ -4649,7 +4438,7 @@
   async function verificarBackupSemanal(){
     if(currentRole !== 'gerente') return;
     if(document.querySelector('.backup-lembrete')) return;  // já tem um na tela
-    try {
+    try{
       const doc = await db.collection('store').doc('backupInfo').get();
       const ultimo = doc.exists ? doc.data().ultimoBackup : null;
       const dias = ultimo ? (Date.now() - new Date(ultimo)) / (24*60*60*1000) : 999;
@@ -4861,11 +4650,7 @@
       catch(e){ return false; }
     },
     apagar(chave, sessao){
-      try {
-        (sessao ? sessionStorage : localStorage).removeItem(chave);
-      } catch (e) {
-        console.error('Erro ao remover item do storage:', e);
-      }
+      try{ (sessao ? sessionStorage : localStorage).removeItem(chave); }
       catch(e){}
     }
   };
@@ -5550,7 +5335,7 @@
     const errEl = document.getElementById('registerError');
     if(isNaN(amount) || amount < 0){ errEl.textContent = "Informe o valor do fundo de troco."; return; }
     errEl.textContent = "";
-    try {
+    try{
       await comLimite(db.collection('store').doc('register').set({
         isOpen: true, openingAmount: amount,
         openedAt: new Date().toISOString(),
@@ -5558,10 +5343,7 @@
       }), 5000, 'abrir caixa');
       showToast("Caixa aberto ✓");
       document.getElementById('openingAmount').value = "";
-    } catch (e) {
-      console.error('Erro ao abrir caixa:', e);
-      errEl.textContent = "Não foi possível abrir o caixa.";
-    }
+    }catch(e){ errEl.textContent = "Não foi possível abrir o caixa."; }
   });
 
   document.getElementById('closeRegisterBtn').addEventListener('click', async () => {
@@ -5575,7 +5357,7 @@
       : ("FALTANDO " + money(Math.abs(diff)));
     if(!confirm(`Fechar o caixa?\n\nEsperado: ${money(expected)}\nContado: ${money(counted)}\nDiferença: ${diffTxt}`)) return;
     errEl.textContent = "";
-    try {
+    try{
       const bills = pendingBills();
       if(bills.length > 0 && !confirm(`Atenção: ainda há ${bills.length} conta(s) em aberto. Fechar mesmo assim?`)) return;
       const now = new Date().toISOString();
@@ -6324,24 +6106,13 @@
       return;
     }
     if(clientesUnsub) return; // já escutando
-    // CORRIGIDO: era o único listener do painel sem limit — crescia pra
-    // sempre junto com a base de clientes. Limitado aos 500 mais recentes
-    // (bem acima do volume atual); cliente que não pediu há muito tempo cai
-    // fora do ranking de fidelidade/gasto até pedir de novo. Se a loja
-    // crescer muito além disso, vale paginar em vez de só subir o número.
-    clientesUnsub = db.collection('customers')
-      .orderBy('ultimo', 'desc').limit(500)
-      .onSnapshot((snap) => {
-        clientes = {};
-        snap.docs.forEach(d => clientes[d.id] = Object.assign({tel: d.id}, d.data()));
-        // CORRIGIDO: chamava renderAdminOrders() direto, furando o
-        // scheduleRender(). Como todo pedido novo também atualiza o
-        // cadastro do cliente, cada pedido redesenhava a lista DUAS vezes
-        // seguidas (listener de pedidos + listener de clientes).
-        const t = currentTab();
-        if(t === 'clientes') renderClientes();
-        else if(t === 'pedidos') scheduleRender();
-      }, (err) => console.warn('customers:', err));
+    clientesUnsub = db.collection('customers').onSnapshot((snap) => {
+      clientes = {};
+      snap.docs.forEach(d => clientes[d.id] = Object.assign({tel: d.id}, d.data()));
+      const t = currentTab();
+      if(t === 'clientes') renderClientes();
+      if(t === 'pedidos') renderAdminOrders();
+    }, (err) => console.warn('customers:', err));
   }
 
   // Atualiza o cadastro do cliente quando um pedido é criado
@@ -6595,11 +6366,6 @@
   let errosUnsub = null;
 
   function watchErros(){
-    // CORRIGIDO: antes começava pra todo mundo, sempre — 200 leituras a cada
-    // login, mesmo pra quem nunca abre essa aba. Com 6 pessoas abrindo o
-    // painel várias vezes ao dia, isso sozinho comia uma fatia grande da
-    // cota diária do Firestore à toa.
-    if(!myPerms.includes('erros') && currentRole !== 'gerente') return;
     if(errosUnsub) return;
     errosUnsub = db.collection('errorLog')
       .orderBy('quando','desc').limit(200)
@@ -6636,16 +6402,10 @@
       return;
     }
 
-    // Agrupa erros iguais pra não virar uma lista repetitiva. A chave é
-    // mensagem + página (não inclui mais o arquivo/linha — antes ia embutido
-    // na própria mensagem, e qualquer deploy deslocando uma linha fazia o
-    // MESMO bug contar como um grupo novo, zerando o contador de repetição
-    // exatamente do problema mais importante: o que se repete). A página
-    // continua na chave pra não misturar um bug do cliente com outro do
-    // painel que por acaso tenham a mesma frase de erro.
+    // agrupa erros iguais pra não virar uma lista repetitiva
     const grupos = {};
     errosLog.forEach(e => {
-      const k = (e.mensagem||'').slice(0,150) + '@' + (e.pagina||'');
+      const k = (e.mensagem||'').slice(0,150);
       if(!grupos[k]) grupos[k] = {msg:e.mensagem, itens:[]};
       grupos[k].itens.push(e);
     });
@@ -6668,7 +6428,6 @@
           <div class="erro-msg">${escapeHtml(g.msg || 'sem mensagem')}</div>
           <div class="erro-meta">
             <span>📍 ${escapeHtml(ult.pagina || '?')}</span>
-            ${ult.detalhe ? `<span>${escapeHtml(ult.detalhe)}</span>` : ''}
             ${ult.modoComputador ? '<span class="erro-tag">modo computador</span>' : ''}
             ${ult.online === false ? '<span class="erro-tag">sem internet</span>' : ''}
             <span>📱 ${escapeHtml((ult.plataforma||'?'))} · ${escapeHtml(ult.tela||'?')}</span>
@@ -6684,7 +6443,7 @@
                     'Total: ' + errosLog.length + ' erro(s)', ''];
     const grupos = {};
     errosLog.forEach(e => {
-      const k = (e.mensagem||'').slice(0,150) + '@' + (e.pagina||'');
+      const k = (e.mensagem||'').slice(0,150);
       if(!grupos[k]) grupos[k] = [];
       grupos[k].push(e);
     });
@@ -6814,11 +6573,9 @@
     const id = sessaoAtual;
     sessaoAtual = null;
     if(sinalVida){ clearInterval(sinalVida); sinalVida = null; }
-    try {
+    try{
       await db.collection('acessos').doc(id).update({saida: new Date().toISOString()});
-    } catch (e) {
-      console.error('Erro ao registrar saída:', e);
-    }
+    }catch(e){}
   }
 
   // Fechar a aba não dispara logout — por isso marcamos a saída aqui também
@@ -6996,54 +6753,23 @@
   /* ---------- VISITAS AO SITE ---------- */
   let visitas = [];
   let visitasUnsub = null;
-  let visitasAbandonadas = [];
-  let visitasFinalizadas = [];
-  let visitasHoje = [];
-  let visitasGrafico = [];
-
-  // Função para atualizar visitas em tempo real
-  function atualizarVisitas() {
-    const hoje = new Date().toISOString().split('T')[0];
-    visitasHoje = visitas.filter(v => v.entrada && v.entrada.startsWith(hoje));
-
-    // Classificar visitas como abandonadas ou finalizadas
-    visitasAbandonadas = visitasHoje.filter(v => !v.saida && !v.finalizado);
-    visitasFinalizadas = visitasHoje.filter(v => v.finalizado || v.saida);
-
-    // Preparar dados para gráfico
-    visitasGrafico = Array(24).fill(0);
-    visitasHoje.forEach(v => {
-      const hora = new Date(v.entrada).getHours();
-      visitasGrafico[hora]++;
-    });
-  }
 
   function watchVisitas(){
     if(!moduloAtivo('clientes')){
-      if(visitasUnsub) {
-        visitasUnsub();
-        visitasUnsub = null;
-        visitas = [];
-        atualizarVisitas();
-      }
+      if(visitasUnsub){ visitasUnsub(); visitasUnsub = null; visitas = []; }
       return;
     }
     if(visitasUnsub) return;
     visitasUnsub = db.collection('visitas').orderBy('entrada','desc').limit(100)
       .onSnapshot((snap) => {
-        visitas = snap.docs.map(d => Object.assign({_id: d.id}, d.data()));
-        atualizarVisitas();
-        renderVisitas();
+        visitas = snap.docs.map(d => Object.assign({_id:d.id}, d.data()));
+        if(currentTab() === 'clientes') renderVisitas();
       }, (err) => console.warn('visitas:', err));
   }
 
-  function renderVisitas() {
-    console.log('Renderizando visitas...', visitas.length);
+  function renderVisitas(){
     const box = document.getElementById('visitaLista');
-    if (!box) {
-      console.error('Elemento visitaLista não encontrado');
-      return;
-    }
+    if(!box) return;
 
     const hoje = todayStr();
     const visitasHoje = visitas.filter(v => (v.entrada||'').startsWith(hoje));
@@ -7052,65 +6778,35 @@
     const finalizaramTotal = visitas.filter(v => v.finalizou).length;
 
     document.getElementById('visitaKpis').innerHTML = `
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="kpi-value">${visitasHoje.length}</div>
-          <div class="kpi-label">Visitas hoje</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-value">${finalizaramHoje}</div>
-          <div class="kpi-label">Viraram pedido</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-value">${taxaHoje}%</div>
-          <div class="kpi-label">Taxa hoje</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-value">${visitas.length ? Math.round((finalizaramTotal/visitas.length)*100) : 0}%</div>
-          <div class="kpi-label">Conversão geral</div>
-        </div>
-      </div>
+      <div class="kpi-card"><div class="kv">${visitasHoje.length}</div><div class="kl">Visitas hoje</div></div>
+      <div class="kpi-card"><div class="kv">${finalizaramHoje}</div><div class="kl">Viraram pedido hoje</div></div>
+      <div class="kpi-card"><div class="kv">${taxaHoje}%</div><div class="kl">Taxa de conversão hoje</div></div>
+      <div class="kpi-card"><div class="kv">${visitas.length ? Math.round((finalizaramTotal/visitas.length)*100) : 0}%</div><div class="kl">Conversão geral (100 últimas)</div></div>`;
 
-      <!-- Botões de exportação -->
-      <div class="export-buttons">
-        <button class="export-btn" onclick="exportarCSV()">Exportar para CSV</button>
-        <button class="export-btn" onclick="exportarPDF()">Exportar para PDF</button>
+    if(visitas.length === 0){
+      box.innerHTML = '<div class="loading-row">Nenhuma visita registrada ainda.</div>';
+      return;
+    }
+
+    box.innerHTML = visitas.map(v => {
+      const d = new Date(v.entrada);
+      const ativa = v.ultimaAtividade && (Date.now() - new Date(v.ultimaAtividade)) < 5*60*1000 && !v.finalizou;
+      return `
+      <div class="visita-linha ${v.finalizou ? 'finalizou' : ''}">
+        <span class="vi-status">${v.finalizou ? '✅' : ativa ? '🟡' : '⚪'}</span>
+        <div class="vi-info">
+          <span class="vi-aparelho">${escapeHtml(v.aparelho||'?')}</span>
+          <span class="vi-quando">${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
+        </div>
+        <div class="vi-resultado">
+          ${v.finalizou
+            ? `<span class="vi-pedido">Pedido ${escapeHtml(v.codigoPedido||'')}</span>`
+            : ativa
+              ? `<span class="vi-navegando">navegando...</span>`
+              : `<span class="vi-saiu">saiu sem pedir</span>`}
+        </div>
       </div>`;
-
-    // Adicionar elemento para o gráfico de visitas
-    const graficoContainer = document.createElement('div');
-    graficoContainer.id = 'visitaGraficoContainer';
-    graficoContainer.style.marginTop = '24px';
-    graficoContainer.style.textAlign = 'center';
-    graficoContainer.innerHTML = '<div id="visitaGrafico"></div>';
-    box.appendChild(graficoContainer);
-
-    // Renderizar estatísticas e gráficos
-    renderEstatisticas();
-    renderGraficoVisitas();
-
-    // Renderizar lista de visitas com abas
-    const visitasAtivas = visitasHoje.filter(v => !v.finalizado && !v.saida);
-    const visitasFinalizadas = visitasHoje.filter(v => v.finalizado || v.saida);
-
-    box.innerHTML = visitasHoje.length ? `
-      <div class="visitas-container">
-        <div class="visitas-tabs">
-          <button class="tab-btn active" onclick="window.showTab && window.showTab('ativas') || eval('showTab(\'ativas\')')">Ativas (${visitasAtivas.length})</button>
-          <button class="tab-btn" onclick="window.showTab && window.showTab('finalizadas') || eval('showTab(\'finalizadas\')')">Finalizadas (${visitasFinalizadas.length})</button>
-          <button class="tab-btn" onclick="window.showTab && window.showTab('abandonadas') || eval('showTab(\'abandonadas\')')">Abandonadas (${visitasAbandonadas.length})</button>
-        </div>
-
-        <div id="tabAtivas" class="tab-content active">
-          ${renderVisitasLista(visitasAtivas, true)}
-        </div>
-        <div id="tabFinalizadas" class="tab-content">
-          ${renderVisitasLista(visitasFinalizadas, false)}
-        </div>
-        <div id="tabAbandonadas" class="tab-content">
-          ${renderVisitasLista(visitasAbandonadas, true)}
-        </div>
-      </div>` : '<div class="sem-visitas">Nenhuma visita registrada ainda.</div>';
+    }).join('');
   }
 
   /* ---------- RELATÓRIO EM PDF ---------- */
@@ -7121,213 +6817,7 @@
     btn.disabled = true; btn.textContent = 'Gerando...';
     msg.textContent = '';
 
-    try {
-
-  } catch (e) {
-    console.error('Erro ao gerar PDF:', e);
-    msg.textContent = 'Erro ao gerar relatório. Tente novamente.';
-  }
-
-  function exportarCSV() {
-    const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent([
-      "ID,Dispositivo,Hora de Entrada,Hora de Saída,Status,Código do Pedido,Tempo de Visita (min)",
-      ...visitas.map(v => {
-        const entrada = v.entrada ? new Date(v.entrada).toLocaleString('pt-BR') : '';
-        const saida = v.saida ? new Date(v.saida).toLocaleString('pt-BR') : '';
-        const tempoVisita = v.saida ? Math.round((new Date(v.saida) - new Date(v.entrada)) / 60000) : '';
-        return `${v._id},${escapeHtml(v.aparelho || '')},${entrada},${saida},${v.finalizado ? 'Finalizada' : v.saida ? 'Concluída' : 'Aberta'},${escapeHtml(v.codigoPedido || '')},${tempoVisita}`;
-      })
-    ].join("\n"));
-
-    const link = document.createElement('a');
-    link.href = csvContent;
-    link.download = 'visitas_markin.csv';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  function exportarPDF() {
-    if (typeof window.jspdf === 'undefined') {
-      alert('Biblioteca jsPDF não carregada. Por favor, verifique sua conexão com a internet.');
-      return;
-    }
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.setFont('DM Sans', 'bold');
-    doc.text('Relatório de Visitas - O Markin', 14, 18);
-
-    doc.setFontSize(12);
-    doc.text(`Período: ${new Date().toLocaleDateString('pt-BR')}`, 14, 26);
-    doc.setFontSize(10);
-    doc.text(`Total de visitas: ${visitas.length}`, 14, 32);
-    doc.setFontSize(10);
-    doc.text(`Visitas hoje: ${visitasHoje.length}`, 14, 38);
-
-    // Adicionar tabela
-    doc.setFontSize(10);
-    doc.text('Detalhes das visitas:', 14, 48);
-    doc.setFontSize(8);
-    doc.text('ID, Dispositivo, Entrada, Saída, Status, Pedido, Tempo (min)', 14, 55);
-
-    visitas.slice(0, 20).forEach((v, i) => {
-      const entrada = v.entrada ? new Date(v.entrada).toLocaleString('pt-BR') : '';
-      const saida = v.saida ? new Date(v.saida).toLocaleString('pt-BR') : '';
-      const tempoVisita = v.saida ? Math.round((new Date(v.saida) - new Date(v.entrada)) / 60000) : '';
-      doc.text(`${v._id.substring(0, 8)}, ${v.aparelho || ''}, ${entrada}, ${saida}, ${v.finalizado ? 'Finalizada' : v.saida ? 'Concluída' : 'Aberta'}, ${v.codigoPedido || ''}, ${tempoVisita}`, 14, 60 + (i * 8));
-    });
-
-    doc.save('relatorio_visitas_markin.pdf');
-  }
-
-  try {
-
-  }
-
-  function renderVisitasLista(visitas, showAcao) {
-    if (visitas.length === 0) {
-      return '<div class="sem-visitas-tab">Nenhuma visita nesta categoria.</div>';
-    }
-
-    return visitas.map(v => {
-      const d = new Date(v.entrada);
-      const tempoVisita = v.saida ? Math.round((new Date(v.saida) - d) / 60000) : null;
-      return `
-      <div class="visita-item ${v.finalizado ? 'finalizada' : 'ativa'}">
-        <div class="visita-status">
-          <span class="status-icon">${v.finalizado ? '✅' : v.saida ? '🟢' : '⚪'}</span>
-          <span class="status-text">${v.finalizado ? 'Finalizada' : v.saida ? 'Concluída' : 'Aberta'}</span>
-        </div>
-        <div class="visita-info">
-          <div class="visita-device">📱 ${escapeHtml(v.aparelho || 'Desconhecido')}</div>
-          <div class="visita-time">${d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}</div>
-          ${tempoVisita ? `<div class="visita-duration">Tempo: ${tempoVisita} min</div>` : ''}
-        </div>
-        <div class="visita-actions">
-          ${v.finalizado ? `<span class="order-code">Pedido: ${escapeHtml(v.codigoPedido || '')}</span>` : ''}
-          ${showAcao && !v.finalizado ? `<button class="finalizar-btn" onclick="finalizarVisita('${v._id}')">Marcar como Finalizada</button>` : ''}
-        </div>
-      </div>`;
-    }).join('');
-  }
-
-  function renderEstatisticas() {
-    const estatBox = document.getElementById('visitaKpis');
-    if (!estatBox) return;
-
-    const hoje = new Date().toISOString().split('T')[0];
-    const visitasHoje = visitas.filter(v => v.entrada && v.entrada.startsWith(hoje));
-    const finalizadas = visitasHoje.filter(v => v.finalizado || v.saida).length;
-    const taxaConversao = visitasHoje.length > 0 ? Math.round((finalizadas / visitasHoje.length) * 100) : 0;
-    const taxaConversaoTotal = visitas.length > 0 ? Math.round((visitas.filter(v => v.finalizado || v.saida).length / visitas.length) * 100) : 0;
-
-    estatBox.innerHTML = `
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="kpi-value">${visitasHoje.length}</div>
-          <div class="kpi-label">Visitas hoje</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-value">${finalizadas}</div>
-          <div class="kpi-label">Viraram pedido</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-value">${taxaConversao}%</div>
-          <div class="kpi-label">Taxa hoje</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-value">${taxaConversaoTotal}%</div>
-          <div class="kpi-label">Conversão geral</div>
-        </div>
-      </div>`;
-  }
-
-  function renderGraficoVisitas() {
-    const graficoBox = document.getElementById('visitaGrafico');
-    if (!graficoBox) return;
-
-    // Limpar conteúdo anterior
-    graficoBox.innerHTML = '';
-
-    // Criar elemento canvas
-    const canvas = document.createElement('canvas');
-    canvas.id = 'visitasChart';
-    canvas.width = 300;
-    canvas.height = 150;
-    graficoBox.appendChild(canvas);
-
-    // Criar contexto
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#f2e9da';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Desenhar eixo X e Y
-    ctx.strokeStyle = '#1c1613';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, canvas.height - 30);
-    ctx.lineTo(canvas.width, canvas.height - 30);
-    ctx.stroke();
-
-    // Desenhar barras
-    const barWidth = (canvas.width / 24) - 2;
-    let maxVisits = Math.max(...visitasGrafico, 1);
-
-    visitasGrafico.forEach((count, i) => {
-      if (count > 0) {
-        const barHeight = (count / maxVisits) * (canvas.height - 40);
-        ctx.fillStyle = '#e5762e';
-        ctx.fillRect(i * (barWidth + 2), canvas.height - 30 - barHeight, barWidth, barHeight);
-        ctx.fillStyle = '#120e0b';
-        ctx.font = '10px DM Sans';
-        ctx.textAlign = 'center';
-        ctx.fillText(count, i * (barWidth + 2) + barWidth / 2, canvas.height - 30 - barHeight - 5);
-      }
-    });
-
-    // Desenhar horas
-    ctx.textAlign = 'center';
-    ctx.font = '10px DM Sans';
-    visitasGrafico.forEach((_, i) => {
-      if (i % 2 === 0) { // Mostrar apenas algumas horas para não sobrecarregar
-        ctx.fillText(`${i}:00`, i * (barWidth + 2) + barWidth / 2, canvas.height - 15);
-      }
-    });
-  }
-
-  function showTab(tab) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-    document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
-    document.querySelector(`.tab-btn[onclick="showTab('${tab}')"]`).classList.add('active');
-  }
-
-  function finalizarVisita(id) {
-    if (!id) return;
-
-    const visitaIndex = visitas.findIndex(v => v._id === id);
-    if (visitaIndex === -1) return;
-
-    // Atualizar localmente
-    visitas[visitaIndex].finalizado = true;
-    visitas[visitaIndex].saida = new Date().toISOString();
-    atualizarVisitas();
-    renderVisitas();
-
-    // Salvar no Firebase
-    db.collection('visitas').doc(id).update({
-      finalizado: true,
-      saida: new Date().toISOString()
-    }).catch(err => console.error('Erro ao atualizar visita:', err));
-  }
-
-  // Expor funções para o escopo global
-  window.showTab = showTab;
-  window.finalizarVisita = finalizarVisita;
-
-  try {
+    try{
       if(typeof window.jspdf === 'undefined') throw new Error('Biblioteca de PDF não carregou. Confira sua internet.');
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
@@ -7445,8 +6935,9 @@
     acessosUnsub = db.collection('acessos').orderBy('entrada','desc').limit(80)
       .onSnapshot((snap) => {
         acessos = snap.docs.map(d => Object.assign({_id:d.id}, d.data()));
-        // A quantidade de gente online só aparece dentro da aba (a pedido:
-        // nada de número fixo grudado no botão o tempo todo).
+        const online = acessos.filter(estaOnline).length;
+        const badge = document.getElementById('acessosBadge');
+        if(badge) badge.textContent = online > 0 ? `(${online})` : '';
         if(currentTab() === 'acessos') renderAcessos();
       }, (err) => console.warn('acessos:', err));
   }
@@ -7483,13 +6974,9 @@
     if(!lista) return;
 
     const online = acessos.filter(estaOnline);
-    // A quantidade só aparece aqui dentro (a pedido: nada fixo no botão da
-    // aba o tempo todo) — por isso o resumo vem em destaque, antes da lista.
-    const resumo = online.length === 0
+    boxOnline.innerHTML = online.length === 0
       ? `<div class="conta-aviso" style="margin-bottom:18px;">Ninguém conectado no momento.</div>`
-      : `<div class="online-resumo">${online.length} ${online.length === 1 ? 'pessoa online' : 'pessoas online'}</div>`;
-    boxOnline.innerHTML = resumo + (online.length === 0 ? '' :
-      `<div class="online-grid">${online.map(a => `
+      : `<div class="online-grid">${online.map(a => `
           <div class="online-card">
             <span class="on-ponto"></span>
             <div class="on-info">
@@ -7497,7 +6984,7 @@
               <span>${escapeHtml(a.funcao || '?')} · ${escapeHtml(a.aparelho || '?')}</span>
               <small>entrou ${tempoRelativo(a.entrada)}</small>
             </div>
-          </div>`).join('')}</div>`);
+          </div>`).join('')}</div>`;
 
     if(acessos.length === 0){
       lista.innerHTML = '<div class="loading-row">Nenhum acesso registrado ainda.</div>';
@@ -7531,9 +7018,6 @@
 
   let mensagensUnsub = null;
   function watchMensagens(){
-    // CORRIGIDO: mesma economia do watchErros — só escuta pra quem tem
-    // acesso à aba, em vez de puxar 100 documentos pra todo mundo sempre.
-    if(!myPerms.includes('mensagens') && currentRole !== 'gerente') return;
     if(mensagensUnsub) return;
     mensagensUnsub = db.collection('mensagens').orderBy('quando','desc').limit(100)
       .onSnapshot((snap) => {
@@ -7589,21 +7073,11 @@
 
     box.querySelectorAll('[data-msglida]').forEach(b => b.addEventListener('click', async () => {
       const m = mensagens.find(x => x._id === b.dataset.msglida);
-      try {
-        await db.collection('mensagens').doc(b.dataset.msglida).update({lida: !m.lida});
-      } catch (e) {
-        console.error('Erro ao atualizar mensagem como lida:', e);
-      }
+      try{ await db.collection('mensagens').doc(b.dataset.msglida).update({lida: !m.lida}); }catch(e){}
     }));
     box.querySelectorAll('[data-msgapagar]').forEach(b => b.addEventListener('click', async () => {
       if(!confirm('Excluir esta mensagem?')) return;
-      try {
-        await db.collection('mensagens').doc(b.dataset.msgapagar).delete();
-        showToast('Mensagem excluída');
-      } catch (e) {
-        console.error('Erro ao excluir mensagem:', e);
-        showToast('Erro ao excluir mensagem');
-      }
+      try{ await db.collection('mensagens').doc(b.dataset.msgapagar).delete(); showToast('Mensagem excluída'); }catch(e){}
     }));
   }
 
@@ -7870,8 +7344,6 @@
      desc:'Estima o movimento dos próximos dias com base no seu histórico.', tab:null},
     {key:'filaimpressao', icon:'🖨️', nome:'Fila de impressão (PC + USB)',
      desc:'Manda as comandas pra um computador imprimir na térmica USB. Precisa do script rodando no PC.', tab:null},
-    {key:'pixAutomatico', icon:'💳', nome:'Pix automático (Mercado Pago)',
-     desc:'Gera QR Code Pix de verdade no checkout e confirma o pagamento sozinho. Precisa da conta no Mercado Pago configurada — veja o README.', tab:null},
     {key:'cupons',      icon:'🏷️', nome:'Cupons de desconto',
      desc:'Códigos promocionais que o cliente digita no checkout. Percentual, valor fixo ou frete grátis.', tab:'cupons'},
     {key:'pixels',      icon:'📣', nome:'Pixels de anúncio (Meta / Google / TikTok)',
@@ -7902,8 +7374,7 @@
       renderModulos();
       aplicarModulos();
       watchClientes();           // liga ou desliga conforme os módulos
-      watchVisitas();
-    renderVisitas();            // mesma trava de módulo do watchClientes
+      watchVisitas();            // mesma trava de módulo do watchClientes
       watchCupons();
       if(primeiraVez) applyRolePermissions();
     }, (err) => {
@@ -8243,9 +7714,6 @@
     if(key === 'fiado' && !novo){
       const emAberto = orders.filter(o => (o.paymentMethods||[]).some(x => x.method === 'fiado')).length;
       if(emAberto > 0 && !confirm(`Há ${emAberto} pedido(s) pagos em fiado neste turno.\n\nDesligar só esconde a forma de pagamento — os valores continuam registrados.\n\nContinuar?`)) return;
-    }
-    if(key === 'pixAutomatico' && novo){
-      if(!confirm('Ligar o Pix automático?\n\nSó funciona depois de configurar a conta do Mercado Pago e publicar as Cloud Functions (veja o README, seção "Ativando o Pix automático"). Se ligar antes disso, o cliente vai ver uma mensagem de erro ao tentar pagar com Pix.\n\nJá configurou tudo isso?')) return;
     }
 
     try{
@@ -9583,9 +9051,6 @@
       }
       document.getElementById('managerView').classList.add('carregando');
       if(!listenersStarted){ startDataListeners(); listenersStarted = true; }
-      // Inicializar visitas ao site
-      watchVisitas();
-      renderVisitas();
       // Reavalia a cada login — corrige o aparelho compartilhado: se a
       // pessoa anterior não tinha acesso a Dashboard/Financeiro, essas
       // escutas nunca tinham começado. Agora começam pra quem tem, e
@@ -9648,10 +9113,8 @@
     watchEmployees();
     watchRegister();
     watchFeatures();
-    // watchErros() e watchMensagens() NÃO começam aqui — ficam a cargo de
-    // ajustarListenersPorPermissao(), chamada logo após esta função em todo
-    // login, pra só escutar (e no aparelho compartilhado, também parar de
-    // escutar) quem realmente tem acesso a essas abas.
+    watchErros();
+    watchMensagens();
     watchAcessos();
     watchVisitas();
     watchTempoPreparoDash();
@@ -9681,51 +9144,27 @@
       if(cashflowUnsub){ if(typeof cashflowUnsub === 'function') cashflowUnsub(); cashflowUnsub = null; cashflow = []; }
       if(fixedCostsUnsub){ if(typeof fixedCostsUnsub === 'function') fixedCostsUnsub(); fixedCostsUnsub = null; fixedCosts = []; }
     }
-
-    // erros/mensagens: mesma lógica — liga pra quem tem acesso, desliga pra
-    // quem não tem (aparelho compartilhado entre turnos com permissões
-    // diferentes).
-    if(myPerms.includes('erros') || currentRole === 'gerente'){
-      watchErros();
-    }else if(errosUnsub){
-      errosUnsub(); errosUnsub = null; errosLog = [];
-    }
-
-    if(myPerms.includes('mensagens') || currentRole === 'gerente'){
-      watchMensagens();
-    }else if(mensagensUnsub){
-      mensagensUnsub(); mensagensUnsub = null; mensagens = [];
-    }
   }
 })();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
-    // Um único reload por ciclo de vida da página. Antes o 'statechange'
-    // agendava um reload em 1s E o 'controllerchange' recarregava na hora —
-    // os dois disparam juntos quando o SW novo assume (skipWaiting), o que
-    // podia gerar reloads concorrentes e o app "piscando"/recarregando sozinho.
-    let jaRecarregou = false;
-    const recarregar = () => {
-      if(jaRecarregou) return;
-      jaRecarregou = true;
-      window.location.reload();
-    };
-
     navigator.serviceWorker.register('sw.js').then(reg => {
-      // detecta quando uma versão nova do SW instala
+      // detecta quando uma versão nova do SW instala e recarrega automaticamente
       reg.addEventListener('updatefound', () => {
         const newSW = reg.installing;
         newSW.addEventListener('statechange', () => {
           if(newSW.state === 'installed' && navigator.serviceWorker.controller){
-            setTimeout(recarregar, 1000);
+            // nova versão pronta — recarrega em 1s
+            setTimeout(() => window.location.reload(), 1000);
           }
         });
       });
     }).catch(()=>{});
-
-    // se o SW assumiu o controle (nova versão ativou), recarrega — mas só uma vez
-    navigator.serviceWorker.addEventListener('controllerchange', recarregar);
+    // se o SW assumiu o controle agora (primeira ativação), recarrega pra garantir
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    });
   });
 }
 </script>
