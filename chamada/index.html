@@ -259,9 +259,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"
         onerror="document.getElementById('falhaConexao').style.display='flex'"></script>
 <script>
-(function(){
-  "use strict";
-
   const firebaseConfig = {
     apiKey: "AIzaSyA-7sy4ox0ErDZAw7prhXYJ3MaSA7G_scY",
     authDomain: "omarkin-burguer-39bda.firebaseapp.com",
@@ -284,6 +281,10 @@
     if(falhaEl) falhaEl.style.display = 'flex';
     throw e;
   }
+</script>
+<script>
+(function(){
+  "use strict";
 
   /* ============ CONFIGURAÇÃO ============ */
   const TEMPO_NA_TELA = 14000;  // quanto cada chamada fica em destaque (ms)
