@@ -138,6 +138,10 @@
   .conn{display:inline-block; width:9px; height:9px; border-radius:50%; background:var(--green); margin-right:7px;}
   .conn.off{background:#b6382c;}
 
+  /* ---------- LAZY LOADING PLACEHOLDER ---------- */
+  img[data-src]{background:linear-gradient(90deg,#e5e5e5,#f5f5f5); min-height:60px; opacity:0.5;}
+  img.loaded{opacity:1; transition:opacity 0.3s ease;}
+
   /* ---------- TELAS MENORES ---------- */
   @media(max-width:1100px){
     .tv{grid-template-columns:1fr 300px;}
@@ -157,7 +161,7 @@
 
 <!-- Libera o som (navegador exige um toque antes de tocar áudio) -->
 <div class="start-screen" id="startScreen">
-  <img src="mascot.jpg" alt="O Markin">
+  <img data-src="mascot.jpg" alt="O Markin" loading="lazy">
   <h1>PAINEL DE CHAMADA</h1>
   <p>Toque no botão para iniciar. Deixe esta tela aberta na TV — os pedidos prontos aparecem aqui com aviso sonoro.</p>
   <button class="start-btn" id="startBtn">▶ INICIAR PAINEL</button>
@@ -481,5 +485,13 @@
   });
 })();
 </script>
+
+<!-- ⚡ Performance Scripts -->
+<script src="/js/config.js" defer></script>
+<script src="/js/errorHandler.js" defer></script>
+<script src="/js/firebase.js" defer></script>
+<script src="/js/performance.js" defer></script>
+<script src="/js/performanceMonitor.js" defer></script>
+
 </body>
 </html>

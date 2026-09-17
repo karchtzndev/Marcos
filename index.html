@@ -383,6 +383,10 @@
   }
   @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important;} }
 
+  /* ---------- LAZY LOADING PLACEHOLDER ---------- */
+  img[data-src]{background:linear-gradient(90deg,#e5e5e5,#f5f5f5); min-height:200px; opacity:0.5;}
+  img.loaded{opacity:1; transition:opacity 0.3s ease;}
+
   /* ---------- DAY STATS ---------- */
   .day-stats{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:26px;}
   .day-stat{background:var(--pitch); border:1px solid var(--line); border-radius:14px; padding:16px; text-align:center;}
@@ -1014,7 +1018,7 @@
   <div class="wrap about-grid">
     <div class="about-visual">
       <div class="flame"></div>
-      <img src="mascot.jpg" alt="Mascote Chef O Markin" class="about-mascot">
+      <img data-src="mascot.jpg" alt="Mascote Chef O Markin" class="about-mascot" loading="lazy">
       <div class="script">"na chapa,<br>na hora."</div>
     </div>
     <div class="about-copy">
@@ -1376,7 +1380,7 @@
 </div>
 
 <div id="instalarBanner" class="instalar-banner" style="display:none;">
-  <img src="mascot.jpg" alt="" class="ib-icone">
+  <img data-src="mascot.jpg" alt="O Markin" class="ib-icone" loading="lazy">
   <div class="ib-txt">
     <strong>Adicione nosso app</strong>
     <span>Peça mais rápido e receba avisos do seu pedido</span>
@@ -4068,6 +4072,16 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
+
+<!-- ⚡ Performance Scripts -->
+<script src="/js/config.js" defer></script>
+<script src="/js/validation.js" defer></script>
+<script src="/js/errorHandler.js" defer></script>
+<script src="/js/firebase.js" defer></script>
+<script src="/js/performance.js" defer></script>
+<script src="/js/firestoreOptimization.js" defer></script>
+<script src="/js/performanceMonitor.js" defer></script>
+<script src="/js/app-client.js" defer></script>
 
 </body>
 </html>
