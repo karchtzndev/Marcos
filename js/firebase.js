@@ -1,18 +1,10 @@
 /**
- * 🔥 Firebase Config - O Markin
- * Inicialização centralizada do Firebase
+ * 🔥 Firebase Helpers - O Markin
+ * Utilidades para Firestore
  */
 
-// Configuração do Firebase (substituir com seus valores)
-const firebaseConfig = {
-  apiKey: 'AIzaSyCLv4QX2nK8dXe1mP6jJ-8vRtUx7Y9zAbC',
-  authDomain: 'omarkin-chef.firebaseapp.com',
-  projectId: 'omarkin-chef',
-  storageBucket: 'omarkin-chef.appspot.com',
-  messagingSenderId: '123456789012',
-  appId: '1:123456789012:web:abc123def456ghi789',
-  databaseURL: 'https://omarkin-chef.firebaseio.com'
-};
+// Nota: firebaseConfig é definida no index.html (ver linha ~1516)
+// Este arquivo fornece helpers para operações Firebase
 
 // Inicializar Firebase (compatibilidade com código existente)
 const FirebaseHelper = {
