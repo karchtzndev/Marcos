@@ -3052,7 +3052,8 @@
   // saber se ela terminou em pedido ou foi embora no meio do caminho.
   let visitaId = null;
   const VISITA_KEY = 'omarkin_visita_id';
-  const VISITA_VALIDADE = 30 * 60 * 1000;   // 30min sem ação = sessão nova
+  const VISITA_VALIDADE = 10 * 60 * 1000;   // 10min = mesma sessão; > 10min = nova visita
+  let visitaNaVisible = false;   // rastreia se voltou da aba
 
   function novoIdVisita(){
     return 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
@@ -3062,6 +3063,28 @@
     try{
       const salvo = JSON.parse(guardar.ler(VISITA_KEY) || 'null');
       const agora = Date.now();
+
+      // Se voltou da aba/navegador depois de sair, cria nova visita (visitaNaVisible só é true depois de hidden)
+      if(visitaNaVisible && salvo && salvo.id){
+        visitaNaVisible = false;
+        // Força nova visita quando volta de estar hidden
+        visitaId = novoIdVisita();
+        guardar.salvar(VISITA_KEY, JSON.stringify({id: visitaId, em: agora}));
+
+        await db.collection('visitas').doc(visitaId).set({
+          entrada: new Date().toISOString(),
+          ultimaAtividade: new Date().toISOString(),
+          aparelho: /iphone|ipad/i.test(navigator.userAgent) ? 'iPhone/iPad'
+                   : /android/i.test(navigator.userAgent) ? 'Android' : 'Computador',
+          origem: document.referrer ? new URL(document.referrer).hostname : 'direto',
+          finalizou: false,
+          codigoPedido: '',
+          novaVisitaAposVoltar: true
+        });
+        return;
+      }
+
+      // Se passou tempo demais, cria nova visita
       if(salvo && salvo.id && (agora - salvo.em) < VISITA_VALIDADE){
         visitaId = salvo.id;
         guardar.salvar(VISITA_KEY, JSON.stringify({id: visitaId, em: agora}));
@@ -3072,6 +3095,7 @@
         return;
       }
 
+      // Criar nova visita: primeira vez ou passou > 10 minutos
       visitaId = novoIdVisita();
       guardar.salvar(VISITA_KEY, JSON.stringify({id: visitaId, em: agora}));
 
@@ -3093,6 +3117,23 @@
       }).catch(()=>{});
     }
   }
+
+  // Detectar quando o usuário sai/volta da aba (Visibility API)
+  document.addEventListener('visibilitychange', () => {
+    if(document.hidden){
+      // Saiu da aba
+      visitaNaVisible = true;
+    }else{
+      // Voltou para a aba — se esteve fora > 5 minutos, registra nova visita
+      if(visitaNaVisible){
+        const salvo = JSON.parse(guardar.ler(VISITA_KEY) || 'null');
+        const agora = Date.now();
+        if(salvo && (agora - salvo.em) > 5 * 60 * 1000){  // > 5 minutos = nova visita
+          registrarVisita();
+        }
+      }
+    }
+  });
 
   // Salva o telefone e o carrinho na visita, com atraso pra não gravar a
   // cada tecla — só quando a pessoa realmente parar de digitar. É o que
