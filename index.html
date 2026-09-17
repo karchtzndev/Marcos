@@ -3080,7 +3080,14 @@
         finalizou: false,
         codigoPedido: ''
       });
-    }catch(e){ /* rastreio nunca pode travar a navegação do cliente */ }
+    }catch(e){
+      db.collection('errorLog').add({
+        timestamp: new Date().toISOString(),
+        source: 'registrarVisita',
+        error: e.message,
+        stack: e.stack
+      }).catch(()=>{});
+    }
   }
 
   // Salva o telefone e o carrinho na visita, com atraso pra não gravar a
