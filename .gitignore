@@ -1,0 +1,49 @@
+# Ambiente
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Node
+node_modules/
+npm-debug.log
+yarn-debug.log
+.yarn-error.log
+
+# Build
+dist/
+build/
+*.min.js
+*.min.css
+
+# Testing
+coverage/
+.nyc_output/
+
+# Logs
+logs/
+*.log
+
+# Temporários
+temp/
+tmp/
+*.tmp
+
+# Backup
+*.backup
+*.bak
+*.old
+
+# Cache
+.cache/
+.eslintcache
+
+# Dependências locais
+local_modules/

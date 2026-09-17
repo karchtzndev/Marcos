@@ -1,0 +1,113 @@
+/* 🎨 O Markin — Design System Colors */
+
+:root {
+  /* Neutros */
+  --pitch: #120e0b;           /* Fundo escuro principal */
+  --char: #1c1613;            /* Destaque escuro */
+  --cream: #f2e9da;           /* Texto principal */
+
+  /* Primária - Laranja quente (marca) */
+  --ember: #e5762e;           /* Botões, destaque */
+  --ember-deep: #c1521c;      /* Hover escuro */
+
+  /* Secundária - Vermelho (alerta) */
+  --tomato: #b6382c;          /* Erros, alertas críticos */
+
+  /* Terciária - Dourado (atenção) */
+  --mustard: #f0b429;         /* Labels, destaque quente */
+
+  /* Quaternária - Verde (sucesso) */
+  --green: #4caf6d;           /* Confirmação, status positivo */
+
+  /* Utilitário - Linhas/bordas */
+  --line: rgba(242, 233, 218, 0.14);
+  --line-light: rgba(242, 233, 218, 0.22);
+  --line-lighter: rgba(242, 233, 218, 0.08);
+
+  /* Estados */
+  --success: var(--green);
+  --warning: var(--mustard);
+  --error: var(--tomato);
+  --info: var(--ember);
+
+  /* Transparências */
+  --overlay-dark: rgba(18, 14, 11, 0.88);
+  --overlay-light: rgba(242, 233, 218, 0.08);
+}
+
+/* Dark mode (padrão) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Ajustes mínimos para dark mode explícito */
+  }
+}
+
+/* Light mode (se implementado no futuro) */
+@media (prefers-color-scheme: light) {
+  :root {
+    --pitch: #f2e9da;
+    --char: #e5e1d6;
+    --cream: #120e0b;
+    --line: rgba(18, 14, 11, 0.14);
+    --line-light: rgba(18, 14, 11, 0.22);
+    --line-lighter: rgba(18, 14, 11, 0.08);
+    --overlay-dark: rgba(242, 233, 218, 0.88);
+    --overlay-light: rgba(18, 14, 11, 0.08);
+  }
+}
+
+/* Variações de cores */
+
+/* Ember (Primária) */
+.text-ember { color: var(--ember); }
+.bg-ember { background: var(--ember); }
+.border-ember { border-color: var(--ember); }
+.hover-ember:hover { color: var(--ember); }
+
+/* Mustard (Destaque) */
+.text-mustard { color: var(--mustard); }
+.bg-mustard { background: var(--mustard); }
+.border-mustard { border-color: var(--mustard); }
+
+/* Green (Sucesso) */
+.text-green { color: var(--green); }
+.bg-green { background: var(--green); }
+.border-green { border-color: var(--green); }
+
+/* Tomato (Erro) */
+.text-tomato { color: var(--tomato); }
+.bg-tomato { background: var(--tomato); }
+.border-tomato { border-color: var(--tomato); }
+
+/* Cream (Texto) */
+.text-cream { color: var(--cream); }
+.text-muted { color: rgba(242, 233, 218, 0.65); }
+.text-subtle { color: rgba(242, 233, 218, 0.4); }
+
+/* Backgrounds com opacity */
+.bg-pitch { background: var(--pitch); }
+.bg-char { background: var(--char); }
+.bg-overlay { background: var(--overlay-dark); }
+
+/* Bordas utilitárias */
+.border-line { border-color: var(--line); }
+.border-line-light { border-color: var(--line-light); }
+.border-line-lighter { border-color: var(--line-lighter); }
+
+/* Gradientes comuns */
+.gradient-ember {
+  background: linear-gradient(135deg, var(--ember) 0%, var(--ember-deep) 100%);
+}
+
+.gradient-mustard {
+  background: linear-gradient(135deg, var(--mustard) 0%, var(--ember) 100%);
+}
+
+/* Sombras */
+.shadow-glow-ember {
+  box-shadow: 0 0 20px rgba(229, 118, 46, 0.3);
+}
+
+.shadow-glow-tomato {
+  box-shadow: 0 0 20px rgba(182, 56, 44, 0.3);
+}
