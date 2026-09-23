@@ -41,22 +41,20 @@ CLS (Cumulative Layout Shift)
 
 ### 1. Lazy Loading
 
+O navegador já faz isso nativamente — não use JavaScript para adiar imagem.
+
 **HTML:**
 ```html
-<!-- Usar data-src ao invés de src -->
-<img 
-  data-src="/imagens/pedido.jpg"
-  data-srcset="/imagens/pedido-300w.jpg 300w, /imagens/pedido-600w.jpg 600w"
-  alt="Foto do pedido"
-  width="300"
-  height="200"
->
+<!-- loading="lazy" em tudo que está abaixo da dobra -->
+<img src="/imagens/pedido.jpg" alt="Foto do pedido"
+     width="300" height="200" loading="lazy">
 
-<script src="/js/performance.js"></script>
-<script>
-  Performance.lazyLoadImages({ rootMargin: '50px' });
-</script>
+<!-- A imagem do topo é o elemento LCP: NUNCA lazy -->
+<img src="/mascot.jpg" alt="Mascote" width="320" height="320" fetchpriority="high">
 ```
+
+`width` e `height` explícitos são obrigatórios: sem eles o navegador não
+reserva espaço e a página "pula" quando a imagem chega (piora o CLS).
 
 **CSS (Placeholder):**
 ```css
@@ -415,20 +413,18 @@ self.addEventListener('fetch', (event) => {
 
 ### Medir Web Vitals
 
+Não vale carregar biblioteca para isso — a API do navegador basta:
+
 ```js
-<script src="/js/performance.js"></script>
-<script>
-  Performance.measureWebVitals((metric, value) => {
-    console.log(`${metric}: ${value.toFixed(2)}ms`);
-    
-    // Enviar para analytics
-    fetch('/analytics', {
-      method: 'POST',
-      body: JSON.stringify({ metric, value })
-    });
-  });
-</script>
+new PerformanceObserver((lista) => {
+  for(const e of lista.getEntries()){
+    console.log(e.name, e.startTime.toFixed(0) + 'ms');
+  }
+}).observe({type: 'largest-contentful-paint', buffered: true});
 ```
+
+Na prática, use o Lighthouse do DevTools em vez de instrumentar o site:
+mede o mesmo sem custo nenhum para quem está visitando.
 
 ### Memory Usage
 
