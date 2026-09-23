@@ -46,10 +46,36 @@ cada coleção, todas no campo `expiraEm`:
 | `errorLog` | 30 dias | erro antigo não ajuda a depurar nada |
 | `acessos` | 180 dias | histórico de ponto além disso não é consultado |
 
+Atalho direto:
+`https://console.firebase.google.com/project/omarkin-burguer-39bda/firestore/databases/-default-/ttl`
+
 ⚠️ **A política só apaga documentos que têm o campo.** O que foi gravado
 antes dessa mudança não tem `expiraEm` e vai ficar lá para sempre. Para
 limpar o acumulado, uma vez só, no Console → Firestore: filtrar por data
 antiga e apagar em lote.
+
+> Isto tem que ser feito no console, na mão. Publicar regra e administrar
+> índice/TTL são permissões diferentes: uma conta de serviço do Admin SDK
+> publica regra mas recebe "caller does not have permission" no TTL. Quem
+> for automatizar precisa do papel **Cloud Datastore Index Admin**.
+
+### 2b. Índices compostos
+
+Definidos em **`firestore.indexes.json`**. Hoje há um, e ele importa:
+
+| Coleção | Campos | Para quê |
+|---|---|---|
+| `orders` | `phone` ASC, `createdAt` DESC | histórico do cliente ("meus pedidos" / repetir pedido) |
+
+Filtrar por um campo e ordenar por outro exige índice composto. Sem ele o
+Firestore recusa a consulta, o app cai num plano B sem ordenação — e como
+sem `orderBy` o Firestore ordena por ID do documento (que aqui é aleatório,
+`MK-ABC12`), o cliente via 10 pedidos quaisquer em vez dos 10 mais recentes.
+
+Criar em Console → Firestore → **Índices** → Criar índice composto, com os
+campos da tabela acima. Leva alguns minutos para ficar pronto.
+
+`https://console.firebase.google.com/project/omarkin-burguer-39bda/firestore/databases/-default-/indexes`
 
 ### 3. Regras de Segurança Firestore
 

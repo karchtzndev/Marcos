@@ -3203,11 +3203,18 @@
         .limit(10).get();
       return snap.docs.map(d => d.data());
     }catch(e){
-      // Sem índice composto o Firestore recusa: tenta sem ordenar
+      // Sem o índice composto (ver firestore.indexes.json) o Firestore recusa
+      // a consulta ordenada. Aqui buscamos sem ordenar e ordenamos na mão.
+      //
+      // Sem orderBy o Firestore ordena por ID do documento, e os códigos são
+      // aleatórios (MK-ABC12) — pegar 10 assim trazia 10 pedidos QUAISQUER,
+      // não os 10 mais recentes. Buscando 50 e cortando depois de ordenar, o
+      // cliente com bastante histórico volta a ver os pedidos certos.
       try{
-        const snap = await db.collection('orders').where('phone','==', telefone).limit(10).get();
+        const snap = await db.collection('orders').where('phone','==', telefone).limit(50).get();
         return snap.docs.map(d => d.data())
-          .sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''));
+          .sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''))
+          .slice(0,10);
       }catch(e2){ return []; }
     }
   }

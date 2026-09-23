@@ -1,0 +1,14 @@
+{
+  "indexes": [
+    {
+      "//": "Histórico do cliente: buscarHistorico() filtra por telefone e ordena por data. Filtrar e ordenar por campos DIFERENTES exige índice composto — sem ele o Firestore recusa a consulta e o app cai num plano B que traz 10 pedidos quaisquer em vez dos 10 mais recentes.",
+      "collectionGroup": "orders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "phone", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
