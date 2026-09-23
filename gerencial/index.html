@@ -3762,7 +3762,22 @@
       renderCashflowList(); renderDashboard(); renderFinKpis();
     }, (err) => console.error("Erro cashflow:", err));
   }
-  async function saveCashflow(){ try{ await db.collection('store').doc('cashflow').set({list: cashflow}); showToast("Lançamento salvo ✓"); }catch(e){ alert("Não foi possível salvar."); } }
+  // Caixa, custos fixos e estoque são listas dentro de um documento só. Gravar
+  // a lista inteira (o jeito antigo) fazia dois aparelhos se sobrescreverem: o
+  // segundo a salvar apagava o lançamento do primeiro, sem erro nenhum na tela.
+  // No caixa isso era venda sumindo — o pagamento no balcão lia a lista, somava
+  // a venda e regravava tudo, então dois pagamentos próximos se atropelavam.
+  //
+  // arrayUnion/arrayRemove são aplicados pelo SERVIDOR sobre o valor atual do
+  // campo, então as duas alterações sobrevivem e nem precisamos ler antes.
+  function incluirNaLista(doc, item){
+    return db.collection('store').doc(doc)
+      .set({list: firebase.firestore.FieldValue.arrayUnion(item)}, {merge:true});
+  }
+  function removerDaLista(doc, item){
+    return db.collection('store').doc(doc)
+      .set({list: firebase.firestore.FieldValue.arrayRemove(item)}, {merge:true});
+  }
 
   function watchFixedCosts(){
     return db.collection('store').doc('fixedcosts').onSnapshot((doc) => {
@@ -3770,7 +3785,6 @@
       renderFixedCostList(); renderDashboard(); renderFinKpis();
     }, (err) => console.error("Erro custos fixos:", err));
   }
-  async function saveFixedCosts(){ try{ await db.collection('store').doc('fixedcosts').set({list: fixedCosts}); showToast("Custo fixo salvo ✓"); }catch(e){ alert("Não foi possível salvar."); } }
 
   function watchInventory(){
     db.collection('store').doc('inventory').onSnapshot((doc) => {
@@ -3778,7 +3792,6 @@
       renderStockList(); renderDashboard();
     }, (err) => console.error("Erro estoque:", err));
   }
-  async function saveInventory(){ try{ await db.collection('store').doc('inventory').set({list: inventory}); showToast("Estoque atualizado ✓"); }catch(e){ alert("Não foi possível salvar."); } }
 
   function watchEmployees(){
     db.collection('users').onSnapshot((snap) => {
@@ -5100,8 +5113,11 @@
       </div>
     `).join('');
     box.querySelectorAll('[data-delcf]').forEach(btn => btn.addEventListener('click', async () => {
-      cashflow = cashflow.filter(c => c.id !== btn.dataset.delcf);
-      await saveCashflow();
+      const alvo = cashflow.find(c => c.id === btn.dataset.delcf);
+      if(!alvo) return;
+      // a lista local se atualiza sozinha pela escuta, não mexemos nela aqui
+      try{ await removerDaLista('cashflow', alvo); }
+      catch(e){ alert("Não foi possível excluir o lançamento."); }
     }));
   }
   function catFinLabel(c){ return {vendas:"Vendas", insumos:"Insumos", fornecedor:"Fornecedor", manutencao:"Manutenção", outros:"Outros"}[c] || c; }
@@ -5115,8 +5131,10 @@
     const errEl = document.getElementById('cfError');
     if(!desc || isNaN(amount) || amount <= 0){ errEl.textContent = "Preencha descrição e um valor válido."; return; }
     errEl.textContent = "";
-    cashflow.push({id: genId(), type: selectedCfType, desc, amount, category, date});
-    await saveCashflow();
+    try{
+      await incluirNaLista('cashflow', {id: genId(), type: selectedCfType, desc, amount, category, date});
+      showToast("Lançamento salvo ✓");
+    }catch(e){ errEl.textContent = "Não foi possível salvar."; return; }
     document.getElementById('cfDesc').value = ""; document.getElementById('cfAmount').value = "";
   });
 
@@ -5134,16 +5152,20 @@
     const total = fixedCosts.reduce((s,c)=>s+Number(c.amount),0);
     document.getElementById('fcTotal').innerHTML = `Total mensal: <span>${money(total)}</span>`;
     box.querySelectorAll('[data-delfc]').forEach(btn => btn.addEventListener('click', async () => {
-      fixedCosts = fixedCosts.filter(c => c.id !== btn.dataset.delfc);
-      await saveFixedCosts();
+      const alvo = fixedCosts.find(c => c.id === btn.dataset.delfc);
+      if(!alvo) return;
+      try{ await removerDaLista('fixedcosts', alvo); }
+      catch(e){ alert("Não foi possível excluir o custo fixo."); }
     }));
   }
   document.getElementById('addFixedCostBtn').addEventListener('click', async () => {
     const name = document.getElementById('fcName').value.trim();
     const amount = parseFloat(document.getElementById('fcAmount').value);
     if(!name || isNaN(amount) || amount <= 0) return;
-    fixedCosts.push({id: genId(), name, amount});
-    await saveFixedCosts();
+    try{
+      await incluirNaLista('fixedcosts', {id: genId(), name, amount});
+      showToast("Custo fixo salvo ✓");
+    }catch(e){ alert("Não foi possível salvar."); return; }
     document.getElementById('fcName').value = ""; document.getElementById('fcAmount').value = "";
   });
 
@@ -5169,12 +5191,28 @@
       const item = inventory.find(i => i.id === btn.dataset.stockdelta);
       if(!item) return;
       const step = item.unit === 'kg' || item.unit === 'l' ? 0.5 : 1;
-      item.qty = Math.max(0, Number(item.qty) + step * parseInt(btn.dataset.delta));
-      await saveInventory();
+      const delta = step * parseInt(btn.dataset.delta);
+      // Somar/subtrair altera um item no meio da lista, que arrayUnion não sabe
+      // fazer. Transação resolve: se outra pessoa mexeu no estoque nesse meio
+      // tempo, o Firestore repete a operação sobre o valor novo em vez de
+      // sobrescrever o que ela acabou de gravar.
+      const ref = db.collection('store').doc('inventory');
+      try{
+        await db.runTransaction(async (tx) => {
+          const doc = await tx.get(ref);
+          const lista = (doc.exists && doc.data().list) ? doc.data().list : [];
+          const alvo = lista.find(i => i.id === item.id);
+          if(!alvo) return;
+          alvo.qty = Math.max(0, Number(alvo.qty) + delta);
+          tx.set(ref, {list: lista}, {merge:true});
+        });
+      }catch(e){ alert("Não foi possível atualizar o estoque."); }
     }));
     box.querySelectorAll('[data-delstock]').forEach(btn => btn.addEventListener('click', async () => {
-      inventory = inventory.filter(i => i.id !== btn.dataset.delstock);
-      await saveInventory();
+      const alvo = inventory.find(i => i.id === btn.dataset.delstock);
+      if(!alvo) return;
+      try{ await removerDaLista('inventory', alvo); }
+      catch(e){ alert("Não foi possível excluir o item."); }
     }));
   }
   document.getElementById('addStockBtn').addEventListener('click', async () => {
@@ -5185,8 +5223,10 @@
     const errEl = document.getElementById('stError');
     if(!name || isNaN(qty) || isNaN(min)){ errEl.textContent = "Preencha nome, quantidade e estoque mínimo."; return; }
     errEl.textContent = "";
-    inventory.push({id: genId(), name, unit, qty, min});
-    await saveInventory();
+    try{
+      await incluirNaLista('inventory', {id: genId(), name, unit, qty, min});
+      showToast("Estoque atualizado ✓");
+    }catch(e){ errEl.textContent = "Não foi possível salvar."; return; }
     document.getElementById('stName').value = ""; document.getElementById('stQty').value = ""; document.getElementById('stMin').value = "";
   });
 
@@ -5649,21 +5689,16 @@
   // Não usa await no fluxo do pagamento: se falhar (sem permissão, rede ruim),
   // o pagamento já está registrado no pedido e o valor aparece no Caixa.
   function lancarVendaNoFinanceiro(titulo, methods, total){
-    const ref = db.collection('store').doc('cashflow');
-    Promise.race([
-      ref.get(),
-      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 4000))
-    ]).then(snap => {
-      const list = (snap.exists && snap.data().list) ? snap.data().list : [];
-      list.push({
-        id: genId(), type:'entrada',
-        desc: titulo + " (" + describeMethods({paymentMethods:methods}) + ")",
-        amount: total, category:'vendas', date: todayStr()
-      });
-      return ref.set({list});
-    }).catch(e => {
-      console.warn('Lançamento no financeiro adiado:', e.message || e);
-    });
+    // Antes isto lia o caixa inteiro, somava a venda e regravava a lista. Dois
+    // pagamentos fechados perto um do outro liam a MESMA lista, e o segundo a
+    // gravar apagava a venda do primeiro — dinheiro sumindo do caixa no
+    // movimento, sem nenhum aviso. arrayUnion é uma escrita só, resolvida no
+    // servidor, então não há leitura para ficar desatualizada nem corrida.
+    incluirNaLista('cashflow', {
+      id: genId(), type:'entrada',
+      desc: titulo + " (" + describeMethods({paymentMethods:methods}) + ")",
+      amount: total, category:'vendas', date: todayStr()
+    }).catch(e => console.warn('Lançamento no financeiro adiado:', e.message || e));
   }
 
   function printReceipt(bill, total, methods, change, service, discount, cpf){
