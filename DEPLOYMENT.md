@@ -234,6 +234,42 @@ Se algo der errado:
    # Vercel faz redeploy automaticamente
    ```
 
+### Ponto de restauração — antes das otimizações de 23/09/2026
+
+Branch `backup-antes-otimizacoes` (commit `0a31722`) guarda o site como
+estava antes daquele conjunto de mudanças. Nada é apagado por ter feito o
+backup: o branch fica parado ali para sempre.
+
+**Desfazer só uma das mudanças** (preferir isto — é cirúrgico):
+
+| Commit | O que desfaz |
+|---|---|
+| `330b0c4` | arrayUnion no caixa/estoque/custos fixos |
+| `02638f6` | campo `expiraEm` nos registros |
+| `811dfe5` | limite de 500 clientes no painel |
+| `adb1d59` | remoção dos módulos de performance |
+| `2b537b2` | imagens otimizadas e WebP |
+
+```bash
+git revert 330b0c4        # troque pelo commit que quer desfazer
+git push origin main
+```
+
+**Desfazer tudo de uma vez:**
+
+```bash
+git revert --no-commit backup-antes-otimizacoes..main
+git commit -m "Volta ao estado anterior às otimizações"
+git push origin main
+```
+
+`git revert` cria um commit novo que desfaz — o histórico continua
+inteiro e dá para voltar atrás de novo. Não use `reset --hard` em `main`:
+aí sim o trabalho some.
+
+> Para uma emergência em que nem o GitHub esteja acessível, existe também
+> um .zip do site nesse mesmo estado, enviado no chat da sessão.
+
 ## 📊 Monitoramento
 
 ### Firebase Console
