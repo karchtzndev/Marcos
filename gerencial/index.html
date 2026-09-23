@@ -8455,12 +8455,18 @@
   function bumpDailyStats(order){
     const day = localDateStr(order.createdAt);
     const inc = firebase.firestore.FieldValue.increment;
-    const update = {date: day, orderCount: inc(1), revenue: inc(Number(order.total)||0)};
-    update['byType.' + order.orderType] = inc(1);
-    order.items.forEach(i => {
-      update['products.' + statsKey(i.name)] = inc(i.qty);
-    });
-    db.collection('stats').doc(day).set(update, {merge:true}).catch(e => console.warn("stats:", e));
+    // Objeto aninhado, não chave com ponto — set() não interpreta ponto como
+    // caminho, então 'products.X' virava campo com esse nome literal e o
+    // dashboard (que lê d.products) não achava nada. Ver nota igual no site.
+    const produtos = {};
+    order.items.forEach(i => { produtos[statsKey(i.name)] = inc(i.qty); });
+    db.collection('stats').doc(day).set({
+      date: day,
+      orderCount: inc(1),
+      revenue: inc(Number(order.total)||0),
+      byType: { [order.orderType]: inc(1) },
+      products: produtos
+    }, {merge:true}).catch(e => console.warn("stats:", e));
   }
 
   // Roda uma operação no banco com limite de tempo. Usado nos botões que

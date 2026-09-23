@@ -353,17 +353,25 @@ service cloud.firestore {
     //
     // Agora só aceita: o número seguinte exato (+1), ou virar 1 de novo
     // quando a data realmente mudou (troca de dia).
+    //
+    // O gerente é exceção: o "Zerar sistema" precisa gravar count:0, que a
+    // sequência estrita recusa. Sem isso o botão dizia "✅ Pronto, sistema
+    // limpo" e o contador continuava de onde estava — a falha era engolida
+    // por um .catch() vazio. Abrir para o gerente não reabre o risco acima:
+    // ele já pode apagar os pedidos inteiros nessa mesma tela.
     match /counters/{doc} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasOnly(['date','count'])
-                    && request.resource.data.count == 1;
-      allow update: if request.resource.data.keys().hasOnly(['date','count'])
-                    && request.resource.data.count is int
-                    && (
-                         request.resource.data.count == resource.data.count + 1
-                         || (request.resource.data.date != resource.data.date
-                             && request.resource.data.count == 1)
-                       );
+      allow create: if ehGerente()
+                    || (request.resource.data.keys().hasOnly(['date','count'])
+                        && request.resource.data.count == 1);
+      allow update: if ehGerente()
+                    || (request.resource.data.keys().hasOnly(['date','count'])
+                        && request.resource.data.count is int
+                        && (
+                             request.resource.data.count == resource.data.count + 1
+                             || (request.resource.data.date != resource.data.date
+                                 && request.resource.data.count == 1)
+                           ));
     }
 
     // ---------- BLOQUEIO GERAL ----------

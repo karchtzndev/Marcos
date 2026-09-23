@@ -2415,17 +2415,24 @@
     const day = localDateStr(order.createdAt);
     const ref = db.collection('stats').doc(day);
     const inc = firebase.firestore.FieldValue.increment;
-    const update = {
-      date: day,
-      orderCount: inc(1),
-      revenue: inc(Number(order.total) || 0)
-    };
-    update['byType.' + order.orderType] = inc(1);
+    // Objeto aninhado, não chave com ponto. set() NÃO interpreta ponto como
+    // caminho (só update() faz isso), então 'products.X' virava um campo com
+    // esse nome literal — e o dashboard, que lê d.products, achava undefined.
+    // Os produtos mais vendidos nunca apareceram por causa disso. Pior: a
+    // regra do stats usa hasOnly, que recusava esses nomes, então o dia
+    // sequer era criado a partir de um pedido feito pelo site.
+    const produtos = {};
     order.items.forEach(i => {
       const key = i.name.replace(/[.~*/\[\]]/g, '_').slice(0,60);
-      update['products.' + key] = inc(i.qty);
+      produtos[key] = inc(i.qty);
     });
-    ref.set(update, {merge:true}).catch(e => console.warn("stats:", e));
+    ref.set({
+      date: day,
+      orderCount: inc(1),
+      revenue: inc(Number(order.total) || 0),
+      byType: { [order.orderType]: inc(1) },
+      products: produtos
+    }, {merge:true}).catch(e => console.warn("stats:", e));
   }
 
   // Mantém o cadastro do cliente atualizado (usado pela fidelidade)

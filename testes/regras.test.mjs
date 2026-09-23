@@ -15,6 +15,10 @@ import {
   assertSucceeds,
   assertFails,
 } from '@firebase/rules-unit-testing';
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/firestore';
+
+const inc = firebase.firestore.FieldValue.increment;
 
 let env;
 
@@ -171,5 +175,59 @@ describe('cadastro de cliente', () => {
 
   test('não dá pra forjar 9999 pedidos e liberar brinde', async () => {
     await assertFails(anonimo().doc('customers/11999990000').update({ pedidos: 9999 }));
+  });
+});
+
+/* ==================================================================
+   GRAVAÇÕES REAIS DO FLUXO DE PEDIDO
+   Replicam exatamente o que o código faz, inclusive as chaves com
+   ponto e o FieldValue.increment — supor como a regra enxerga isso
+   é justamente o erro que já custou caro nesta base.
+   ================================================================== */
+describe('fluxo do pedido', () => {
+
+  test('estatística do dia é gravada como o app grava', async () => {
+    await assertSucceeds(
+      anonimo().doc('stats/2026-09-23').set({
+        date: '2026-09-23',
+        orderCount: inc(1),
+        revenue: inc(45.5),
+        byType: { mesa: inc(1) },
+        products: { 'Bugue do Papai': inc(2) },
+      }, { merge: true })
+    );
+  });
+
+  test('chave com ponto em stats continua recusada', async () => {
+    // set() não interpreta ponto como caminho: viraria um campo de nome
+    // literal "products.X", que o dashboard não lê. Era o bug original.
+    const u = { date: '2026-09-23', orderCount: inc(1), revenue: inc(10) };
+    u['products.Bugue do Papai'] = inc(1);
+    await assertFails(anonimo().doc('stats/2026-09-24').set(u, { merge: true }));
+  });
+
+  test('número do pedido avança de 1 em 1', async () => {
+    const ref = anonimo().doc('counters/daily');
+    await assertSucceeds(ref.set({ date: '2026-09-23', count: 1 }));
+    await assertSucceeds(ref.set({ date: '2026-09-23', count: 2 }));
+  });
+
+  test('número volta a 1 quando o dia vira', async () => {
+    await assertSucceeds(
+      anonimo().doc('counters/daily').set({ date: '2026-09-24', count: 1 })
+    );
+  });
+
+  test('ninguém reinicia a numeração no meio do turno', async () => {
+    // protege contra dois pedidos saírem com o mesmo número na cozinha
+    await assertFails(
+      anonimo().doc('counters/daily').set({ date: '2026-09-24', count: 1 })
+    );
+  });
+
+  test('gerente consegue zerar o contador no "Zerar sistema"', async () => {
+    await assertSucceeds(
+      gerente().doc('counters/daily').set({ date: '2026-09-24', count: 0 })
+    );
   });
 });
