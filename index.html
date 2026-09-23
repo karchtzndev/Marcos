@@ -985,7 +985,11 @@
     <div class="hero-art">
       <div class="sunburst-bg"></div>
       <div class="plate-glow"></div>
-      <img src="mascot.jpg" alt="Mascote Chef O Markin" class="mascot-hero">
+      <picture>
+        <source srcset="mascot.webp" type="image/webp">
+        <img src="mascot.jpg" alt="Mascote Chef O Markin" class="mascot-hero"
+             width="320" height="320" fetchpriority="high">
+      </picture>
     </div>
   </div>
 </section>
