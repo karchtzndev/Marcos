@@ -31,28 +31,40 @@ const config = {
 6. Colar no bloco `firebaseConfig`, que fica dentro de cada HTML:
    `index.html`, `gerencial/index.html` e `chamada/index.html`
 
-### 2. Expiração automática de dados (TTL)
+### 2. Expiração automática de dados (TTL) — NÃO DISPONÍVEL NO PLANO ATUAL
 
-Sem isso as coleções de registro crescem para sempre e a fatura do Firebase
-sobe todo mês por causa de dado que ninguém consulta. O app já grava o campo
-`expiraEm` — falta ligar a política que apaga por ele.
+O projeto está no **Spark (gratuito)**, e a política de TTL exige **Blaze**.
+Tentar criar pelo console devolve `has billing disabled` + 403. Não é
+permissão de conta de serviço: é o plano.
 
-No Firebase Console → Firestore → **Time-to-live**, criar uma política para
-cada coleção, todas no campo `expiraEm`:
+**Isto não é um problema hoje, e não vale um upgrade.** No Spark não existe
+fatura — o plano é gratuito com teto rígido. O TTL não economizaria nada; só
+adiaria encostar no limite de 1 GiB de armazenamento, o que, no tamanho dos
+documentos deste sistema, leva anos.
 
-| Coleção | Prazo | Por quê |
+Trocar para Blaze significa cartão cadastrado e abrir mão desse teto. Se um
+bug disparar escritas em loop, no Spark o app simplesmente para; no Blaze,
+vira fatura. Para uma lanchonete, essa proteção vale mais do que o TTL.
+
+O app **já grava o campo `expiraEm`** em `visitas` (90 dias), `errorLog`
+(30 dias) e `acessos` (180 dias). Fica dormente: no dia em que houver Blaze,
+ligar o TTL é só apontar cada coleção para esse campo, sem tocar em código.
+
+Quando esse dia chegar — Google Cloud Console (não o do Firebase, que não
+tem essa tela) → Firestore → Time to live:
+
+| Grupo de coleção | Campo | Adiamento |
 |---|---|---|
-| `visitas` | 90 dias | análise de funil olha semanas, não meses |
-| `errorLog` | 30 dias | erro antigo não ajuda a depurar nada |
-| `acessos` | 180 dias | histórico de ponto além disso não é consultado |
+| `visitas` | `expiraEm` | 0 |
+| `errorLog` | `expiraEm` | 0 |
+| `acessos` | `expiraEm` | 0 |
 
-Atalho direto:
-`https://console.firebase.google.com/project/omarkin-burguer-39bda/firestore/databases/-default-/ttl`
+O adiamento fica em **0** porque `expiraEm` já guarda a data final, não uma
+duração — qualquer valor ali seria somado por cima.
 
-⚠️ **A política só apaga documentos que têm o campo.** O que foi gravado
-antes dessa mudança não tem `expiraEm` e vai ficar lá para sempre. Para
-limpar o acumulado, uma vez só, no Console → Firestore: filtrar por data
-antiga e apagar em lote.
+⚠️ A política só apaga documentos que **têm** o campo. O que foi gravado
+antes dessa mudança não tem `expiraEm` e ficaria de fora; esse acumulado
+precisa de faxina manual.
 
 > Isto tem que ser feito no console, na mão. Publicar regra e administrar
 > índice/TTL são permissões diferentes: uma conta de serviço do Admin SDK
