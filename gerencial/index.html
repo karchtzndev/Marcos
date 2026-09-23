@@ -6099,6 +6099,7 @@
   let clientes = {};   // {telefone: {nome, pedidos, gasto, ultimo, ...}}
 
   let clientesUnsub = null;
+  let clientesNoTeto = false;
   function watchClientes(){
     const precisa = moduloAtivo('clientes') || moduloAtivo('fidelidade');
     if(!precisa){
@@ -6106,9 +6107,15 @@
       return;
     }
     if(clientesUnsub) return; // já escutando
-    clientesUnsub = db.collection('customers').onSnapshot((snap) => {
+    // Só os 500 mais recentes. Antes vinha a base inteira a cada abertura do
+    // painel — com alguns milhares de clientes isso torra a cota de leitura
+    // do Firebase sem necessidade, já que a tela mostra no máximo 80. Quem
+    // não está nesse recorte ainda é achado pela busca por telefone abaixo,
+    // porque o documento é salvo com o telefone como id.
+    clientesUnsub = db.collection('customers').orderBy('ultimo','desc').limit(500).onSnapshot((snap) => {
       clientes = {};
       snap.docs.forEach(d => clientes[d.id] = Object.assign({tel: d.id}, d.data()));
+      clientesNoTeto = snap.size >= 500; // base maior que o recorte carregado
       const t = currentTab();
       if(t === 'clientes') renderClientes();
       if(t === 'pedidos') renderAdminOrders();
@@ -6166,13 +6173,18 @@
     const total = lista.reduce((s,c) => s + c.gasto, 0);
     const recorrentes = lista.filter(c => c.pedidos > 1).length;
     document.getElementById('cliKpis').innerHTML = `
-      <div class="kpi-card"><div class="kv">${lista.length}</div><div class="kl">Clientes no período</div></div>
+      <div class="kpi-card"><div class="kv">${lista.length}${clientesNoTeto ? '+' : ''}</div><div class="kl">${clientesNoTeto ? 'Clientes mais recentes' : 'Clientes no período'}</div></div>
       <div class="kpi-card"><div class="kv">${recorrentes}</div><div class="kl">Voltaram mais de 1x</div></div>
       <div class="kpi-card"><div class="kv">${money(lista.length ? total/lista.length : 0)}</div><div class="kl">Gasto médio</div></div>
       <div class="kpi-card"><div class="kv">${lista.length ? Math.round((recorrentes/lista.length)*100) : 0}%</div><div class="kl">Taxa de retorno</div></div>`;
 
     const box = document.getElementById('cliList');
-    if(filtrada.length === 0){ box.innerHTML = '<div class="loading-row">Nenhum cliente encontrado.</div>'; return; }
+    if(filtrada.length === 0){
+      box.innerHTML = '<div class="loading-row">Nenhum cliente encontrado.</div>';
+      const tel = busca.replace(/\D/g,'');
+      if(tel.length >= 8) buscarClienteForaDoRecorte(tel, busca);
+      return;
+    }
     const fidQtd = features.fidQtd || 10;
     box.innerHTML = filtrada.slice(0,80).map((cl,i) => {
       const dias = Math.floor((Date.now() - new Date(cl.ultimo)) / 86400000);
@@ -6190,6 +6202,22 @@
       </div>`;
     }).join('');
   }
+  // A escuta traz só os 500 mais recentes, então um cliente antigo não aparece
+  // na busca mesmo existindo. O documento é salvo com o telefone como id, então
+  // dá pra ir buscar direto — uma leitura só, sem varrer a coleção.
+  let telBuscado = '';
+  async function buscarClienteForaDoRecorte(tel, termo){
+    if(telBuscado === tel) return;  // já tentamos esse número
+    telBuscado = tel;
+    let doc;
+    try{ doc = await db.collection('customers').doc(tel).get(); }catch(e){ return; }
+    if(!doc.exists) return;
+    // a pessoa pode ter digitado outra coisa enquanto a busca ia e voltava
+    if((document.getElementById('cliBusca')?.value || '').toLowerCase() !== termo) return;
+    clientes[doc.id] = Object.assign({tel: doc.id}, doc.data());
+    renderClientes();
+  }
+
   document.getElementById('cliBusca')?.addEventListener('input', renderClientes);
 
   /* ================= ENTREGADORES ================= */
