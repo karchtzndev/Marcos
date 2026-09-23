@@ -53,41 +53,36 @@ antiga e apagar em lote.
 
 ### 3. Regras de Segurança Firestore
 
-No Firebase Console → Firestore → Rules:
+As regras valendo estão em **`firestore.rules`**, na raiz do repositório.
 
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    
-    // Visitas: público (leitura), apenas app (escrita)
-    match /visitas/{document=**} {
-      allow read: if true;
-      allow create: if request.auth.uid != null || 
-                       request.auth.uid == null; // Públic write com origem verificada
-      allow update, delete: if false;
-    }
-    
-    // Pedidos: público leitura (meu ID), apenas gerencial escrita
-    match /pedidos/{document=**} {
-      allow read: if resource.data.visitaId == request.auth.uid || 
-                     request.auth.token.admin == true;
-      allow write: if request.auth.token.admin == true;
-    }
-    
-    // Gerencial: apenas admin
-    match /gerencial/{document=**} {
-      allow read, write: if request.auth.token.admin == true;
-    }
-    
-    // ErrorLog: apenas app e admin
-    match /errorLog/{document=**} {
-      allow create: if true;
-      allow read: if request.auth.token.admin == true;
-    }
-  }
-}
+Antes ficavam só no console, e o que este arquivo mostrava era ficção:
+descrevia coleções (`pedidos`, `gerencial`) que o sistema nunca usou. Foi
+por isso que um campo novo derrubou gravação em produção sem ninguém notar
+— não havia como revisar a regra junto com o código.
+
+**Nunca edite a regra direto no console.** Altere `firestore.rules`, rode
+os testes e só então publique — senão o repositório volta a divergir do que
+está valendo, que é exatamente a origem do problema.
+
+```bash
+npm install          # só na primeira vez
+npm test             # sobe o emulador e roda os testes das regras
 ```
+
+Os testes ficam em `testes/regras.test.mjs` e cobrem duas coisas: as
+gravações que o app precisa fazer, e as portas que precisam continuar
+fechadas (estranho não lê cliente, funcionário não vira gerente, contador
+de fidelidade não pula). Rodam local, contra o emulador — não encostam no
+banco de produção.
+
+Para publicar, com os testes passando: Console → Firestore → Rules, colar o
+conteúdo de `firestore.rules` e publicar.
+
+⚠️ **Atenção ao `hasOnly()`.** Várias regras usam essa função, que recusa
+qualquer campo fora da lista. Se você acrescentar um campo no código sem
+acrescentar na regra, a gravação passa a ser negada — e o app engole o erro
+num `.catch()`, então nada aparece na tela. Campo novo no código significa
+campo novo na regra, sempre.
 
 ### 4. Criar Admin User
 

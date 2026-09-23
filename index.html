@@ -3121,11 +3121,14 @@
         expiraEm: expiraEmDias(90)
       });
     }catch(e){
+      // Campos iguais aos do capturador geral: a regra do errorLog usa
+      // hasOnly, então qualquer nome fora da lista faz a gravação ser
+      // recusada — era o que acontecia aqui, em silêncio.
       db.collection('errorLog').add({
-        timestamp: new Date().toISOString(),
-        source: 'registrarVisita',
-        error: e.message,
-        stack: e.stack,
+        mensagem: ('registrarVisita: ' + String(e.message || e)).slice(0,500),
+        detalhe: String(e.stack || '').slice(0,500),
+        pagina: 'cliente',
+        quando: new Date().toISOString(),
         expiraEm: expiraEmDias(30)
       }).catch(()=>{});
     }

@@ -1,0 +1,21 @@
+{
+  "name": "markin-pwa",
+  "version": "1.0.0",
+  "description": "Testes das regras de segurança do Firestore (o site em si é HTML estático, sem build)",
+  "scripts": {
+    "test": "firebase emulators:exec --only firestore --project markin-teste \"node --test testes/regras.test.mjs\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/karchtzndev/marcos.git"
+  },
+  "bugs": {
+    "url": "https://github.com/karchtzndev/marcos/issues"
+  },
+  "homepage": "https://github.com/karchtzndev/marcos#readme",
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "firebase-tools": "^15.30.2"
+  },
+  "private": true
+}

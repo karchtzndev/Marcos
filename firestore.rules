@@ -1,0 +1,374 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- FUNÇÕES AUXILIARES ----------
+    function estaLogado() {
+      return request.auth != null;
+    }
+
+    function perfil() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function ehEquipe() {
+      return estaLogado()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && perfil().active == true;
+    }
+
+    function ehGerente() {
+      return ehEquipe() && perfil().role == 'gerente';
+    }
+
+    // Tem uma permissão específica (dashboard, financeiro, estoque, etc.)
+    function temPermissao(area) {
+      return ehEquipe() && (
+        perfil().role == 'gerente' ||
+        (perfil().perms is list && area in perfil().perms)
+      );
+    }
+
+    // ---------- CONTAS DA EQUIPE ----------
+    // CORRIGIDO (crítico): a versão anterior permitia "request.auth.uid == uid"
+    // como alternativa a ser gerente. Isso permitia que QUALQUER PESSOA criasse
+    // uma conta de e-mail/senha direto na API do Firebase (a chave pública do
+    // projeto está visível em qualquer site) e depois escrevesse o próprio
+    // documento em /users/{uid} com role:"gerente" — virando gerente sozinha,
+    // sem nunca passar pelo seu painel. O fluxo real de criar funcionário
+    // (usado no seu código) já grava esse documento autenticado como gerente;
+    // a rota alternativa nunca teve uso legítimo. Removida por completo.
+    match /users/{uid} {
+      allow get: if estaLogado() && (request.auth.uid == uid || ehGerente());
+      allow list: if ehGerente();
+      allow create: if ehGerente();
+      allow update, delete: if ehGerente();
+    }
+
+    // ---------- DADOS PÚBLICOS DA LOJA ----------
+    // Cardápio, avisos e informações: qualquer um lê, só a equipe altera.
+    //
+    // CORRIGIDO: menu e estoque agora exigem a permissão específica da área,
+    // não só "estar logado". Antes, um Entregador (a função com menos acesso)
+    // tinha o mesmo poder de reescrever o cardápio inteiro que um Gerente —
+    // a tela escondia o botão, mas o banco de dados não bloqueava a escrita
+    // direta. Se a conta de qualquer funcionário for comprometida, o estrago
+    // possível agora fica do tamanho da função dele, não do sistema inteiro.
+    match /store/menu {
+      allow read: if true;
+      allow write: if temPermissao('cardapio');
+    }
+    match /store/promo {
+      allow read: if true;
+      allow write: if temPermissao('promocao');
+    }
+    match /store/info {
+      allow read: if true;
+      allow write: if temPermissao('loja');
+    }
+
+    // ---------- TEMPO REAL DE PREPARO ----------
+    // Cliente lê pra ver a previsão honesta na tela de acompanhamento.
+    // Só a equipe grava, e só o campo de amostras — nada mais.
+    match /store/tempoPreparo {
+      allow read: if true;
+      allow write: if ehEquipe()
+                   && request.resource.data.keys().hasOnly(['amostras','atualizadoEm']);
+    }
+
+    // ---------- CONTROLE DE BACKUP ----------
+    // Só guarda a data do último backup — não é dado sensível, mas só
+    // a equipe precisa ler ou gravar isso.
+    match /store/backupInfo {
+      allow read, write: if ehEquipe();
+    }
+
+    // ---------- MÓDULOS LIGADOS/DESLIGADOS ----------
+    match /store/features {
+      allow read: if true;
+      allow write: if ehGerente();
+    }
+
+    // ---------- ESTOQUE ----------
+    // CORRIGIDO: exige a permissão "estoque", não só estar logado.
+    match /store/inventory {
+      allow read: if ehEquipe();
+      allow write: if temPermissao('estoque');
+    }
+
+    // ---------- CAIXA ----------
+    // CORRIGIDO: exige a permissão "caixa" pra abrir/mexer no turno.
+    match /store/register {
+      allow read: if ehEquipe();
+      allow write: if temPermissao('caixa');
+    }
+
+    // ---------- FINANCEIRO (SÓ GERENTE) ----------
+    match /store/cashflow {
+      allow read: if temPermissao('financeiro');
+      allow write: if ehEquipe();
+    }
+    match /store/fixedcosts {
+      allow read, write: if temPermissao('financeiro');
+    }
+
+    // ---------- PEDIDOS ----------
+    // CORRIGIDO: agora limita o tamanho da lista de itens (no máximo 40) e o
+    // tamanho das observações (500 caracteres). Antes não havia limite algum,
+    // permitindo que um script criasse pedidos-lixo gigantescos direto na
+    // API, sem nunca abrir o site — inflando seu custo do Firebase e travando
+    // a tela de Pedidos com documentos absurdos.
+    match /orders/{codigo} {
+      allow get: if true;
+      allow list: if ehEquipe();
+
+      allow create: if ehEquipe()
+                    || (request.resource.data.total is number
+                        && request.resource.data.total >= 0
+                        && request.resource.data.total <= 5000
+                        && request.resource.data.status == 'recebido'
+                        && !('paid' in request.resource.data.keys())
+                        && (!('items' in request.resource.data.keys())
+                            || (request.resource.data.items is list
+                                && request.resource.data.items.size() <= 40))
+                        && (!('notes' in request.resource.data.keys())
+                            || request.resource.data.notes.size() <= 500)
+                        && (!('desconto' in request.resource.data.keys())
+                            || (request.resource.data.desconto is number
+                                && request.resource.data.desconto >= 0
+                                && request.resource.data.desconto <= 500)));
+
+      allow update: if ehEquipe()
+                    || request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['rating','ratingComment','ratingItens','ratedAt']);
+      allow delete: if ehEquipe();
+    }
+
+    // ---------- ESTATÍSTICAS DIÁRIAS ----------
+    // CORRIGIDO: valores agora têm teto sensato. Antes um único pedido podia
+    // gravar "faturamento: 999999999", corrompendo pra sempre o histórico e
+    // a previsão de demanda que é calculada em cima desses números.
+    match /stats/{dia} {
+      allow read: if temPermissao('dashboard') || temPermissao('financeiro');
+
+      allow create: if request.resource.data.keys().hasOnly(
+                        ['date','orderCount','revenue','byType','products','canceled'])
+                    && request.resource.data.date == dia
+                    && request.resource.data.orderCount is number
+                    && request.resource.data.orderCount >= 0
+                    && request.resource.data.orderCount <= 50
+                    && request.resource.data.revenue is number
+                    && request.resource.data.revenue >= 0
+                    && request.resource.data.revenue <= 5000;
+
+      allow update: if ehEquipe()
+                    || (request.resource.data.diff(resource.data).affectedKeys()
+                          .hasOnly(['orderCount','revenue','byType','products','date'])
+                        && request.resource.data.orderCount <= resource.data.orderCount + 50
+                        && request.resource.data.revenue <= resource.data.revenue + 5000);
+      allow delete: if ehGerente();
+    }
+
+    // ---------- FECHAMENTOS DE CAIXA ----------
+    match /closings/{doc} {
+      allow read: if temPermissao('financeiro');
+      allow create: if ehEquipe();
+      allow update, delete: if ehGerente();
+    }
+
+    // ---------- VISITAS AO SITE (clientes) ----------
+    // Cliente não loga pra navegar, então isso é escrito por qualquer um —
+    // mas com estrutura e tamanho travados, pra não virar porta de spam.
+    //
+    // CORRIGIDO: 'novaVisitaAposVoltar' e 'expiraEm' faltavam no hasOnly, e
+    // como hasOnly recusa QUALQUER campo fora da lista, toda visita estava
+    // sendo negada em silêncio — o app engole o erro num .catch(). Era essa
+    // a razão de as visitas não aparecerem no painel; o JavaScript sempre
+    // esteve certo. 'expiraEm' é o Timestamp que a política de TTL usa para
+    // apagar a visita sozinha depois de 90 dias.
+    match /visitas/{id} {
+      allow read: if ehEquipe();
+      allow create: if request.resource.data.keys()
+                          .hasOnly(['entrada','ultimaAtividade','aparelho','origem','finalizou',
+                                    'codigoPedido','novaVisitaAposVoltar','expiraEm'])
+                    && request.resource.data.finalizou == false
+                    && request.resource.data.aparelho.size() <= 30
+                    && request.resource.data.origem.size() <= 100;
+      // só permite atualizar os campos de atividade/finalização — nunca
+      // "voltar atrás" um pedido já finalizado
+      allow update: if request.resource.data.diff(resource.data).affectedKeys()
+                          .hasOnly(['ultimaAtividade','finalizou','codigoPedido','finalizadoEm',
+                                    'telefoneDigitado','carrinhoNoAbandono','valorCarrinho'])
+                    && (resource.data.finalizou == false || request.resource.data.finalizou == true)
+                    && (!('telefoneDigitado' in request.resource.data.keys())
+                        || request.resource.data.telefoneDigitado.size() <= 20)
+                    && (!('carrinhoNoAbandono' in request.resource.data.keys())
+                        || request.resource.data.carrinhoNoAbandono.size() <= 40)
+                    && (!('valorCarrinho' in request.resource.data.keys())
+                        || (request.resource.data.valorCarrinho is number
+                            && request.resource.data.valorCarrinho <= 5000));
+      allow delete: if ehGerente();
+    }
+
+    // ---------- REGISTRO DE ACESSOS ----------
+    // Cada pessoa registra a própria entrada e atualiza o próprio sinal de
+    // vida. Ninguém consegue forjar acesso em nome de outro nem apagar o
+    // histórico — só o gerente limpa.
+    //
+    // CORRIGIDO: 'expiraEm' incluído no hasOnly (TTL de 180 dias).
+    match /acessos/{doc} {
+      allow read: if ehEquipe();
+      allow create: if ehEquipe()
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.keys()
+                         .hasOnly(['uid','nome','funcao','entrada','ultimoSinal','saida',
+                                   'aparelho','tela','expiraEm']);
+      allow update: if ehEquipe()
+                    && resource.data.uid == request.auth.uid
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['ultimoSinal','saida']);
+      allow delete: if ehGerente();
+    }
+
+    // ---------- MENSAGENS DOS CLIENTES ----------
+    // Qualquer um envia (é um canal de contato aberto), mas ninguém de fora
+    // consegue LER as mensagens dos outros. Tamanho limitado pra ninguém
+    // usar isso como depósito de lixo e inflar seu custo do Firebase.
+    match /mensagens/{doc} {
+      allow read: if ehEquipe();
+      allow create: if request.resource.data.keys()
+                          .hasOnly(['tipo','mensagem','nome','telefone','lida','quando'])
+                    && request.resource.data.mensagem is string
+                    && request.resource.data.mensagem.size() >= 5
+                    && request.resource.data.mensagem.size() <= 600
+                    && request.resource.data.lida == false;
+      allow update: if ehEquipe();
+      allow delete: if ehEquipe();
+    }
+
+    // ---------- CUPONS DE DESCONTO ----------
+    // O cliente precisa LER o cupom pra validar no checkout, mas só a
+    // equipe cria/edita. O contador de usos sobe de 1 em 1 — sem isso,
+    // alguém poderia zerar os usos de um cupom esgotado e usar de novo,
+    // ou inflar o total descontado pra bagunçar seus relatórios.
+    match /cupons/{codigo} {
+      allow get: if true;               // validar no checkout
+      allow list: if ehEquipe();        // só a equipe vê a lista toda
+      allow create, delete: if temPermissao('cupons') || ehGerente();
+      allow update: if temPermissao('cupons') || ehGerente()
+                    || (request.resource.data.diff(resource.data).affectedKeys()
+                          .hasOnly(['usos','totalDescontado','ultimoUso'])
+                        && request.resource.data.usos == resource.data.usos + 1
+                        && request.resource.data.totalDescontado >= resource.data.totalDescontado
+                        && request.resource.data.totalDescontado <= resource.data.totalDescontado + 500);
+    }
+
+    // ---------- PERFIL DE CONTA DO CLIENTE ----------
+    // Conta OPCIONAL — quem quiser participa de fidelidade e promoções.
+    // Cada pessoa só enxerga e edita o PRÓPRIO perfil; a equipe consulta
+    // pra atendimento. Ninguém consegue listar todos os clientes de fora.
+    match /clientes/{uid} {
+      allow get: if request.auth != null && (request.auth.uid == uid || ehEquipe());
+      allow list: if ehEquipe();
+      allow create: if request.auth != null
+                    && request.auth.uid == uid
+                    && request.resource.data.keys().hasOnly(['nome','email','telefone','criadoEm']);
+      allow update: if request.auth != null
+                    && request.auth.uid == uid
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['nome','telefone']);
+      allow delete: if request.auth.uid == uid || ehGerente();
+    }
+
+    // ---------- CADASTRO DE CLIENTES ----------
+    // CORRIGIDO (grave): a versão anterior tinha "allow write: if true" — uma
+    // porta totalmente aberta. Qualquer pessoa podia sobrescrever o telefone,
+    // endereço ou o contador de fidelidade de QUALQUER cliente já cadastrado,
+    // inclusive fraudando "pedidos: 9999" pra liberar um brinde sem nunca ter
+    // pedido nada, ou zerando a fidelidade de um cliente de propósito.
+    //
+    // Agora: só os campos esperados podem ser gravados, e o contador de
+    // pedidos só pode subir de 1 em 1 — do jeito que o sistema realmente usa
+    // (FieldValue.increment(1) a cada pedido novo). "premiosEntregues" só é
+    // alterável pela equipe, nunca pelo cliente.
+    match /customers/{telefone} {
+      allow read: if ehEquipe();
+
+      allow create: if request.resource.data.keys()
+                         .hasOnly(['nome','telefone','endereco','pedidos','gasto','ultimo','atualizadoEm'])
+                    && request.resource.data.pedidos == 1;
+
+      allow update: if ehEquipe()
+                    || (request.resource.data.diff(resource.data).affectedKeys()
+                          .hasOnly(['nome','telefone','endereco','pedidos','gasto','ultimo','atualizadoEm'])
+                        && request.resource.data.pedidos == resource.data.pedidos + 1
+                        && request.resource.data.gasto <= resource.data.gasto + 5000);
+
+      allow delete: if ehGerente();
+    }
+
+    // ---------- FILA DE IMPRESSÃO ----------
+    match /printQueue/{doc} {
+      allow read, create: if ehEquipe();
+      allow update, delete: if ehEquipe();
+    }
+    match /store/printer {
+      allow read: if ehEquipe();
+      allow write: if ehEquipe();
+    }
+
+    // ---------- REGISTRO DE ERROS ----------
+    // CORRIGIDO: agora só aceita os campos esperados, com tamanho limitado.
+    // Antes, um script poderia gravar documentos enormes ou com qualquer
+    // campo, inflando o custo do Firebase e afogando os erros reais no meio
+    // de lixo — justamente a ferramenta que devia ajudar a proteger o site
+    // virando, ela mesma, um alvo fácil de sabotagem.
+    //
+    // CORRIGIDO: 'expiraEm' incluído no hasOnly (TTL de 30 dias).
+    match /errorLog/{doc} {
+      allow read: if ehEquipe();
+      allow create: if request.resource.data.keys()
+                          .hasOnly(['mensagem','detalhe','pagina','url','navegador','plataforma',
+                                    'toque','modoComputador','tela','online','usuario','funcao',
+                                    'quando','expiraEm'])
+                    && request.resource.data.mensagem is string
+                    && request.resource.data.mensagem.size() <= 500;
+      allow update: if false;
+      allow delete: if ehGerente();
+    }
+
+    // ---------- CHAMADAS NA TV ----------
+    match /calls/{doc} {
+      allow read: if true;
+      allow create: if ehEquipe();
+      allow update, delete: if ehGerente();
+    }
+
+    // ---------- CONTADOR DIÁRIO ----------
+    // CORRIGIDO (grave): antes qualquer um podia gravar QUALQUER número
+    // positivo, sem checar se era mesmo o próximo da sequência. Um reset
+    // malicioso no meio do turno (ex: voltar de #47 pra #1) faz dois pedidos
+    // diferentes saírem com o MESMO número — na cozinha isso é pedido
+    // trocado de verdade, não só um erro de tela.
+    //
+    // Agora só aceita: o número seguinte exato (+1), ou virar 1 de novo
+    // quando a data realmente mudou (troca de dia).
+    match /counters/{doc} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly(['date','count'])
+                    && request.resource.data.count == 1;
+      allow update: if request.resource.data.keys().hasOnly(['date','count'])
+                    && request.resource.data.count is int
+                    && (
+                         request.resource.data.count == resource.data.count + 1
+                         || (request.resource.data.date != resource.data.date
+                             && request.resource.data.count == 1)
+                       );
+    }
+
+    // ---------- BLOQUEIO GERAL ----------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
