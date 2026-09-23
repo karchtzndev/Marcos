@@ -2161,6 +2161,9 @@
     renderCheckoutSummary();
   }));
 
+  // Controla o AddPaymentInfo: um por checkout, não um por troca de opção
+  let pagamentoJaInformado = false;
+
   document.getElementById('openCart').addEventListener('click', () => { updateCartUI(); openOverlay('cartOverlay'); });
   document.getElementById('qbReview').addEventListener('click', () => { updateCartUI(); openOverlay('cartOverlay'); });
   document.getElementById('qbCheckout').addEventListener('click', () => {
@@ -2171,6 +2174,7 @@
     mostrarCampoCupom();
     renderEnderecosSalvos();
     autofillCustomer();
+    pagamentoJaInformado = false;   // novo checkout, novo AddPaymentInfo
     rastrear('InitiateCheckout', {value: cartTotal(), itens: itensDoCarrinho()});
   });
   document.getElementById('goCheckout').addEventListener('click', () => {
@@ -2181,7 +2185,17 @@
     mostrarCampoCupom();
     renderEnderecosSalvos();
     autofillCustomer();
+    pagamentoJaInformado = false;   // novo checkout, novo AddPaymentInfo
     rastrear('InitiateCheckout', {value: cartTotal(), itens: itensDoCarrinho()});
+  });
+
+  // AddPaymentInfo: escolher como vai pagar é o último passo antes de fechar,
+  // e o Meta trata isso como sinal forte de intenção. Dispara uma vez só por
+  // checkout — trocar de opção três vezes não são três eventos.
+  document.getElementById('ckPayment')?.addEventListener('change', () => {
+    if(pagamentoJaInformado) return;
+    pagamentoJaInformado = true;
+    rastrear('AddPaymentInfo', {value: cartTotal(), itens: itensDoCarrinho()});
   });
 
   // Mesa vinda do QR code: ?mesa=7
@@ -2656,6 +2670,10 @@
       registrarCliente(order);
       registrarUsoCupom(order);
       marcarVisitaFinalizada(order.code);
+      // Identifica o cliente no pixel ANTES do Purchase: o Meta só aceita
+      // Advanced Matching no init, então a venda mais valiosa do funil
+      // precisa sair já com o telefone e o nome anexados.
+      atualizarMetaComCliente({name, phone, cep: document.getElementById('ckCep')?.value || ''});
       // Purchase com valor: é o que permite calcular retorno do anúncio
       rastrear('Purchase', {
         value: order.total,
@@ -3029,6 +3047,10 @@
         lida: false,
         quando: new Date().toISOString()
       });
+      // Quem escreve pra loja demonstra interesse real — é sinal de otimização
+      // para os anúncios, e até hoje esse contato não era registrado em lugar
+      // nenhum além do painel.
+      rastrear('Contact');
       closeOverlay('sugestaoOverlay');
       document.getElementById('sugMensagem').value = '';
       document.getElementById('sugContador').textContent = '0';
@@ -3971,6 +3993,60 @@
     return guardar.ler(CONSENT_KEY) === 'sim';
   }
 
+  // Advanced Matching do Meta: manda nome, telefone e CEP junto com o pixel
+  // para ele conseguir ligar a venda a quem viu o anúncio. Sem isso boa parte
+  // das conversões não é atribuída e o algoritmo otimiza no escuro.
+  //
+  // O pixel aplica o SHA-256 sozinho — é o comportamento documentado. Fazer o
+  // hash aqui só acrescentaria uma chance de errar a normalização, e um hash
+  // errado não dá erro: simplesmente não casa com ninguém, para sempre.
+  //
+  // Só roda depois do consentimento, porque quem chama isto é iniciarPixels().
+  // `agora` permite passar os dados do pedido que está sendo fechado: no
+  // checkout o Purchase dispara ANTES de salvarmos o cliente no aparelho,
+  // então ler do armazenamento traria o cliente anterior, ou ninguém.
+  function dadosClienteParaMeta(agora){
+    const d = {};
+    let salvos = {};
+    try{ salvos = JSON.parse(guardar.ler('omarkin_customer') || 'null') || {}; }catch(e){}
+    agora = agora || {};
+
+    const tel = String(agora.phone || telefoneDoCliente() || salvos.phone || '').replace(/\D/g,'');
+    if(tel.length >= 10){
+      // Exigência do Meta: só dígitos, COM código do país (55 = Brasil).
+      d.ph = tel.startsWith('55') ? tel : '55' + tel;
+      d.external_id = d.ph;   // id estável: reconhece o mesmo cliente em outro aparelho
+    }
+
+    // fn/ln: só letras minúsculas. Acento e pontuação atrapalham o casamento.
+    const nome = String(agora.name || clienteLogado?.nome || salvos.name || '').trim()
+      .normalize('NFD').replace(/[̀-ͯ]/g,'')
+      .toLowerCase().replace(/[^a-z ]/g,'');
+    if(nome){
+      const partes = nome.split(/\s+/).filter(Boolean);
+      d.fn = partes[0];
+      if(partes.length > 1) d.ln = partes[partes.length - 1];
+    }
+
+    // Pedido de mesa/retirada não tem CEP — nesse caso mantemos o já salvo
+    // em vez de descartar um dado bom por causa de um campo vazio.
+    const cep = String(agora.cep || salvos.endereco?.cep || '').replace(/\D/g,'');
+    if(cep.length === 8) d.zp = cep;
+    if(d.ph || d.fn) d.country = 'br';
+
+    return d;
+  }
+
+  // O Meta só aceita Advanced Matching no init — não dá para mandar por
+  // evento. Então, quando o cliente se identifica no checkout, reinicializamos
+  // o pixel com os dados novos antes de disparar o Purchase.
+  function atualizarMetaComCliente(agora){
+    if(!window.fbq || !features.pxMeta) return;
+    const d = dadosClienteParaMeta(agora);
+    if(!d.ph && !d.fn) return;                 // nada novo pra informar
+    try{ fbq('init', features.pxMeta, d); }catch(e){}
+  }
+
   function iniciarPixels(){
     if(pixelsProntos) return;
     if(features.pixels !== true) return;
@@ -3984,7 +4060,8 @@
       n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
       t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
       (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', features.pxMeta);
+      // Cliente que já pediu antes tem telefone salvo: o pixel já nasce sabendo
+      fbq('init', features.pxMeta, dadosClienteParaMeta());
     }
 
     // ---- Google (GA4 e Ads) ----
@@ -4025,29 +4102,42 @@
     const valor = Number(dados.value) || 0;
     const itens = dados.itens || [];
 
+    // Identidade do evento. Na compra usamos o código do pedido: é estável,
+    // então se um dia o mesmo evento também for enviado pelo servidor
+    // (Conversions API), o Meta reconhece que é o mesmo e não conta duas vezes.
+    // Nos demais, um id aleatório já resolve.
+    const idEvento = (evento === 'Purchase' && dados.pedido)
+      ? 'mk-' + dados.pedido
+      : 'mk-' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+
     try{
       // ---- Meta ----
       if(window.fbq){
         const mapaMeta = {PageView:'PageView', ViewContent:'ViewContent', AddToCart:'AddToCart',
-                          InitiateCheckout:'InitiateCheckout', Purchase:'Purchase'};
+                          InitiateCheckout:'InitiateCheckout', Purchase:'Purchase',
+                          AddPaymentInfo:'AddPaymentInfo', Contact:'Contact'};
         if(mapaMeta[evento]){
           const p = {};
           if(valor > 0){ p.value = valor; p.currency = 'BRL'; }
           if(itens.length){
             p.content_type = 'product';
             p.contents = itens.map(i => ({id: i.id, quantity: i.qty, item_price: i.price}));
+            // content_ids é o que o Meta usa pra casar com o catálogo; sem ele
+            // o remarketing dinâmico não reconhece o produto.
+            p.content_ids = itens.map(i => i.id);
             p.content_name = itens.map(i => i.nome).join(', ').slice(0,120);
           }
-          fbq('track', mapaMeta[evento], p);
+          fbq('track', mapaMeta[evento], p, {eventID: idEvento});
         }
       }
 
       // ---- Google Analytics 4 ----
       if(window.gtag){
         const mapaGa = {PageView:'page_view', ViewContent:'view_item', AddToCart:'add_to_cart',
-                        InitiateCheckout:'begin_checkout', Purchase:'purchase'};
+                        InitiateCheckout:'begin_checkout', Purchase:'purchase',
+                        AddPaymentInfo:'add_payment_info', Contact:'generate_lead'};
         if(mapaGa[evento]){
-          const p = {currency:'BRL', value: valor};
+          const p = {currency:'BRL', value: valor, event_id: idEvento};
           if(itens.length){
             p.items = itens.map(i => ({item_id:i.id, item_name:i.nome, price:i.price, quantity:i.qty}));
           }
@@ -4067,13 +4157,14 @@
       // ---- TikTok ----
       if(window.ttq){
         const mapaTt = {ViewContent:'ViewContent', AddToCart:'AddToCart',
-                        InitiateCheckout:'InitiateCheckout', Purchase:'CompletePayment'};
+                        InitiateCheckout:'InitiateCheckout', Purchase:'CompletePayment',
+                        AddPaymentInfo:'AddPaymentInfo', Contact:'Contact'};
         if(evento === 'PageView'){ ttq.page(); }
         else if(mapaTt[evento]){
           ttq.track(mapaTt[evento], {
             value: valor, currency: 'BRL',
             contents: itens.map(i => ({content_id:i.id, content_name:i.nome, quantity:i.qty, price:i.price}))
-          });
+          }, {event_id: idEvento});
         }
       }
     }catch(e){ console.warn('pixel:', e); }
