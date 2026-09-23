@@ -236,7 +236,9 @@
           modoComputador: (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1),
           tela: (window.innerWidth||0)+'x'+(window.innerHeight||0),
           online: navigator.onLine,
-          quando: new Date().toISOString()
+          quando: new Date().toISOString(),
+          // erro de 30 dias atrás não ajuda mais ninguém a depurar nada
+          expiraEm: firebase.firestore.Timestamp.fromMillis(Date.now() + 30*86400000)
         }).catch(function(){});
       }catch(e){}
     }

@@ -1473,7 +1473,9 @@
           modoComputador: (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
           tela: (window.innerWidth || 0) + 'x' + (window.innerHeight || 0),
           online: navigator.onLine,
-          quando: new Date().toISOString()
+          quando: new Date().toISOString(),
+          // erro de 30 dias atrás não ajuda mais ninguém a depurar nada
+          expiraEm: firebase.firestore.Timestamp.fromMillis(Date.now() + 30*86400000)
         }).catch(function(){});
       }catch(e){}
     }
@@ -3059,6 +3061,14 @@
     return 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
   }
 
+  // Data em que o registro pode ser apagado sozinho. Precisa ser Timestamp
+  // do Firestore (não texto) — é o único tipo que a política de TTL aceita.
+  // Sem isso a coleção cresce para sempre e a conta do Firebase sobe todo mês
+  // por causa de visita de um ano atrás que ninguém vai consultar.
+  function expiraEmDias(dias){
+    return firebase.firestore.Timestamp.fromMillis(Date.now() + dias*86400000);
+  }
+
   async function registrarVisita(){
     try{
       const salvo = JSON.parse(guardar.ler(VISITA_KEY) || 'null');
@@ -3079,7 +3089,8 @@
           origem: document.referrer ? new URL(document.referrer).hostname : 'direto',
           finalizou: false,
           codigoPedido: '',
-          novaVisitaAposVoltar: true
+          novaVisitaAposVoltar: true,
+          expiraEm: expiraEmDias(90)
         });
         return;
       }
@@ -3106,14 +3117,16 @@
                  : /android/i.test(navigator.userAgent) ? 'Android' : 'Computador',
         origem: document.referrer ? new URL(document.referrer).hostname : 'direto',
         finalizou: false,
-        codigoPedido: ''
+        codigoPedido: '',
+        expiraEm: expiraEmDias(90)
       });
     }catch(e){
       db.collection('errorLog').add({
         timestamp: new Date().toISOString(),
         source: 'registrarVisita',
         error: e.message,
-        stack: e.stack
+        stack: e.stack,
+        expiraEm: expiraEmDias(30)
       }).catch(()=>{});
     }
   }

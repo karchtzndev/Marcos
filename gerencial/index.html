@@ -2586,7 +2586,9 @@
           modoComputador: (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1),
           tela: (window.innerWidth||0)+'x'+(window.innerHeight||0),
           online: navigator.onLine,
-          quando: new Date().toISOString()
+          quando: new Date().toISOString(),
+          // erro de 30 dias atrás não ajuda mais ninguém a depurar nada
+          expiraEm: firebase.firestore.Timestamp.fromMillis(Date.now() + 30*86400000)
         }).catch(function(){});
       }catch(e){}
     }
@@ -6578,7 +6580,9 @@
         ultimoSinal: new Date().toISOString(),
         saida: null,
         aparelho: aparelhoResumido(),
-        tela: (window.innerWidth||0) + 'x' + (window.innerHeight||0)
+        tela: (window.innerWidth||0) + 'x' + (window.innerHeight||0),
+        // registro de ponto de um ano atrás não é consultado nunca mais
+        expiraEm: firebase.firestore.Timestamp.fromMillis(Date.now() + 180*86400000)
       });
       sessaoAtual = doc.id;
       iniciarSinalVida();
@@ -8483,7 +8487,9 @@
         online: navigator.onLine,
         usuario: currentEmployee ? currentEmployee.name : '(não logado)',
         funcao: currentRole || '?',
-        quando: new Date().toISOString()
+        quando: new Date().toISOString(),
+        // erro de 30 dias atrás não ajuda mais ninguém a depurar nada
+        expiraEm: firebase.firestore.Timestamp.fromMillis(Date.now() + 30*86400000)
       }).catch(()=>{});
     }catch(e){}
   }
@@ -8504,7 +8510,9 @@
         online: navigator.onLine,
         usuario: currentEmployee ? currentEmployee.name : '(não logado)',
         funcao: currentRole || '?',
-        quando: new Date().toISOString()
+        quando: new Date().toISOString(),
+        // erro de 30 dias atrás não ajuda mais ninguém a depurar nada
+        expiraEm: firebase.firestore.Timestamp.fromMillis(Date.now() + 30*86400000)
       }).catch(()=>{});
     }catch(e){}
   }

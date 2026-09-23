@@ -28,9 +28,30 @@ const config = {
 };
 ```
 
-6. Colar em `js/firebase.js` na seção `firebaseConfig`
+6. Colar no bloco `firebaseConfig`, que fica dentro de cada HTML:
+   `index.html`, `gerencial/index.html` e `chamada/index.html`
 
-### 2. Regras de Segurança Firestore
+### 2. Expiração automática de dados (TTL)
+
+Sem isso as coleções de registro crescem para sempre e a fatura do Firebase
+sobe todo mês por causa de dado que ninguém consulta. O app já grava o campo
+`expiraEm` — falta ligar a política que apaga por ele.
+
+No Firebase Console → Firestore → **Time-to-live**, criar uma política para
+cada coleção, todas no campo `expiraEm`:
+
+| Coleção | Prazo | Por quê |
+|---|---|---|
+| `visitas` | 90 dias | análise de funil olha semanas, não meses |
+| `errorLog` | 30 dias | erro antigo não ajuda a depurar nada |
+| `acessos` | 180 dias | histórico de ponto além disso não é consultado |
+
+⚠️ **A política só apaga documentos que têm o campo.** O que foi gravado
+antes dessa mudança não tem `expiraEm` e vai ficar lá para sempre. Para
+limpar o acumulado, uma vez só, no Console → Firestore: filtrar por data
+antiga e apagar em lote.
+
+### 3. Regras de Segurança Firestore
 
 No Firebase Console → Firestore → Rules:
 
@@ -68,7 +89,7 @@ service cloud.firestore {
 }
 ```
 
-### 3. Criar Admin User
+### 4. Criar Admin User
 
 No Firebase Console → Authentication:
 1. Adicionar usuário (email@exemplo.com)
