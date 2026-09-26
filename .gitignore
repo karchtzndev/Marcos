@@ -47,3 +47,9 @@ tmp/
 
 # Dependências locais
 local_modules/
+
+# Agente de impressão: guarda a senha da conta da impressora
+agente-impressora/config.json
+
+# Sobra do emulador do Firestore
+firestore-debug.log

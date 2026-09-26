@@ -1,0 +1,13 @@
+{
+  "name": "markin-agente-impressora",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Escuta a fila de impressão no Firestore e manda os cupons para a impressora térmica da loja",
+  "scripts": {
+    "start": "node agente.js",
+    "testar": "node testar.js"
+  },
+  "dependencies": {
+    "firebase": "^12.0.0"
+  }
+}

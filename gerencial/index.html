@@ -3498,15 +3498,21 @@
     cortar:  '\x1D\x56\x42\x00',
     linhas:  '\n\n\n'
   };
-  const LARGURA = 32; // colunas na 58mm; use 48 se a sua for 80mm
+  // Colunas que cabem no papel: 48 em bobina de 80mm, 32 em 58mm. Estava fixo
+  // em 32 enquanto a impressora da loja (MP-4200 TH) é 80mm — o cupom saía
+  // ocupando meia largura, com as colunas de valor desalinhadas.
+  //
+  // É função, e não constante, porque `features` chega do Firestore depois que
+  // este trecho é avaliado; lido na hora da impressão, já está preenchido.
+  function larguraPapel(){ return Number(features.filaColunas) || 48; }
 
   function linhaDupla(esq, dir, larg){
-    larg = larg || LARGURA;
+    larg = larg || larguraPapel();
     const e = String(esq), d = String(dir);
     const espacos = Math.max(1, larg - e.length - d.length);
     return e + ' '.repeat(espacos) + d;
   }
-  function separador(ch){ return (ch || '-').repeat(LARGURA); }
+  function separador(ch){ return (ch || '-').repeat(larguraPapel()); }
 
   // Converte o HTML do cupom em texto ESC/POS
   function htmlParaEscPos(html){
@@ -3537,14 +3543,14 @@
         out += ESC.left + ESC.bold + (sp.length ? semAcento(Array.from(sp).map(s=>s.textContent).join(' ')) : txt) + '\n' + ESC.boldOff;
       }else if(cls.includes('p-addon')){
         const sp = el.querySelectorAll('span');
-        out += ESC.left + '  ' + linhaDupla(semAcento(sp[0]?.textContent||''), semAcento(sp[1]?.textContent||''), LARGURA-2) + '\n';
+        out += ESC.left + '  ' + linhaDupla(semAcento(sp[0]?.textContent||''), semAcento(sp[1]?.textContent||''), larguraPapel()-2) + '\n';
       }else if(cls.includes('p-item') || cls.includes('p-row')){
         const sp = el.querySelectorAll('span');
         out += ESC.left + linhaDupla(semAcento(sp[0]?.textContent||''), semAcento(sp[1]?.textContent||'')) + '\n';
       }else if(cls.includes('p-total')){
         const sp = el.querySelectorAll('span');
         out += ESC.left + ESC.bold + ESC.medio +
-               linhaDupla(semAcento(sp[0]?.textContent||''), semAcento(sp[1]?.textContent||''), Math.floor(LARGURA/1)) +
+               linhaDupla(semAcento(sp[0]?.textContent||''), semAcento(sp[1]?.textContent||'')) +
                '\n' + ESC.normal + ESC.boldOff;
       }else if(cls.includes('p-prod')){
         const nome = semAcento(el.querySelector('.p-prod-nome')?.textContent || '');

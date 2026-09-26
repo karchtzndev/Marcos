@@ -23,7 +23,8 @@ const inc = firebase.firestore.FieldValue.increment;
 let env;
 
 const GERENTE = 'uid-gerente';
-const CAIXA   = 'uid-caixa';     // funcionário só com permissão de caixa
+const CAIXA   = 'uid-caixa';        // funcionário só com permissão de caixa
+const IMPRESSORA = 'uid-impressora'; // conta do agente de impressão, sem permissão nenhuma
 
 before(async () => {
   env = await initializeTestEnvironment({
@@ -41,6 +42,7 @@ before(async () => {
     const db = ctx.firestore();
     await db.doc(`users/${GERENTE}`).set({ name: 'Eduardo', role: 'gerente', active: true, perms: [] });
     await db.doc(`users/${CAIXA}`).set({ name: 'Ana', role: 'funcionario', active: true, perms: ['caixa'] });
+    await db.doc(`users/${IMPRESSORA}`).set({ name: 'Impressora', role: 'funcionario', active: true, perms: [] });
   });
 });
 
@@ -49,6 +51,7 @@ after(async () => { await env?.cleanup(); });
 const anonimo  = () => env.unauthenticatedContext().firestore();
 const gerente  = () => env.authenticatedContext(GERENTE).firestore();
 const caixa    = () => env.authenticatedContext(CAIXA).firestore();
+const agente   = () => env.authenticatedContext(IMPRESSORA).firestore();
 
 const visitaValida = (extra = {}) => ({
   entrada: '2026-09-23T20:00:00.000Z',
@@ -228,6 +231,56 @@ describe('fluxo do pedido', () => {
   test('gerente consegue zerar o contador no "Zerar sistema"', async () => {
     await assertSucceeds(
       gerente().doc('counters/daily').set({ date: '2026-09-24', count: 0 })
+    );
+  });
+});
+
+/* ==================================================================
+   AGENTE DE IMPRESSÃO
+   Roda num PC da loja com uma conta sem permissão nenhuma. Precisa
+   conseguir o mínimo para imprimir — e nada além disso, para que um
+   PC comprometido não vire porta de entrada para o caixa.
+   ================================================================== */
+describe('conta do agente de impressão', () => {
+
+  test('lê a fila de impressão', async () => {
+    await assertSucceeds(agente().collection('printQueue').get());
+  });
+
+  test('marca o cupom como impresso', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await ctx.firestore().doc('printQueue/cupom1').set({ status: 'pendente', escpos: 'x' });
+    });
+    await assertSucceeds(
+      agente().doc('printQueue/cupom1').update({ status: 'impresso' })
+    );
+  });
+
+  test('grava o sinal de vida que acende o verde no painel', async () => {
+    await assertSucceeds(
+      agente().doc('store/printer').set({ ultimoSinal: new Date().toISOString() }, { merge: true })
+    );
+  });
+
+  test('NÃO lê o caixa', async () => {
+    await assertFails(agente().doc('store/cashflow').get());
+  });
+
+  // Este passa, mas documenta um limite que vale rever: a regra de customers
+  // libera leitura para QUALQUER funcionário ativo, sem exigir permissão. Vem
+  // de antes do agente — é assim para todo funcionário, inclusive entregador.
+  // Consequência: o PC da loja, se comprometido, expõe a base de clientes.
+  //
+  // Apertar isso (exigir temPermissao('clientes')) mexe na tela de Pedidos,
+  // que usa o cadastro para mostrar o nome de quem pediu. Fica anotado como
+  // decisão consciente, não como descuido.
+  test('lê clientes — herdado da regra atual, ver comentário acima', async () => {
+    await assertSucceeds(agente().collection('customers').get());
+  });
+
+  test('NÃO cria conta de funcionário', async () => {
+    await assertFails(
+      agente().doc('users/invasor').set({ name: 'x', role: 'gerente', active: true, perms: [] })
     );
   });
 });
