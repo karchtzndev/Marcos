@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Testes das regras de segurança do Firestore (o site em si é HTML estático, sem build)",
   "scripts": {
-    "test": "firebase emulators:exec --only firestore --project markin-teste \"node --test testes/regras.test.mjs\""
+    "test": "firebase emulators:exec --only firestore,auth --project markin-teste \"node --test testes/*.test.mjs\""
   },
   "repository": {
     "type": "git",

@@ -3632,18 +3632,42 @@
     }, () => {});
   }
 
+  // Lista quem está vivo. Com dois agentes servindo de reserva um ao outro,
+  // mostrar só "conectado" esconderia a queda de um deles: a impressão
+  // continuaria saindo e você só descobriria que estava sem reserva no dia em
+  // que o segundo também caísse. Reserva que ninguém vê não é reserva.
+  function agentesVivos(){
+    const m = (filaAgente && filaAgente.agentes) || {};
+    return Object.entries(m).map(([nome, a]) => ({
+      nome,
+      impressora: a.impressora || '',
+      seg: (Date.now() - new Date(a.visto || 0)) / 1000,
+    })).sort((x,y) => x.seg - y.seg);
+  }
+
   function filaStatus(){
     if(!filaAgente || !filaAgente.ultimoSinal){
       return {cor:'var(--tomato)', bg:'rgba(182,56,44,0.1)',
-              texto:'🔴 <b>Computador desconectado</b> — nenhum sinal recebido. Os cupons ficam na fila e saem quando o PC ligar.'};
+              texto:'🔴 <b>Nenhum agente conectado</b> — nenhum sinal recebido. Os cupons ficam na fila e saem quando um agente ligar.'};
     }
     const seg = (Date.now() - new Date(filaAgente.ultimoSinal)) / 1000;
+    const vivos = agentesVivos().filter(a => a.seg < 90);
+    const lista = vivos.map(a => `${escapeHtml(a.nome)} <span style="opacity:.6">(${escapeHtml(a.impressora)})</span>`).join(' · ');
+
     if(seg < 90){
+      const cabeca = vivos.length > 1
+        ? `🟢 <b>${vivos.length} agentes conectados</b> — um é reserva do outro.`
+        : '🟢 <b>Agente conectado</b> — pronto pra imprimir.';
+      const caidos = agentesVivos().filter(a => a.seg >= 90);
+      const aviso = caidos.length
+        ? `<br><span style="color:var(--mustard)">⚠️ sem reserva: ${caidos.map(a =>
+            `${escapeHtml(a.nome)} calado há ${Math.round(a.seg/60)} min`).join(', ')}</span>`
+        : '';
       return {cor:'var(--green)', bg:'rgba(76,175,109,0.1)',
-              texto:`🟢 <b>Computador conectado</b> — ${escapeHtml(filaAgente.impressora || 'impressora padrão')}. Pronto pra imprimir.`};
+              texto: cabeca + (lista ? `<br>${lista}` : '') + aviso};
     }
     return {cor:'var(--mustard)', bg:'rgba(240,180,41,0.1)',
-            texto:`🟡 <b>Sem resposta há ${Math.round(seg/60)} min</b> — confira se o PC está ligado e o script rodando.`};
+            texto:`🟡 <b>Sem resposta há ${Math.round(seg/60)} min</b> — confira se o agente está ligado e rodando.`};
   }
 
   // Coloca o cupom na fila que o computador vai consumir
@@ -7522,8 +7546,8 @@
      desc:'Permite deixar na conta e acertar depois.', tab:null},
     {key:'previsao',    icon:'📈', nome:'Previsão de demanda',
      desc:'Estima o movimento dos próximos dias com base no seu histórico.', tab:null},
-    {key:'filaimpressao', icon:'🖨️', nome:'Fila de impressão (PC + USB)',
-     desc:'Manda as comandas pra um computador imprimir na térmica USB. Precisa do script rodando no PC.', tab:null},
+    {key:'filaimpressao', icon:'🖨️', nome:'Fila de impressão',
+     desc:'A comanda sai sozinha, de qualquer aparelho — iPhone, Android ou tablet. Precisa do agente rodando num PC ou Raspberry Pi ligado na térmica. Dois agentes podem rodar juntos, um de reserva do outro.', tab:null},
     {key:'cupons',      icon:'🏷️', nome:'Cupons de desconto',
      desc:'Códigos promocionais que o cliente digita no checkout. Percentual, valor fixo ou frete grátis.', tab:'cupons'},
     {key:'pixels',      icon:'📣', nome:'Pixels de anúncio (Meta / Google / TikTok)',

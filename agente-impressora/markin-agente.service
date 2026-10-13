@@ -1,0 +1,19 @@
+[Unit]
+Description=Agente de impressao - O Markin
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Ajuste User e WorkingDirectory se nao instalou em /home/pi
+User=pi
+WorkingDirectory=/home/pi/agente-impressora
+ExecStart=/usr/bin/node agente.js
+# A loja nao pode ficar sem comanda: se cair, volta sozinho em 10s
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

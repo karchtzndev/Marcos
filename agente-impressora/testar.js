@@ -47,22 +47,36 @@ const cupom =
   '\n\n\n' + ESC.cortar;
 
 const buf = Buffer.from(cupom, 'latin1');
-const tmp = path.join(os.tmpdir(), 'markin-teste.bin');
+const ehWindows = process.platform === 'win32';
+console.log(`Enviando para ${cfg.impressora} (${ehWindows ? 'Windows' : 'Linux'})…`);
 
-fs.writeFileSync(tmp, buf);
-console.log('Enviando para', cfg.impressora, '…');
-
-execFile('cmd', ['/c', 'copy', '/b', tmp, cfg.impressora], (erro, saida, stderr) => {
-  fs.unlink(tmp, () => {});
-  if(erro){
-    console.error('\n❌ Não saiu.', stderr || erro.message);
-    console.error('\nConfira:');
-    console.error('  1. A impressora está ligada e com papel?');
-    console.error('  2. O nome em config.json está exatamente igual ao compartilhamento?');
+function deuErro(msg){
+  console.error('\n❌ Não saiu.', msg);
+  console.error('\nConfira:');
+  console.error('  1. A impressora está ligada e com papel?');
+  if(ehWindows){
+    console.error('  2. O nome no config.json é igual ao do compartilhamento?');
     console.error('  3. O compartilhamento foi marcado nas propriedades da impressora?');
-    process.exitCode = 1;
-    return;
+  }else{
+    console.error('  2. O dispositivo existe?   ls -l /dev/usb/');
+    console.error('  3. Você está no grupo lp?  sudo usermod -aG lp $USER');
+    console.error('     (depois de entrar no grupo, precisa sair e entrar na sessão)');
   }
+  process.exitCode = 1;
+}
+
+const deuCerto = () => {
   console.log('\n✅ Enviado. Confira o papel.');
-  console.log('   Saiu em branco ou com lixo? O driver está convertendo — veja o LEIA-ME.');
-});
+  console.log('   Saiu em branco ou com lixo? Veja o LEIA-ME.');
+};
+
+if(ehWindows){
+  const tmp = path.join(os.tmpdir(), 'markin-teste.bin');
+  fs.writeFileSync(tmp, buf);
+  execFile('cmd', ['/c', 'copy', '/b', tmp, cfg.impressora], (erro, _s, stderr) => {
+    fs.unlink(tmp, () => {});
+    erro ? deuErro(stderr || erro.message) : deuCerto();
+  });
+}else{
+  fs.promises.writeFile(cfg.impressora, buf, { flag: 'a' }).then(deuCerto, e => deuErro(e.message));
+}
