@@ -45,6 +45,27 @@ impressora pararia de imprimir sem erro nenhum aparecer.
 
 É o caminho mais simples: **não existe driver para instalar.**
 
+## O jeito rápido: deixe o instalador fazer
+
+Ligue e plugue as impressoras, copie esta pasta para o Pi e rode:
+
+```
+bash instalar-no-pi.sh
+```
+
+Ele faz sozinho tudo o que está escrito abaixo: instala o Node, dá a permissão
+de impressora, **descobre as impressoras plugadas**, fixa o nome de cada uma por
+udev, cria uma pasta de agente por impressora, gera os `config.json` e deixa
+tudo subindo com o Pi.
+
+Ele pergunta só três coisas: um apelido para cada impressora, o e-mail e a senha
+da conta, e o modo.
+
+> Se preferir entender cada passo — ou se algo der errado no instalador — os
+> passos manuais estão todos abaixo. Eles continuam valendo.
+
+---
+
 ## 1. Preparar o Pi
 
 Raspberry Pi OS Lite já basta. Instale o Node:
