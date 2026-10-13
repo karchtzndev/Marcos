@@ -10,19 +10,34 @@ a impressão direta do Android (RawBT) nunca permitiu.
 Se o agente estiver desligado, os cupons esperam na fila e saem quando ele
 voltar. Nada se perde.
 
-## Dois agentes ao mesmo tempo
+## Vários agentes ao mesmo tempo — dois modos
 
-Você pode rodar em **dois aparelhos** — por exemplo um Raspberry Pi e o PC do
-caixa — um servindo de reserva do outro. Impressora térmica é peça que falha, e
-ficar sem comanda no sábado é caro.
+Cada impressora tem o seu agente, com o seu `config.json`. O `modo` decide como
+eles se comportam entre si. **Todos precisam usar o mesmo modo.**
 
-Antes de imprimir, o agente *reivindica* o cupom: os dois recebem o mesmo
-pedido no mesmo instante, mas só um ganha a disputa. **O cupom nunca sai
-dobrado.** Se quem ganhou morrer no meio, o cupom volta para a fila em até dois
-minutos e o outro assume.
+### `"modo": "copia"` — a mesma comanda em todas
 
-Para isso funcionar, cada agente precisa de um `nome` diferente no
-`config.json`. O painel mostra os dois e avisa, em amarelo, se um ficar calado.
+Cozinha, balcão e onde mais você quiser recebem a **mesma via ao mesmo tempo**.
+Cada agente imprime a sua e anota só a própria marca, sem apagar a dos outros.
+
+O cupom fica na fila por `janelaMinutos` (10 por padrão) antes de ser fechado.
+É de propósito: uma impressora que estava desligada tem esse tempo para ligar e
+tirar a via dela.
+
+### `"modo": "reserva"` — um cobre a queda do outro
+
+Os agentes **disputam** o cupom e só um imprime. Serve para dois aparelhos
+vigiando a mesma impressora, ou para um PC cobrindo a queda do Pi.
+
+Se quem ganhou morrer no meio, o cupom volta para a fila em até dois minutos e
+o outro assume. **O cupom nunca sai dobrado.**
+
+---
+
+Cada agente precisa de um `nome` diferente. O painel lista todos, avisa em
+amarelo quando um para, e em **vermelho se os modos estiverem misturados** —
+nesse caso um agente fecharia o cupom antes dos outros copiarem, e uma
+impressora pararia de imprimir sem erro nenhum aparecer.
 
 ---
 
@@ -62,6 +77,41 @@ vai no `config.json`:
 
 > **Não instale o CUPS.** Ele reintroduz a camada gráfica que faz o papel sair
 > com lixo. Escrever direto no dispositivo é o caminho certo.
+
+## 3b. Fixar o nome de cada impressora USB ⚠️
+
+**Pule este passo só se você tiver UMA impressora USB.**
+
+Com duas do mesmo modelo, o Linux numera `lp0` e `lp1` por ordem de detecção —
+e essa ordem **muda a cada reinício**. Na prática: você reinicia o Pi numa terça
+e a comanda da cozinha passa a sair no balcão. Sem erro, sem aviso.
+
+Descubra o número de série de cada uma:
+
+```
+lsusb -v 2>/dev/null | grep -A3 -i bematech | grep -i iSerial
+```
+
+Crie `/etc/udev/rules.d/99-markin.rules` com uma linha por impressora:
+
+```
+SUBSYSTEM=="usbmisc", ATTRS{serial}=="SERIE-DA-COZINHA", SYMLINK+="markin-cozinha"
+SUBSYSTEM=="usbmisc", ATTRS{serial}=="SERIE-DO-BALCAO",  SYMLINK+="markin-balcao"
+```
+
+Aplique e confira:
+
+```
+sudo udevadm control --reload-rules && sudo udevadm trigger
+ls -l /dev/markin-*
+```
+
+Agora use esses nomes no `config.json`. Eles nunca mudam, aconteça o que
+acontecer.
+
+> Se as impressoras não expuserem número de série, dá para fixar pela **porta
+> física** em vez do serial — nesse caso cada uma fica amarrada à entrada USB
+> onde está plugada. Me avise que eu te passo a regra.
 
 ## 4. Criar a conta da impressora
 
@@ -159,9 +209,19 @@ sistema para 32 colunas.
 E-mail ou senha errados, ou a conta não foi criada/ativada no painel. O teste do
 passo 5 funciona mesmo assim — ele não usa login.
 
-**O painel diz "sem reserva" em amarelo**
-Um dos dois agentes parou. A impressão continua pelo outro, mas você está sem
-rede de segurança. Vale olhar antes do próximo movimento.
+**O painel diz "parado" em amarelo**
+Um dos agentes parou. No modo reserva a impressão continua pelo outro, mas você
+está sem rede de segurança. No modo cópia, aquela impressora simplesmente não
+está mais recebendo as vias dela.
+
+**O painel diz "Modos misturados" em vermelho**
+Algum `config.json` está com `modo` diferente dos outros. Deixe todos iguais e
+reinicie os agentes — enquanto estiver assim, uma impressora vai parar de
+imprimir sem dar erro.
+
+**A comanda da cozinha começou a sair no balcão**
+As duas USB trocaram de `lp0`/`lp1` ao reiniciar. É o passo 3b — fixe os nomes
+por udev e isso não acontece mais.
 
 **Cupom não saiu e a janela está aberta**
 Olhe o registro do agente: ele anota cada falha e o motivo. Cupom que falha

@@ -17,7 +17,10 @@ import { initializeTestEnvironment } from '@firebase/rules-unit-testing';
 // carregado nos dois sistemas vira duas instâncias separadas — o objeto criado
 // de um lado não é reconhecido pelas funções do outro.
 const require = createRequire(import.meta.url);
-const { reivindicar, reivindicarPreso, devolver } = require('../agente-impressora/agente.js');
+const {
+  reivindicar, reivindicarPreso, devolver,
+  marcarMinhaVia, jaImprimiAqui, fecharAntigos, chaveAgente,
+} = require('../agente-impressora/agente.js');
 const { initializeApp, deleteApp } = require('firebase/app');
 const { getFirestore, connectFirestoreEmulator, doc, setDoc, getDoc } = require('firebase/firestore');
 const { getAuth, connectAuthEmulator, createUserWithEmailAndPassword } = require('firebase/auth');
@@ -121,5 +124,57 @@ describe('agente que morre no meio da impressão', () => {
     const d = await ler(id);
     assert.strictEqual(d.status, 'pendente');
     assert.strictEqual(d.agente, null);
+  });
+});
+
+/* ==================================================================
+   MODO CÓPIA — a mesma comanda saindo em mais de uma impressora
+   ================================================================== */
+describe('modo cópia', () => {
+
+  test('dois agentes marcam a própria via sem apagar a do outro', async () => {
+    // É o mesmo erro que tirou as estatísticas do dashboard hoje: regravar o
+    // mapa inteiro faria o segundo agente sumir com a marca do primeiro, e aí
+    // uma das impressoras repetiria o cupom para sempre.
+    const id = await novoCupom({ status: 'pendente', criadoEm: new Date().toISOString() });
+
+    await Promise.all([
+      marcarMinhaVia(db, id, 'Cozinha'),
+      marcarMinhaVia(db, id, 'Balcao'),
+    ]);
+
+    const d = await ler(id);
+    assert.ok(d.impressoPor.Cozinha, 'a via da cozinha tem que estar marcada');
+    assert.ok(d.impressoPor.Balcao,  'a via do balcão tem que estar marcada');
+    assert.strictEqual(d.status, 'pendente', 'ninguém fecha o cupom no modo cópia');
+  });
+
+  test('agente que já tirou a via dele não imprime de novo', async () => {
+    const dados = { impressoPor: { Cozinha: '2026-10-13T00:00:00.000Z' } };
+    assert.strictEqual(jaImprimiAqui(dados, 'Cozinha'), true);
+    assert.strictEqual(jaImprimiAqui(dados, 'Balcao'), false);
+    assert.strictEqual(jaImprimiAqui({}, 'Cozinha'), false);
+  });
+
+  test('nome com espaço e acento vira chave válida de campo', async () => {
+    // Firestore recusa . [ ] * / ` em nome de campo — sem isto, um agente
+    // chamado "Pi da cozinha" derrubaria a gravação em silêncio.
+    const id = await novoCupom({ status: 'pendente', criadoEm: new Date().toISOString() });
+    await marcarMinhaVia(db, id, 'Pi da cozinha (fundo)');
+    const d = await ler(id);
+    assert.ok(d.impressoPor[chaveAgente('Pi da cozinha (fundo)')]);
+  });
+
+  test('cupom velho sai da fila; o recente continua esperando', async () => {
+    const velho = await novoCupom({ status: 'pendente',
+      criadoEm: new Date(Date.now() - 30*60000).toISOString() });
+    const novo  = await novoCupom({ status: 'pendente',
+      criadoEm: new Date().toISOString() });
+
+    await fecharAntigos(db, 10);
+
+    assert.strictEqual((await ler(velho)).status, 'impresso', 'velho devia ter sido fechado');
+    assert.strictEqual((await ler(novo)).status, 'pendente',
+      'o recente precisa continuar na fila — a impressora que estava desligada ainda vai copiar');
   });
 });

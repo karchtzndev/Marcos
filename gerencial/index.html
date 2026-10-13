@@ -3638,9 +3638,10 @@
   // que o segundo também caísse. Reserva que ninguém vê não é reserva.
   function agentesVivos(){
     const m = (filaAgente && filaAgente.agentes) || {};
-    return Object.entries(m).map(([nome, a]) => ({
-      nome,
+    return Object.entries(m).map(([chave, a]) => ({
+      nome: a.nome || chave,
       impressora: a.impressora || '',
+      modo: a.modo || 'reserva',
       seg: (Date.now() - new Date(a.visto || 0)) / 1000,
     })).sort((x,y) => x.seg - y.seg);
   }
@@ -3655,16 +3656,27 @@
     const lista = vivos.map(a => `${escapeHtml(a.nome)} <span style="opacity:.6">(${escapeHtml(a.impressora)})</span>`).join(' · ');
 
     if(seg < 90){
+      const modos = [...new Set(vivos.map(a => a.modo))];
       const cabeca = vivos.length > 1
-        ? `🟢 <b>${vivos.length} agentes conectados</b> — um é reserva do outro.`
+        ? (modos[0] === 'copia'
+            ? `🟢 <b>${vivos.length} impressoras</b> — a mesma comanda sai em todas.`
+            : `🟢 <b>${vivos.length} agentes conectados</b> — um é reserva do outro.`)
         : '🟢 <b>Agente conectado</b> — pronto pra imprimir.';
+
+      // Modos misturados quebram em silêncio: o agente em "reserva" fecha o
+      // cupom antes dos outros copiarem, e uma impressora simplesmente para
+      // de imprimir sem erro nenhum aparecer.
+      const conflito = modos.length > 1
+        ? `<br><span style="color:var(--tomato)">🔴 <b>Modos misturados</b> (${modos.join(' e ')}) — os agentes vão se atrapalhar. Deixe todos iguais no config.json.</span>`
+        : '';
+
       const caidos = agentesVivos().filter(a => a.seg >= 90);
       const aviso = caidos.length
-        ? `<br><span style="color:var(--mustard)">⚠️ sem reserva: ${caidos.map(a =>
+        ? `<br><span style="color:var(--mustard)">⚠️ parado: ${caidos.map(a =>
             `${escapeHtml(a.nome)} calado há ${Math.round(a.seg/60)} min`).join(', ')}</span>`
         : '';
       return {cor:'var(--green)', bg:'rgba(76,175,109,0.1)',
-              texto: cabeca + (lista ? `<br>${lista}` : '') + aviso};
+              texto: cabeca + (lista ? `<br>${lista}` : '') + conflito + aviso};
     }
     return {cor:'var(--mustard)', bg:'rgba(240,180,41,0.1)',
             texto:`🟡 <b>Sem resposta há ${Math.round(seg/60)} min</b> — confira se o agente está ligado e rodando.`};

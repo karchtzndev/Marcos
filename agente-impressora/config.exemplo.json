@@ -1,12 +1,23 @@
 {
   "_leia": "Copie para config.json e preencha. O config.json fica fora do Git — ele guarda a senha.",
 
-  "_nome": "Precisa ser DIFERENTE em cada agente. É assim que o painel mostra os dois e avisa se um cair.",
-  "nome": "Raspberry da cozinha",
+  "_nome": "DIFERENTE em cada agente. É assim que o painel mostra os três e avisa se um parar.",
+  "nome": "Cozinha",
 
-  "_impressora": "No Raspberry/Linux use o caminho do dispositivo. No Windows, o compartilhamento.",
-  "impressora": "/dev/usb/lp0",
-  "_impressora_windows": "\\\\localhost\\CUPOM",
+  "_modo": "copia = cada impressora tira a sua via da mesma comanda. reserva = os agentes disputam e só um imprime, servindo de backup. TODOS os agentes precisam usar o MESMO modo.",
+  "modo": "copia",
+
+  "_janelaMinutos": "Só no modo copia: quanto tempo o cupom espera na fila para as outras impressoras copiarem. Uma que estava desligada tem esse tempo para ligar e tirar a via dela.",
+  "janelaMinutos": 10,
+
+  "_impressora": "Linux/Raspberry: caminho do dispositivo. Windows: o compartilhamento.",
+  "impressora": "/dev/markin-cozinha",
+  "_exemplos_impressora": [
+    "/dev/markin-cozinha        (USB, nome fixo por udev — recomendado)",
+    "/dev/usb/lp0              (USB, nome que pode trocar ao reiniciar)",
+    "/dev/rfcomm0              (Bluetooth)",
+    "\\\\localhost\\CUPOM        (Windows)"
+  ],
 
   "usuario": "impressora@omarkin.com.br",
   "senha": "TROCAR-PELA-SENHA-DA-CONTA",

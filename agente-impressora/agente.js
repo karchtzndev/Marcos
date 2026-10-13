@@ -33,9 +33,14 @@ const VERSAO = '2.0.0';
 // como módulo e não devem exigir um config com senha.
 let cfg = {};
 let EU = os.hostname();
+let MODO = 'reserva';
 function carregarConfig(){
   cfg = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8'));
   EU = cfg.nome || os.hostname();
+  MODO = cfg.modo || 'reserva';
+  if(!MODOS.includes(MODO)){
+    throw new Error(`modo "${MODO}" não existe. Use: ${MODOS.join(' ou ')}`);
+  }
 }
 
 function log(...args){
@@ -74,6 +79,21 @@ function imprimirWindows(buf){
 const imprimir = (escpos) => process.platform === 'win32'
   ? imprimirWindows(paraBytes(escpos))
   : imprimirLinux(paraBytes(escpos));
+
+/* ============ MODOS ============ */
+//
+// reserva — os agentes DISPUTAM o cupom e só um imprime. Dois aparelhos
+//           vigiando a mesma impressora, um cobrindo a queda do outro.
+//
+// copia   — cada agente imprime a SUA via do mesmo cupom, sem disputar.
+//           Mesma comanda saindo na cozinha e no balcão ao mesmo tempo.
+//
+// Todos os agentes precisam usar o MESMO modo. Misturar faria o que está em
+// reserva engolir o cupom antes dos outros copiarem.
+const MODOS = ['reserva', 'copia'];
+
+// Nome do agente vira chave de campo no Firestore, que não aceita . [ ] * / `
+const chaveAgente = (nome) => String(nome).replace(/[^A-Za-z0-9_-]/g, '_');
 
 /* ============ DISPUTA PELA FILA ============ */
 
@@ -120,6 +140,36 @@ function reivindicarPreso(db, id, limite = LIMITE_IMPRESSAO){
   }).catch(() => false);
 }
 
+/* ============ MODO CÓPIA ============ */
+
+// Cada agente anota só a PRÓPRIA via. updateDoc interpreta o ponto como
+// caminho, então dois agentes gravando ao mesmo tempo escrevem em campos
+// diferentes e nenhum apaga o do outro — o contrário de regravar o mapa
+// inteiro, que faria o segundo sumir com a marca do primeiro.
+const marcarMinhaVia = (db, id, quem) =>
+  updateDoc(doc(db, 'printQueue', id), {
+    ['impressoPor.' + chaveAgente(quem)]: new Date().toISOString(),
+  });
+
+const jaImprimiAqui = (dados, quem) =>
+  !!(dados.impressoPor && dados.impressoPor[chaveAgente(quem)]);
+
+// No modo cópia ninguém pode fechar o cupom ao imprimir: os outros agentes
+// ainda não copiaram. Em vez de exigir uma lista de quem existe, damos uma
+// janela — impressora que estava desligada tem esse tempo para ligar e tirar
+// a via dela. Passado isso o cupom sai da fila, senão ela cresceria sem fim.
+async function fecharAntigos(db, janelaMin){
+  const limite = Date.now() - janelaMin * 60000;
+  try{
+    const snap = await getDocs(query(collection(db,'printQueue'), where('status','==','pendente')));
+    for(const d of snap.docs){
+      if(new Date(d.data().criadoEm || 0).getTime() > limite) continue;
+      await updateDoc(d.ref, { status: 'impresso', fechadoEm: new Date().toISOString() })
+        .catch(() => {});
+    }
+  }catch(e){ /* sem rede: a próxima varredura tenta de novo */ }
+}
+
 /* ============ PROCESSAMENTO ============ */
 
 // Um cupom por vez neste agente. Mandar dois ao mesmo tempo para a mesma
@@ -132,23 +182,32 @@ async function processarFila(db){
   imprimindo = true;
 
   const item = pendentes.shift();
+  const vias = Math.max(1, Number(item.dados.vias) || 1);
+  const sairam = async () => { for(let i = 0; i < vias; i++) await imprimir(item.dados.escpos); };
+
   try{
-    if(!await reivindicar(db, item.id, EU)) return;   // o outro agente pegou primeiro
-
-    const vias = Math.max(1, Number(item.dados.vias) || 1);
-    for(let i = 0; i < vias; i++) await imprimir(item.dados.escpos);
-
-    await updateDoc(doc(db, 'printQueue', item.id), {
-      status: 'impresso',
-      impressoEm: new Date().toISOString(),
-      agente: EU,
-    });
+    if(MODO === 'copia'){
+      if(jaImprimiAqui(item.dados, EU)) return;   // esta impressora já tirou a via dela
+      await sairam();
+      await marcarMinhaVia(db, item.id, EU);
+    }else{
+      if(!await reivindicar(db, item.id, EU)) return;   // o outro agente pegou primeiro
+      await sairam();
+      await updateDoc(doc(db, 'printQueue', item.id), {
+        status: 'impresso',
+        impressoEm: new Date().toISOString(),
+        agente: EU,
+      });
+    }
     log(`✅ ${item.dados.tipo} ${item.dados.titulo || ''} (${vias} via${vias>1?'s':''})`);
   }catch(e){
-    // Devolve à fila em vez de deixar preso: papel acabou, impressora
-    // desligada — o outro agente tenta, ou este mesmo tenta de novo depois.
-    log('❌ falhou:', e.message, '— devolvido à fila');
-    await devolver(db, item.id);
+    // Nunca marcamos como feito: papel acabou, impressora desligada. Na
+    // reserva o cupom volta para a fila e o outro agente tenta; na cópia ele
+    // continua pendente e este agente insiste, porque a via dele é a única
+    // que ninguém mais vai tirar.
+    log('❌ falhou:', e.message, MODO === 'copia' ? '— vai tentar de novo' : '— devolvido à fila');
+    if(MODO === 'copia') pendentes.push(item);
+    else await devolver(db, item.id);
     await new Promise(r => setTimeout(r, 5000));
   }finally{
     imprimindo = false;
@@ -165,22 +224,32 @@ async function main(){
 
   log('conectando…');
   await signInWithEmailAndPassword(getAuth(app), cfg.usuario, cfg.senha);
-  log(`conectado como ${cfg.usuario} · agente "${EU}"`);
+  log(`conectado como ${cfg.usuario} · agente "${EU}" · modo ${MODO}`);
   log('imprimindo em', cfg.impressora, `(${process.platform === 'win32' ? 'Windows' : 'Linux'})`);
+  if(MODO === 'copia') log(`cada cupom fica ${cfg.janelaMinutos || 10} min na fila para os outros copiarem`);
 
   // Sinal de vida: acende o verde no painel. Cada agente grava também o
   // próprio nome, para dar pra ver se a reserva ainda está de pé — redundância
   // que ninguém consegue monitorar vira, sem avisar, um agente só.
   const sinal = () => setDoc(doc(db, 'store', 'printer'), {
     ultimoSinal: new Date().toISOString(),
-    agentes: { [EU]: { visto: new Date().toISOString(), impressora: cfg.impressora, versao: VERSAO } },
+    agentes: { [chaveAgente(EU)]: {
+      nome: EU, modo: MODO, visto: new Date().toISOString(),
+      impressora: cfg.impressora, versao: VERSAO,
+    } },
   }, { merge: true }).catch(e => log('sinal falhou:', e.message));
 
   sinal();
   setInterval(sinal, INTERVALO_SINAL);
 
-  resgatarPresos(db);
-  setInterval(() => resgatarPresos(db), INTERVALO_RESGATE);
+  // Cada modo tem a sua varredura: na reserva, resgatar o cupom que ficou
+  // preso com um agente que morreu; na cópia, fechar o cupom velho para a
+  // fila não crescer para sempre.
+  const varrer = MODO === 'copia'
+    ? () => fecharAntigos(db, Number(cfg.janelaMinutos) || 10)
+    : () => resgatarPresos(db);
+  varrer();
+  setInterval(varrer, INTERVALO_RESGATE);
 
   onSnapshot(
     query(collection(db, 'printQueue'), where('status', '==', 'pendente')),
@@ -208,4 +277,7 @@ if(require.main === module){
   });
 }
 
-module.exports = { reivindicar, reivindicarPreso, devolver };
+module.exports = {
+  reivindicar, reivindicarPreso, devolver,
+  marcarMinhaVia, jaImprimiAqui, fecharAntigos, chaveAgente,
+};
