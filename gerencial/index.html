@@ -355,6 +355,21 @@
   .dash-cols{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
   .dash-card{background:var(--pitch); border:1px solid var(--line); border-radius:16px; padding:22px;}
   .dash-card h3{font-size:14px; margin-bottom:16px; color:var(--cream);}
+
+  /* Conferência do dia anterior. Discreta quando bate, impossível de ignorar
+     quando não bate — o problema que ela existe para pegar é justamente o que
+     não aparece em lugar nenhum. */
+  .conf{border-radius:16px; padding:18px 20px; margin-bottom:18px; border:1px solid var(--line); background:var(--pitch);}
+  .conf.erro{border-color:var(--tomato); background:rgba(182,56,44,0.12);}
+  .conf-topo{display:flex; align-items:center; gap:10px; font-size:14px; font-weight:700; margin-bottom:4px; color:var(--cream);}
+  .conf-dia{font-size:12px; color:rgba(242,233,218,0.5); font-weight:400;}
+  .conf-linha{display:flex; align-items:baseline; gap:10px; padding:7px 0; font-size:13px; border-top:1px solid rgba(242,233,218,0.07);}
+  .conf-linha:first-of-type{border-top:0;}
+  .conf-rot{flex:1; color:rgba(242,233,218,0.75);}
+  .conf-val{font-variant-numeric:tabular-nums; color:var(--cream);}
+  .conf-ok{color:var(--green);}
+  .conf-dif{color:var(--tomato); font-weight:700;}
+  .conf-nota{margin-top:10px; font-size:12px; line-height:1.5; color:rgba(242,233,218,0.6);}
   .bestseller-row{display:flex; align-items:center; gap:12px; margin-bottom:12px;}
   .bestseller-row .bs-rank{width:24px; height:24px; border-radius:50%; background:var(--ember); color:var(--pitch); font-family:'Anton',sans-serif; font-size:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
   .bestseller-row .bs-name{flex-grow:1; font-size:13px; min-width:0;}
@@ -1420,6 +1435,7 @@
         <!-- DASHBOARD TAB -->
         <div id="atabDashboard">
           <div id="lowStockAlert"></div>
+          <div id="conferenciaBox"></div>
           <div id="kpiGrid" class="kpi-grid"></div>
           <div class="dash-cols">
             <div class="dash-card">
@@ -3741,7 +3757,7 @@
       else if(tab === 'cozinha')   renderKitchen();
       else if(tab === 'mesas')     renderTables();
       else if(tab === 'caixa')     renderCaixa();
-      else if(tab === 'dashboard'){ renderDashboard(); renderEmployeeRanking(); renderPrevisao(); }
+      else if(tab === 'dashboard'){ renderDashboard(); renderEmployeeRanking(); renderPrevisao(); conferirOntem(); }
       else if(tab === 'clientes')  renderClientes();
       else if(tab === 'entregas')  renderEntregas();
       if(currentTrackedCode) refreshTrackView();
@@ -6307,6 +6323,97 @@
       await comLimite(db.collection('orders').doc(code).update({deliveredBy: nome || null}), 5000, 'atribuir entregador');
       showToast(nome ? `Entrega atribuída a ${nome} ✓` : 'Atribuição removida');
     }catch(e){ alert('Não foi possível salvar.'); }
+  }
+
+  /* ================= CONFERÊNCIA DO DIA ANTERIOR ================= */
+  // Os bugs mais caros que este sistema teve viveram meses em produção sem
+  // ninguém ver: a gravação era recusada, o .catch() engolia o erro e a tela
+  // dizia que tinha dado certo. Venda sumindo do caixa, pedido do site que não
+  // entrava na estatística — nada disso aparecia em lugar nenhum.
+  //
+  // Aqui o sistema confere a própria contabilidade. Não aponta QUAL é o
+  // problema, aponta que existe um. Saber no dia seguinte é incomparavelmente
+  // melhor do que saber meses depois, ou nunca.
+  let diaConferido = null;   // evita reler a cada vez que a aba é aberta
+
+  async function conferirOntem(){
+    const box = document.getElementById('conferenciaBox');
+    if(!box) return;
+
+    const ontem = new Date();
+    ontem.setDate(ontem.getDate() - 1);
+    const dia = localDateStr(ontem);
+    if(diaConferido === dia) return;
+
+    // createdAt é gravado em UTC e localDateStr usa a data local. Montar o
+    // intervalo com a data local em texto acusaria divergência falsa todo dia
+    // por causa do fuso — o intervalo precisa nascer da meia-noite local.
+    const ini = new Date(ontem.getFullYear(), ontem.getMonth(), ontem.getDate(), 0,0,0,0);
+    const fim = new Date(ini); fim.setDate(fim.getDate() + 1);
+
+    let stats, pedidos;
+    try{
+      const [docStats, snap] = await Promise.all([
+        db.collection('stats').doc(dia).get(),
+        db.collection('orders')
+          .where('createdAt', '>=', ini.toISOString())
+          .where('createdAt', '<',  fim.toISOString())
+          .get(),
+      ]);
+      stats = docStats.exists ? docStats.data() : {};
+      pedidos = snap.docs.map(d => d.data());
+    }catch(e){
+      box.innerHTML = '';   // sem permissão ou sem rede: melhor nada que erro
+      return;
+    }
+    diaConferido = dia;
+
+    // O cancelamento já desconta do stats, então a comparação é contra os
+    // pedidos válidos — senão todo dia com cancelamento acusaria diferença.
+    const validos = pedidos.filter(o => o.status !== 'cancelado');
+    const qtdReal = validos.length;
+    const valorReal = validos.reduce((s,o) => s + (Number(o.total)||0), 0);
+    const qtdStats = Number(stats.orderCount) || 0;
+    const valorStats = Number(stats.revenue) || 0;
+
+    if(qtdReal === 0 && qtdStats === 0){ box.innerHTML = ''; return; }  // loja fechada
+
+    // Número do dia repetido são dois pedidos saindo com o mesmo número para a
+    // cozinha. Não é erro de tela: é pedido trocado na bancada.
+    const nums = validos.map(o => o.dailyNumber).filter(Boolean);
+    const repetidos = [...new Set(nums.filter((n,i) => nums.indexOf(n) !== i))];
+
+    const difQtd = qtdStats - qtdReal;
+    const difValor = valorStats - valorReal;
+    const problema = difQtd !== 0 || Math.abs(difValor) > 0.01 || repetidos.length > 0;
+
+    const linha = (rot, val, dif) => `
+      <div class="conf-linha">
+        <span class="conf-rot">${rot}</span>
+        <span class="conf-val">${val}</span>
+        <span class="${dif ? 'conf-dif' : 'conf-ok'}">${dif || '✓'}</span>
+      </div>`;
+
+    const dataBonita = ini.toLocaleDateString('pt-BR', {weekday:'short', day:'2-digit', month:'2-digit'});
+
+    box.innerHTML = `
+      <div class="conf ${problema ? 'erro' : ''}">
+        <div class="conf-topo">
+          ${problema ? '⚠️ Os números de ontem não fecham' : '✅ Os números de ontem fecham'}
+          <span class="conf-dia">${dataBonita}</span>
+        </div>
+        ${linha('Pedidos registrados', `${qtdReal} · dashboard diz ${qtdStats}`,
+                difQtd !== 0 ? (difQtd > 0 ? `+${difQtd} a mais` : `${difQtd} a menos`) : '')}
+        ${linha('Faturamento somado', `${money(valorReal)} · dashboard diz ${money(valorStats)}`,
+                Math.abs(difValor) > 0.01 ? (difValor > 0 ? `+${money(difValor)}` : `${money(difValor)}`) : '')}
+        ${linha('Números de pedido únicos', `${nums.length} número(s)`,
+                repetidos.length ? `repetido: ${repetidos.join(', ')}` : '')}
+        ${problema ? `<div class="conf-nota">
+          O dashboard e a previsão de demanda leem esses números. Enquanto não
+          baterem, os dois estão olhando para dados incompletos. Vale mandar
+          este aviso junto com a aba 🐞 Erros para quem cuida do sistema.
+        </div>` : ''}
+      </div>`;
   }
 
   /* ================= PREVISÃO DE DEMANDA ================= */
