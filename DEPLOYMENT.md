@@ -147,34 +147,42 @@ firebase auth:import users.json --hash-algo=bcrypt
 
 ### Opção 1: Via GitHub (Recomendado)
 
-1. **Verificar arquivo `vercel.json`:**
-```json
-{
-  "buildCommand": "",
-  "outputDirectory": ".",
-  "public": true,
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
-}
-```
+1. **Ir para [vercel.com](https://vercel.com)**
+2. **Conectar GitHub** (se não estiver)
+3. **Importar projeto** `karchtzndev/Marcos`
+4. **Deploy** → Vercel faz automaticamente
 
-2. **Ir para [vercel.com](https://vercel.com)**
-3. **Conectar GitHub** (se não estiver)
-4. **Importar projeto** `karchtzndev/Marcos`
-5. **Configurar Environment Variables:**
+Não há build. Os três HTML são servidos como estão, e o `vercel.json` do
+repositório só define cabeçalhos de cache e `cleanUrls`. Nenhuma variável de
+ambiente é necessária para o site funcionar: a configuração do Firebase está
+dentro dos HTML, e a chave do Firebase é pública por projeto — quem protege o
+banco são as regras do Firestore, não o segredo da chave.
 
-   ```
-   VITE_FIREBASE_API_KEY=sua-key
-   VITE_FIREBASE_PROJECT_ID=seu-project-id
-   VITE_FIREBASE_AUTH_DOMAIN=seu-auth-domain
-   ... (copiar do js/firebase.js)
-   ```
+#### Variáveis de ambiente (só para a Conversions API)
 
-6. **Deploy** → Vercel faz automaticamente
+Uma única parte do sistema usa variável de ambiente: `api/meta-capi.js`, que
+manda a compra para o Meta pelo servidor além do pixel do navegador. Serve para
+recuperar a venda que o pixel perde com bloqueador de anúncio e com iPhone que
+nega rastreamento.
+
+Em **Settings → Environment Variables**, nos três ambientes:
+
+| Variável | Onde pegar |
+|---|---|
+| `META_CAPI_TOKEN` | Gerenciador de Eventos do Meta → seu pixel → Configurações → *Gerar token de acesso* |
+| `META_PIXEL_ID` | o mesmo id que está na aba Módulos do painel, em "Pixel do Meta" |
+
+**Enquanto as duas não existirem, a função responde 503 e o site segue com o
+pixel do navegador, exatamente como sempre foi.** Não é erro e não aparece na
+aba de Erros — é a Conversions API desligada.
+
+Para conferir que ligou: faça um pedido de teste e abra o Gerenciador de
+Eventos → *Testar eventos*. O Purchase deve aparecer **uma vez**, marcado como
+recebido pelo navegador **e** pelo servidor. Se aparecer duas vezes, o
+`event_id` deixou de bater — os dois lados usam `mk-<código do pedido>`.
+
+O token dá acesso de escrita à sua conta de anúncios. Ele fica só na Vercel;
+nunca entre com ele no código nem no chat.
 
 ### Opção 2: Vercel CLI
 

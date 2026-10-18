@@ -2735,6 +2735,9 @@
         pedido: order.code,
         itens: order.items.map(i => ({id: i.name, nome: i.name, price: i.price, qty: i.qty}))
       });
+      // Mesma compra, também pelo servidor — recupera o que o pixel perde.
+      // Sem await: a tela de "pedido confirmado" não espera por anúncio.
+      enviarCompraPeloServidor(order.code);
     }catch(e){
       console.error(e);
       btn.disabled = false; btn.textContent = "Confirmar pedido";
@@ -4228,6 +4231,60 @@
 
   function itensDoCarrinho(){
     return cart.map(c => ({id: c.productId, nome: c.name, price: c.price, qty: c.qty}));
+  }
+
+  /* ---------- CONVERSIONS API: a mesma compra, pelo servidor ----------
+     O pixel do navegador perde venda. Bloqueador de anúncio, iPhone com
+     rastreamento negado, aba fechada antes do script terminar — a compra
+     aconteceu e o Meta não soube. O anúncio então parece render menos do que
+     rende, e a otimização aprende errado.
+
+     Não conta em dobro: o pixel aqui manda eventID 'mk-<código>' e o servidor
+     manda o MESMO event_id, então o Meta junta os dois num só.
+
+     Daqui sai SÓ o código do pedido. Nome, telefone, itens e valor o servidor
+     lê do banco — nenhum dado pessoal passa por esta requisição, e código
+     inventado não vira venda falsa. Ver api/meta-capi.js. */
+  function lerCookie(nome){
+    const m = document.cookie.match('(^|;)\\s*' + nome + '\\s*=\\s*([^;]+)');
+    return m ? m.pop() : '';
+  }
+
+  async function enviarCompraPeloServidor(codigo){
+    if(!codigo) return;
+    if(!features.pxMeta || !temConsentimento()) return;   // mesma regra do pixel
+
+    const corpo = JSON.stringify({
+      code: codigo,
+      url: location.href,
+      fbp: lerCookie('_fbp'),
+      fbc: lerCookie('_fbc')
+    });
+
+    // O pedido é gravado no cache local primeiro e sobe em segundo plano, então
+    // o servidor pode ainda não enxergá-lo. 404 aqui quase sempre quer dizer
+    // "espera um pouco", não "não existe" — por isso a espera antes de desistir.
+    const esperas = [4000, 15000, 40000];
+    for(let tentativa = 0; tentativa < esperas.length; tentativa++){
+      await new Promise(r => setTimeout(r, esperas[tentativa]));
+      try{
+        const r = await fetch('/api/meta-capi', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: corpo
+        });
+        if(r.ok) return;
+        if(r.status === 503) return;   // não configurada: é escolha, não falha
+        if(r.status === 404) continue; // ainda não sincronizou, tenta de novo
+        registrarFalha('enviar a compra pela Conversions API (HTTP ' + r.status + ')', null,
+                       'Pedido ' + codigo);
+        return;
+      }catch(e){
+        if(tentativa === esperas.length - 1){
+          registrarFalha('enviar a compra pela Conversions API', e, 'Pedido ' + codigo);
+        }
+      }
+    }
   }
 
   /* ---------- AVISO DE COOKIES (LGPD) ---------- */
