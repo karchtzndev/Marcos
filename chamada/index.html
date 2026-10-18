@@ -284,6 +284,57 @@
 (function(){
   "use strict";
 
+  /* ---------- RASTRO DAS FALHAS ----------
+     O capturador lá de cima só pega erro que ninguém tratou. O que estava
+     dentro de um catch vazio — gravação recusada, escuta que morreu — sumia
+     sem deixar nada: a tela seguia dizendo que deu certo. Daqui em diante
+     essas também caem na aba 🐞 Erros do painel.
+
+     Duas travas para o log não virar o próximo problema: a mesma falha só
+     volta ao banco de 10 em 10 minutos, e a sessão inteira tem teto — uma
+     escuta quebrada dispara o erro a cada documento que chega. */
+  const falhasVistas = new Map();
+  let falhasGravadas = 0;
+  const FALHA_REPETE_EM  = 10 * 60 * 1000;
+  const FALHA_MAX_SESSAO = 20;
+
+  function registrarFalha(oQue, err, detalhe){
+    try{
+      const codigo = (err && (err.code || err.message)) || (err ? String(err) : 'sem detalhe');
+      const mensagem = 'FALHA: "' + oQue + '" — ' + String(codigo).slice(0,200);
+
+      const agora = Date.now();
+      const visto = falhasVistas.get(mensagem);
+      if(visto && agora - visto < FALHA_REPETE_EM) return;
+      if(falhasGravadas >= FALHA_MAX_SESSAO) return;
+      falhasVistas.set(mensagem, agora);
+      falhasGravadas++;
+
+      console.warn(mensagem, err || '');
+      if(typeof db === 'undefined' || !db || !window.firebase) return;
+
+      // Os campos são exatamente os que a regra do errorLog aceita. A regra
+      // usa hasOnly: um nome a mais e a gravação é recusada — em silêncio,
+      // que é justamente o que isto existe para acabar.
+      db.collection('errorLog').add({
+        mensagem: mensagem.slice(0,500),
+        detalhe: String(detalhe || (err && err.stack) || '').slice(0,500),
+        pagina: 'tv',
+        url: String(location.href).slice(0,200),
+        navegador: String(navigator.userAgent).slice(0,200),
+        plataforma: String(navigator.platform || ''),
+        toque: navigator.maxTouchPoints || 0,
+        modoComputador: (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
+        tela: (window.innerWidth||0) + 'x' + (window.innerHeight||0),
+        online: navigator.onLine,
+        quando: new Date().toISOString(),
+        // erro de 30 dias atrás não ajuda mais ninguém a depurar nada
+        expiraEm: firebase.firestore.Timestamp.fromMillis(Date.now() + 30*86400000)
+      }).catch(()=>{});
+    }catch(e){ /* registrar a falha nunca pode virar a falha */ }
+  }
+
+
   /* ============ CONFIGURAÇÃO ============ */
   const TEMPO_NA_TELA = 14000;  // quanto cada chamada fica em destaque (ms)
   const MAX_HISTORICO = 6;      // quantos aparecem em "últimos chamados"
@@ -446,7 +497,7 @@
           if(!exibindo) mostrarProxima();
         }
       }, (err) => {
-        console.error("Erro nas chamadas:", err);
+        registrarFalha('escuta das chamadas na TV', err);
         setConn(false);
       });
   }

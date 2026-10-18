@@ -104,6 +104,64 @@ describe('regressões que derrubaram gravações em produção', () => {
 });
 
 /* ==================================================================
+   RASTRO DAS FALHAS
+   O registrarFalha() das três telas grava AQUI. Se um destes campos
+   cair fora do hasOnly, o log é recusado em silêncio — e a ferramenta
+   feita justamente para acabar com o silêncio passa a ser a primeira
+   coisa a falhar sem ninguém ver. Por isso a forma exata está travada.
+   ================================================================== */
+describe('registro de falha das três telas', () => {
+
+  // Exatamente o objeto que registrarFalha() monta no site e na TV
+  const falhaDaTela = (pagina) => ({
+    mensagem: 'FALHA: "somar as estatísticas do dia" — permission-denied',
+    detalhe: 'FirebaseError: Missing or insufficient permissions.',
+    pagina,
+    url: 'https://omarkin.com.br/',
+    navegador: 'Mozilla/5.0 (iPhone)',
+    plataforma: 'iPhone',
+    toque: 5,
+    modoComputador: false,
+    tela: '390x844',
+    online: true,
+    quando: '2026-10-18T20:00:00.000Z',
+    expiraEm: new Date(Date.now() + 30 * 86400000),
+  });
+
+  test('falha do site do cliente é aceita', async () => {
+    await assertSucceeds(anonimo().collection('errorLog').add(falhaDaTela('cliente')));
+  });
+
+  test('falha da TV da cozinha é aceita', async () => {
+    await assertSucceeds(anonimo().collection('errorLog').add(falhaDaTela('tv')));
+  });
+
+  test('falha do painel, com usuário e função, é aceita', async () => {
+    // O painel sabe quem estava logado; o site e a TV não. São dois campos
+    // a mais no mesmo documento, e o hasOnly precisa aceitar os dois.
+    await assertSucceeds(caixa().collection('errorLog').add(
+      Object.assign(falhaDaTela('gerencial'), { usuario: 'Ana', funcao: 'funcionario' })
+    ));
+  });
+
+  test('mensagem acima de 500 caracteres é recusada', async () => {
+    // Por isso registrarFalha() corta em 500: uma stack inteira passaria
+    // desse limite e o log sumiria exatamente no erro mais interessante.
+    await assertFails(anonimo().collection('errorLog').add(
+      Object.assign(falhaDaTela('cliente'), { mensagem: 'x'.repeat(501) })
+    ));
+  });
+
+  test('equipe lê o log — é o que alimenta a aba 🐞 Erros', async () => {
+    await assertSucceeds(caixa().collection('errorLog').get());
+  });
+
+  test('cliente não lê o log dos outros', async () => {
+    await assertFails(anonimo().collection('errorLog').get());
+  });
+});
+
+/* ==================================================================
    O CADEADO CONTINUA FECHADO — afrouxar hasOnly não pode abrir brecha
    ================================================================== */
 describe('proteções que não podem ter sido afrouxadas', () => {

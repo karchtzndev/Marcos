@@ -1577,6 +1577,58 @@
   let fixedCosts = [];
   let inventory = [];
   let activeCategory = "todos";
+
+  /* ---------- RASTRO DAS FALHAS ----------
+     O capturador lá de cima só pega erro que ninguém tratou. O que estava
+     dentro de um catch vazio — gravação recusada, escuta que morreu — sumia
+     sem deixar nada: a tela seguia dizendo que deu certo. Daqui em diante
+     essas também caem na aba 🐞 Erros do painel.
+
+     Duas travas para o log não virar o próximo problema: a mesma falha só
+     volta ao banco de 10 em 10 minutos, e a sessão inteira tem teto — uma
+     escuta quebrada dispara o erro a cada documento que chega. */
+  const falhasVistas = new Map();
+  let falhasGravadas = 0;
+  const FALHA_REPETE_EM  = 10 * 60 * 1000;
+  const FALHA_MAX_SESSAO = 20;
+
+  function registrarFalha(oQue, err, detalhe){
+    try{
+      const codigo = (err && (err.code || err.message)) || (err ? String(err) : 'sem detalhe');
+      const mensagem = 'FALHA: "' + oQue + '" — ' + String(codigo).slice(0,200);
+
+      const agora = Date.now();
+      const visto = falhasVistas.get(mensagem);
+      if(visto && agora - visto < FALHA_REPETE_EM) return;
+      if(falhasGravadas >= FALHA_MAX_SESSAO) return;
+      falhasVistas.set(mensagem, agora);
+      falhasGravadas++;
+
+      console.warn(mensagem, err || '');
+      if(typeof db === 'undefined' || !db || !window.firebase) return;
+
+      // Os campos são exatamente os que a regra do errorLog aceita. A regra
+      // usa hasOnly: um nome a mais e a gravação é recusada — em silêncio,
+      // que é justamente o que isto existe para acabar.
+      db.collection('errorLog').add({
+        mensagem: mensagem.slice(0,500),
+        detalhe: String(detalhe || (err && err.stack) || '').slice(0,500),
+        pagina: 'cliente',
+        url: String(location.href).slice(0,200),
+        navegador: String(navigator.userAgent).slice(0,200),
+        plataforma: String(navigator.platform || ''),
+        toque: navigator.maxTouchPoints || 0,
+        modoComputador: (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
+        tela: (window.innerWidth||0) + 'x' + (window.innerHeight||0),
+        online: navigator.onLine,
+        quando: new Date().toISOString(),
+        // erro de 30 dias atrás não ajuda mais ninguém a depurar nada
+        expiraEm: firebase.firestore.Timestamp.fromMillis(Date.now() + 30*86400000)
+      }).catch(()=>{});
+    }catch(e){ /* registrar a falha nunca pode virar a falha */ }
+  }
+  window.registrarFalha = registrarFalha;   // para os blocos fora deste IIFE
+
   /* ---------- ARMAZENAMENTO SEGURO ----------
      Safari em navegação privada, iOS em "solicitar site para computador" e
      alguns navegadores com armazenamento cheio LANÇAM ERRO ao acessar
@@ -1792,12 +1844,13 @@
         products = doc.data().items;
       }else{
         products = defaultProducts;
-        try{ await db.collection('store').doc('menu').set({items: defaultProducts}); }catch(e){}
+        try{ await db.collection('store').doc('menu').set({items: defaultProducts}); }
+        catch(e){ registrarFalha('gravar o cardápio padrão', e); }
       }
       renderMenu();
       revalidarCarrinho();
     }, (err) => {
-      console.error("Erro ao ler cardápio:", err);
+      registrarFalha('escuta do cardápio', err);
       primeiroCardapioChegou = true;
       clearTimeout(vigiaCardapio);
       products = defaultProducts;
@@ -2393,7 +2446,7 @@
   // plano (e sozinho, quando a internet voltar). Não travamos a tela esperando.
   function saveOrder(order){
     const p = db.collection('orders').doc(order.code).set(order);
-    p.catch(e => console.warn("Sincronização pendente:", e));
+    p.catch(e => registrarFalha('enviar o pedido ao servidor', e));
     // resolve na hora se o servidor não responder em 2,5s (modo offline)
     return Promise.race([p, new Promise(res => setTimeout(res, 2500))]);
   }
@@ -2446,7 +2499,7 @@
       revenue: inc(Number(order.total) || 0),
       byType: { [order.orderType]: inc(1) },
       products: produtos
-    }, {merge:true}).catch(e => console.warn("stats:", e));
+    }, {merge:true}).catch(e => registrarFalha('somar as estatísticas do dia', e));
   }
 
   // Mantém o cadastro do cliente atualizado (usado pela fidelidade)
@@ -2462,7 +2515,7 @@
       gasto: inc(Number(order.total) || 0),
       ultimo: order.createdAt,
       atualizadoEm: new Date().toISOString()
-    }, {merge:true}).catch(e => console.warn('cliente:', e));
+    }, {merge:true}).catch(e => registrarFalha('atualizar o cadastro do cliente', e));
   }
 
   function generateOrderCode(){
@@ -2487,7 +2540,7 @@
       img.style.display = 'block';
       openOverlay('promoOverlay');
       guardar.salvar(seenKey, "1", true);
-    }, (err) => console.error("Erro promo:", err));
+    }, (err) => registrarFalha('escuta da promoção', err));
   }
 
   /* ---------------- DADOS DA LOJA (horário, endereço, whatsapp, instagram) ---------------- */
@@ -2609,7 +2662,7 @@
         document.getElementById('footInstagramLink').href = "https://instagram.com/" + igHandle;
         document.getElementById('footInstagramLink').parentElement.style.display = '';
       }
-    }, (err) => console.error("Erro info da loja:", err));
+    }, (err) => registrarFalha('escuta das informações da loja', err));
   }
 
   // Data no fuso LOCAL. toISOString() devolve UTC e, como operamos 19h-23h
@@ -2865,7 +2918,7 @@
         avisarMudancaStatus(anterior, trackedOrder.status);
       }
     }, (err) => {
-      console.error("Erro ao acompanhar pedido:", err);
+      registrarFalha('acompanhar o pedido do cliente', err);
       resultBox.innerHTML = '<div class="loading-row">Não foi possível carregar o pedido. Tente novamente.</div>';
     });
   }
@@ -3131,7 +3184,7 @@
         // só atualiza o "visto por último", não cria visita nova
         db.collection('visitas').doc(visitaId).set({
           ultimaAtividade: new Date().toISOString()
-        }, {merge:true}).catch(()=>{});
+        }, {merge:true}).catch(e => registrarFalha('marcar atividade na visita', e));
         return;
       }
 
@@ -3197,7 +3250,7 @@
         carrinhoNoAbandono: itens,
         valorCarrinho: cartTotal(),
         ultimaAtividade: new Date().toISOString()
-      }, {merge:true}).catch(()=>{});
+      }, {merge:true}).catch(e => registrarFalha('guardar o carrinho abandonado', e));
     }, 1500);
   }
   document.getElementById('ckPhone')?.addEventListener('input', salvarCarrinhoNaVisita);
@@ -3209,7 +3262,7 @@
       finalizou: true,
       codigoPedido: codigoPedido,
       finalizadoEm: new Date().toISOString()
-    }, {merge:true}).catch(()=>{});
+    }, {merge:true}).catch(e => registrarFalha('marcar a visita como convertida', e));
   }
 
   /* ================= HISTÓRICO E REPETIR PEDIDO ================= */
@@ -3452,7 +3505,7 @@
       usos: inc(1),
       totalDescontado: inc(Number(order.desconto) || 0),
       ultimoUso: new Date().toISOString()
-    }, {merge:true}).catch(()=>{});
+    }, {merge:true}).catch(e => registrarFalha('contar o uso do cupom', e));
 
     // guarda no aparelho pra bloquear reuso quando o cupom é "uma vez por cliente"
     if(cupomAtivo.umaVez === 'sim'){
@@ -4044,7 +4097,8 @@
     if(!window.fbq || !features.pxMeta) return;
     const d = dadosClienteParaMeta(agora);
     if(!d.ph && !d.fn) return;                 // nada novo pra informar
-    try{ fbq('init', features.pxMeta, d); }catch(e){}
+    try{ fbq('init', features.pxMeta, d); }
+    catch(e){ registrarFalha('reiniciar o pixel do Meta com os dados do cliente', e); }
   }
 
   function iniciarPixels(){
@@ -4167,7 +4221,7 @@
           }, {event_id: idEvento});
         }
       }
-    }catch(e){ console.warn('pixel:', e); }
+    }catch(e){ registrarFalha('disparar o evento ' + evento + ' nos pixels', e); }
   }
 
   function itensDoCarrinho(){
@@ -4230,7 +4284,7 @@ if('serviceWorker' in navigator){
           }
         });
       });
-    }).catch(()=>{});
+    }).catch(e => window.registrarFalha && window.registrarFalha('registrar o service worker do site', e));
   });
 }
 </script>
