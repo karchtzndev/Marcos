@@ -6268,7 +6268,12 @@
   let clientesUnsub = null;
   let clientesNoTeto = false;
   function watchClientes(){
-    const precisa = moduloAtivo('clientes') || moduloAtivo('fidelidade');
+    // A regra separou get de list: varrer a base pede 'clientes' ou 'pedidos'.
+    // Sem essa conferência aqui, quem não tem nenhuma das duas abriria uma
+    // escuta que o banco recusa — e encheria a aba de Erros sem motivo.
+    const podeVarrer = currentRole === 'gerente'
+                    || myPerms.includes('clientes') || myPerms.includes('pedidos');
+    const precisa = podeVarrer && (moduloAtivo('clientes') || moduloAtivo('fidelidade'));
     if(!precisa){
       if(clientesUnsub){ clientesUnsub(); clientesUnsub = null; clientes = {}; }
       return;

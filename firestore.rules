@@ -291,8 +291,21 @@ service cloud.firestore {
     // pedidos só pode subir de 1 em 1 — do jeito que o sistema realmente usa
     // (FieldValue.increment(1) a cada pedido novo). "premiosEntregues" só é
     // alterável pela equipe, nunca pelo cliente.
+    // CORRIGIDO: 'read' era um só, e liberava a BASE INTEIRA para qualquer
+    // conta ativa — inclusive a conta da impressora, que roda num PC da loja
+    // com a senha dentro de um arquivo de configuração e não precisa de
+    // cliente nenhum para imprimir um cupom. Um PC comprometido entregava o
+    // cadastro completo: nome, telefone e endereço de todo mundo.
+    //
+    // Agora 'get' e 'list' são separados, que é onde mora a diferença:
+    //  - get  (um cliente, pelo telefone): qualquer um da equipe. É o que o
+    //         balcão usa para conferir quem está pedindo.
+    //  - list (varrer a coleção): só quem trabalha com cliente ou pedido.
+    // A conta da impressora não tem permissão nenhuma, então perde o list e
+    // continua imprimindo normalmente.
     match /customers/{telefone} {
-      allow read: if ehEquipe();
+      allow get:  if ehEquipe();
+      allow list: if temPermissao('clientes') || temPermissao('pedidos');
 
       allow create: if request.resource.data.keys()
                          .hasOnly(['nome','telefone','endereco','pedidos','gasto','ultimo','atualizadoEm'])

@@ -24,6 +24,7 @@ let env;
 
 const GERENTE = 'uid-gerente';
 const CAIXA   = 'uid-caixa';        // funcionário só com permissão de caixa
+const BALCAO  = 'uid-balconista';   // atende pedido: precisa ver o brinde no card
 const IMPRESSORA = 'uid-impressora'; // conta do agente de impressão, sem permissão nenhuma
 
 before(async () => {
@@ -42,6 +43,7 @@ before(async () => {
     const db = ctx.firestore();
     await db.doc(`users/${GERENTE}`).set({ name: 'Eduardo', role: 'gerente', active: true, perms: [] });
     await db.doc(`users/${CAIXA}`).set({ name: 'Ana', role: 'funcionario', active: true, perms: ['caixa'] });
+    await db.doc(`users/${BALCAO}`).set({ name: 'Bruno', role: 'funcionario', active: true, perms: ['pedidos','caixa'] });
     await db.doc(`users/${IMPRESSORA}`).set({ name: 'Impressora', role: 'funcionario', active: true, perms: [] });
   });
 });
@@ -213,12 +215,25 @@ describe('permissões por função', () => {
     await assertFails(caixa().doc('store/inventory').set({ list: [] }, { merge: true }));
   });
 
-  test('equipe lê a base de clientes (a escuta dos 500 mais recentes)', async () => {
+  test('gerente varre a base de clientes (a escuta dos 500 mais recentes)', async () => {
     await assertSucceeds(gerente().collection('customers').get());
   });
 
   test('estranho não lê a base de clientes', async () => {
     await assertFails(anonimo().collection('customers').get());
+  });
+
+  test('quem atende pedido varre a base — é o que mostra o brinde no card', async () => {
+    await assertSucceeds(
+      env.authenticatedContext(BALCAO).firestore().collection('customers').get()
+    );
+  });
+
+  test('quem só tem caixa não varre a base, mas consulta um cliente', async () => {
+    // get e list são regras separadas de propósito: conferir quem está
+    // pedindo é uma leitura só; baixar o cadastro inteiro é outra conversa.
+    await assertFails(caixa().collection('customers').get());
+    await assertSucceeds(caixa().doc('customers/11999990000').get());
   });
 });
 
@@ -324,16 +339,12 @@ describe('conta do agente de impressão', () => {
     await assertFails(agente().doc('store/cashflow').get());
   });
 
-  // Este passa, mas documenta um limite que vale rever: a regra de customers
-  // libera leitura para QUALQUER funcionário ativo, sem exigir permissão. Vem
-  // de antes do agente — é assim para todo funcionário, inclusive entregador.
-  // Consequência: o PC da loja, se comprometido, expõe a base de clientes.
-  //
-  // Apertar isso (exigir temPermissao('clientes')) mexe na tela de Pedidos,
-  // que usa o cadastro para mostrar o nome de quem pediu. Fica anotado como
-  // decisão consciente, não como descuido.
-  test('lê clientes — herdado da regra atual, ver comentário acima', async () => {
-    await assertSucceeds(agente().collection('customers').get());
+  // Este era o limite anotado aqui como "decisão consciente": a regra antiga
+  // tinha um 'read' só e entregava a base inteira a qualquer conta ativa,
+  // inclusive esta — que roda num PC da loja com a senha num arquivo e não
+  // precisa de cliente nenhum para imprimir um cupom. Fechado.
+  test('NÃO varre a base de clientes', async () => {
+    await assertFails(agente().collection('customers').get());
   });
 
   test('NÃO cria conta de funcionário', async () => {
