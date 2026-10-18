@@ -1429,6 +1429,7 @@
           <button class="admin-tab-btn" data-atab="equipe" data-g="config">👥 Equipe</button>
           <button class="admin-tab-btn" data-atab="acessos" data-g="config">🔐 Acessos <span id="acessosBadge"></span></button>
           <button class="admin-tab-btn" data-atab="modulos" data-g="config">🧩 Módulos</button>
+          <button class="admin-tab-btn" data-atab="instalador" data-g="config">🖥️ Instalador</button>
           <button class="admin-tab-btn" data-atab="erros" data-g="config">🐞 Erros <span id="errosBadge"></span></button>
         </div>
 
@@ -1875,6 +1876,68 @@
             </div>
           </div>
           <div id="modulesList"></div>
+        </div>
+
+        <div id="atabInstalador" style="display:none;">
+          <div class="addon-intro">
+            <div class="ai-icon">🖥️</div>
+            <div>
+              <strong>Instalador do agente de impressão</strong>
+              <p>Preencha os campos e baixe o instalador já pronto. Ele configura o
+                 computador da loja sozinho: baixa o agente, cria as pastas, grava as
+                 configurações e deixa tudo subindo junto com o Windows.</p>
+            </div>
+          </div>
+
+          <div class="box-info" style="margin-bottom:18px;">
+            🔒 Esta aba é só sua. Nenhum funcionário vê, mesmo com todas as permissões.
+          </div>
+
+          <div class="field">
+            <label>Quantas impressoras</label>
+            <select id="instQtd"><option>1</option><option>2</option><option>3</option></select>
+          </div>
+
+          <div id="instImpressoras"></div>
+
+          <div class="field">
+            <label>Como as impressoras trabalham juntas</label>
+            <select id="instModo">
+              <option value="copia">Cópia — a mesma comanda sai em todas</option>
+              <option value="reserva">Reserva — uma cobre a queda da outra</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>E-mail da conta da impressora</label>
+            <input type="email" id="instEmail" placeholder="impressora@omarkin.com.br">
+            <small style="color:rgba(242,233,218,.5)">
+              Crie em Ajustes → Acessos, como funcionário <b>sem nenhuma permissão</b>.
+            </small>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn-primary" id="instGerar">⬇️ Baixar instalador</button>
+          </div>
+          <div id="instErro" class="error-msg"></div>
+
+          <div id="instPassos" style="display:none; margin-top:22px;">
+            <h3 style="font-size:14px; margin-bottom:12px;">Agora, no computador da loja</h3>
+            <div class="passo-print"><span>1</span><div><strong>Instale o Node</strong>
+              <p>Em <b>nodejs.org</b>, versão LTS. Instalação padrão, só avançar.</p></div></div>
+            <div class="passo-print"><span>2</span><div><strong>Instale as impressoras como "Generic / Text Only"</strong>
+              <p>Adicionar impressora → "não está na lista" → impressora local → porta USB00x →
+                 Fabricante <b>Generic</b>, modelo <b>Generic / Text Only</b>. Depois
+                 Propriedades → Compartilhamento, com o mesmo nome que você digitou acima.</p></div></div>
+            <div class="passo-print"><span>3</span><div><strong>Clique duas vezes no arquivo baixado</strong>
+              <p>Ele pede a senha da conta e faz o resto sozinho. Se o Windows avisar que
+                 é de origem desconhecida, clique em <b>Mais informações → Executar assim mesmo</b>.</p></div></div>
+          </div>
+
+          <div class="box-info" style="margin-top:18px;">
+            ⚠️ A senha <b>não vai dentro do arquivo</b>. O instalador pergunta na hora de rodar,
+            para ela não ficar guardada na pasta de downloads.
+          </div>
         </div>
 
         <!-- PAINEL TV TAB -->
@@ -8900,11 +8963,14 @@
   }
 
   /* ---------------- FUNÇÕES E PERMISSÕES ---------------- */
-  const ALL_TABS = ['dashboard','cardapio','adicionais','pedidos','cozinha','tv','mesas','caixa','clientes','entregas','financeiro','estoque','equipe','promocao','loja','modulos','erros','cupons','mensagens','acessos'];
+  const ALL_TABS = ['dashboard','cardapio','adicionais','pedidos','cozinha','tv','mesas','caixa','clientes','entregas','financeiro','estoque','equipe','promocao','loja','modulos','instalador','erros','cupons','mensagens','acessos'];
+  // Abas que nem o dono consegue liberar para funcionário: o instalador monta um
+  // arquivo que roda no computador da loja, então fica só com quem é gerente.
+  const TABS_SO_GERENTE = ['instalador'];
   const TAB_LABEL = {
     dashboard:'📊 Dashboard', cardapio:'🍔 Cardápio', adicionais:'➕ Adicionais', pedidos:'📋 Pedidos', cozinha:'👨‍🍳 Cozinha', tv:'📺 Painel TV', mesas:'🪑 Mesas',
     caixa:'💳 Caixa', clientes:'👥 Clientes', entregas:'🛵 Entregas', financeiro:'💰 Financeiro', modulos:'🧩 Módulos', erros:'🐞 Erros', cupons:'🏷️ Cupons', mensagens:'💬 Mensagens', acessos:'🔐 Acessos', estoque:'📦 Estoque', equipe:'👥 Equipe',
-    promocao:'📣 Promoção', loja:'🏪 Loja'
+    promocao:'📣 Promoção', loja:'🏪 Loja', instalador:'🖥️ Instalador'
   };
   const ROLE_PRESETS = {
     gerente:     {label:'Gerente',     perms: ALL_TABS.slice()},
@@ -8963,9 +9029,12 @@
     openOverlay('permOverlay');
   }
   function renderPermEditGrid(active){
-    document.getElementById('permEditGrid').innerHTML = ALL_TABS.map(t =>
-      `<label class="perm-chk"><input type="checkbox" data-editperm-chk="${t}" ${active.includes(t)?'checked':''}> ${TAB_LABEL[t]}</label>`
-    ).join('');
+    // Abas só-gerente ficam fora da lista: oferecer uma permissão que não tem
+    // efeito nenhum só faria você achar que concedeu algo.
+    document.getElementById('permEditGrid').innerHTML = ALL_TABS
+      .filter(t => !TABS_SO_GERENTE.includes(t))
+      .map(t => `<label class="perm-chk"><input type="checkbox" data-editperm-chk="${t}" ${active.includes(t)?'checked':''}> ${TAB_LABEL[t]}</label>`)
+      .join('');
   }
   document.getElementById('permRole').addEventListener('change', (e) => {
     const role = e.target.value;
@@ -9123,7 +9192,170 @@
     if(tab === 'estoque') renderStockList();
     if(tab === 'equipe') { renderEmployeeList(); renderEmployeeRanking(); }
     if(tab === 'promocao') renderPromoForm();
+    if(tab === 'instalador') renderInstaladorCampos();
   }));
+
+  /* ================= INSTALADOR DO AGENTE ================= */
+  // Página web não executa programa no computador de ninguém — é regra do
+  // navegador, e ainda bem. O que dá para fazer é montar o instalador já
+  // preenchido aqui e entregar pronto; sobra um clique duplo do outro lado.
+  //
+  // O arquivo é .bat de propósito: .ps1 baixado da internet esbarra na política
+  // de execução do Windows e a pessoa trava num erro que não explica nada.
+  const INST_RAW = 'https://raw.githubusercontent.com/karchtzndev/Marcos/main/agente-impressora/';
+
+  // Tudo que entra no .bat é higienizado: nome digitado não pode virar comando.
+  const instLimpo = (s, max) => String(s || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, max || 20);
+
+  function renderInstaladorCampos(){
+    const n = Number(document.getElementById('instQtd').value) || 1;
+    const sugestoes = ['cozinha', 'balcao', 'bar'];
+    const box = document.getElementById('instImpressoras');
+    const antes = {};
+    box.querySelectorAll('[data-inst-nome]').forEach(i => antes[i.dataset.instNome] = i.value);
+    box.querySelectorAll('[data-inst-share]').forEach(i => antes['s'+i.dataset.instShare] = i.value);
+
+    box.innerHTML = Array.from({length:n}, (_,i) => `
+      <div class="field">
+        <label>Impressora ${i+1}</label>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <input style="flex:1; min-width:140px;" data-inst-nome="${i}" placeholder="apelido (ex: ${sugestoes[i]||'extra'})"
+                 value="${escapeHtml(antes[i] || sugestoes[i] || '')}">
+          <input style="flex:1; min-width:140px;" data-inst-share="${i}" placeholder="compartilhamento no Windows"
+                 value="${escapeHtml(antes['s'+i] || (sugestoes[i]||'').toUpperCase())}">
+        </div>
+      </div>`).join('');
+  }
+
+  function montarInstalador(impressoras, modo, email){
+    const blocos = impressoras.map(p => `
+echo.
+echo   ---- ${p.nome} ----
+set "DEST=%BASE%\\agente-${p.nome}"
+if not exist "!DEST!" mkdir "!DEST!"
+cd /d "!DEST!"
+echo   baixando o agente...
+curl.exe -fsSL -o agente.js "${INST_RAW}agente.js" || goto :semrede
+curl.exe -fsSL -o testar.js "${INST_RAW}testar.js" || goto :semrede
+curl.exe -fsSL -o package.json "${INST_RAW}package.json" || goto :semrede
+curl.exe -fsSL -o config.exemplo.json "${INST_RAW}config.exemplo.json" || goto :semrede
+set "MK_NOME=${p.nome}"
+set "MK_IMPRESSORA=\\\\localhost\\${p.share}"
+node -e "const fs=require('fs');const b=JSON.parse(fs.readFileSync('config.exemplo.json','utf8'));const c={};for(const k in b)if(!k.startsWith('_'))c[k]=b[k];c.nome=process.env.MK_NOME;c.modo=process.env.MK_MODO;c.impressora=process.env.MK_IMPRESSORA;c.usuario=process.env.MK_EMAIL;c.senha=process.env.MK_SENHA;fs.writeFileSync('config.json',JSON.stringify(c,null,2))"
+echo   instalando dependencias (demora um pouco)...
+call npm install --silent --no-audit --no-fund
+powershell -NoProfile -Command "$a=New-ScheduledTaskAction -Execute '!NODEEXE!' -Argument 'agente.js' -WorkingDirectory '!DEST!'; $t=New-ScheduledTaskTrigger -AtLogOn; $s=New-ScheduledTaskSettingsSet -Hidden -RestartCount 99 -RestartInterval (New-TimeSpan -Minutes 1) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries; Register-ScheduledTask -TaskName 'Markin - ${p.nome}' -Action $a -Trigger $t -Settings $s -Force | Out-Null"
+echo   [ok] ${p.nome} pronta`).join('\n');
+
+    const testes = impressoras.map(p =>
+      `echo      cd /d "%BASE%\\agente-${p.nome}" ^&^& npm run testar`).join('\n');
+    const inicios = impressoras.map(p =>
+      `echo      schtasks /run /tn "Markin - ${p.nome}"`).join('\n');
+
+    return `@echo off
+chcp 65001 >nul
+title Instalador do agente de impressao - O Markin
+setlocal EnableDelayedExpansion
+echo.
+echo   ==========================================
+echo    Agente de impressao - O Markin
+echo   ==========================================
+echo.
+
+where node >nul 2>&1
+if errorlevel 1 (
+  echo   [X] O Node nao esta instalado neste computador.
+  echo       Baixe a versao LTS em https://nodejs.org, instale,
+  echo       e rode este arquivo de novo.
+  echo.
+  pause
+  exit /b 1
+)
+for /f "delims=" %%N in ('where node') do set "NODEEXE=%%N"
+echo   [ok] Node encontrado
+
+echo.
+for /f "delims=" %%P in ('powershell -NoProfile -Command "$s=Read-Host -AsSecureString '  Senha da conta ${email}'; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($s))"') do set "MK_SENHA=%%P"
+if "!MK_SENHA!"=="" (
+  echo   [X] Senha vazia. Rode de novo.
+  pause
+  exit /b 1
+)
+
+set "MK_MODO=${modo}"
+set "MK_EMAIL=${email}"
+set "BASE=%USERPROFILE%\\markin-agentes"
+if not exist "%BASE%" mkdir "%BASE%"
+${blocos}
+
+echo.
+echo   ==========================================
+echo    Instalado.
+echo   ==========================================
+echo.
+echo   1) Teste cada impressora ANTES de ligar os agentes:
+${testes}
+echo.
+echo   2) Saiu o cupom da regua? Entao ligue:
+${inicios}
+echo.
+echo   Eles sobem sozinhos toda vez que voce entrar no Windows.
+echo.
+pause
+exit /b 0
+
+:semrede
+echo.
+echo   [X] Nao consegui baixar o agente.
+echo       Verifique a internet e rode de novo.
+echo.
+pause
+exit /b 1
+`;
+  }
+
+  document.getElementById('instQtd')?.addEventListener('change', renderInstaladorCampos);
+
+  document.getElementById('instGerar')?.addEventListener('click', () => {
+    const err = document.getElementById('instErro');
+    const email = document.getElementById('instEmail').value.trim();
+    const modo = document.getElementById('instModo').value;
+
+    const impressoras = [];
+    document.querySelectorAll('[data-inst-nome]').forEach(inp => {
+      const i = inp.dataset.instNome;
+      const nome = instLimpo(inp.value);
+      const share = instLimpo(document.querySelector(`[data-inst-share="${i}"]`)?.value).toUpperCase();
+      if(nome && share) impressoras.push({nome, share});
+    });
+
+    if(impressoras.length === 0){
+      err.textContent = 'Preencha o apelido e o compartilhamento de cada impressora (só letras e números).';
+      return;
+    }
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){
+      err.textContent = 'Informe o e-mail da conta da impressora.';
+      return;
+    }
+    if(new Set(impressoras.map(p => p.nome)).size !== impressoras.length){
+      err.textContent = 'Cada impressora precisa de um apelido diferente — é por ele que o painel distingue os agentes.';
+      return;
+    }
+    err.textContent = '';
+
+    // \r\n porque o .bat roda no Windows e o interpretador antigo engasga com
+    // arquivo só com \n.
+    const bat = montarInstalador(impressoras, modo, email).replace(/\n/g, '\r\n');
+    const url = URL.createObjectURL(new Blob([bat], {type:'application/octet-stream'}));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'instalar-agente-markin.bat';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+    document.getElementById('instPassos').style.display = 'block';
+    showToast('⬇️ Instalador baixado');
+  });
 
   function applyRolePermissions(){
     document.querySelectorAll('.admin-tab-btn').forEach(btn => {
@@ -9131,8 +9363,11 @@
       const temPerm = myPerms.includes(t);
       const areaOk = AREAS.some(a => a.key === t) ? areaAtiva(t) : true;
       const modOk = MODULOS.some(m => m.tab === t) ? moduloAtivo(MODULOS.find(m => m.tab === t).key) : true;
+      // Trava independente da permissão: nem concedendo tudo em Acessos um
+      // funcionário enxerga estas abas.
+      const soGerente = !TABS_SO_GERENTE.includes(t) || currentRole === 'gerente';
       // marca a permissão; quem decide o display final é o grupo ativo
-      btn.dataset.permitida = (temPerm && areaOk && modOk) ? 'sim' : 'nao';
+      btn.dataset.permitida = (temPerm && areaOk && modOk && soGerente) ? 'sim' : 'nao';
     });
     // esconde grupos que ficaram sem nenhuma aba disponível
     document.querySelectorAll('.grupo-btn').forEach(gb => {
@@ -9148,6 +9383,7 @@
     // abre a primeira aba que está permitida E ligada nos Módulos
     const disponivel = t => {
       if(!myPerms.includes(t)) return false;
+      if(TABS_SO_GERENTE.includes(t) && currentRole !== 'gerente') return false;
       if(AREAS.some(a => a.key === t)) return areaAtiva(t);
       const m = MODULOS.find(x => x.tab === t);
       if(m) return moduloAtivo(m.key);
