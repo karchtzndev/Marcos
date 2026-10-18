@@ -53,3 +53,4 @@ agente-impressora/config.json
 
 # Sobra do emulador do Firestore
 firestore-debug.log
+instalar-markin.bat

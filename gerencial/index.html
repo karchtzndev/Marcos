@@ -1893,6 +1893,13 @@
             🔒 Esta aba é só sua. Nenhum funcionário vê, mesmo com todas as permissões.
           </div>
 
+          <div class="box-info" style="margin-bottom:18px;">
+            🔗 O mesmo instalador também tem endereço próprio:
+            <a href="../instalador/" target="_blank" rel="noopener"><b>/instalador</b></a> —
+            abre direto, sem depender desta aba, e dá para mandar o link para o
+            computador da loja.
+          </div>
+
           <div class="field">
             <label>Quantas impressoras</label>
             <select id="instQtd"><option>1</option><option>2</option><option>3</option></select>
@@ -7978,11 +7985,10 @@
     // na aba não adianta se o grupo dela estiver fechado.
     const irInst = document.getElementById('irInstalador');
     if(irInst) irInst.addEventListener('click', () => {
-      grupoAtivo = 'config';
-      aplicarGrupo();
-      const aba = document.querySelector('.admin-tab-btn[data-atab="instalador"]');
-      if(aba) aba.click();
-      window.scrollTo({top: 0, behavior: 'smooth'});
+      // Abre a página separada, não a aba. A aba já sumiu uma vez em silêncio
+      // e a pessoa ficou sem instalador com a impressora plugada esperando;
+      // uma página própria não depende de nada disso para aparecer.
+      window.open('../instalador/', '_blank', 'noopener');
     });
 
     const flS = document.getElementById('filaSaveBtn');
@@ -9225,26 +9231,19 @@
     if(!myPerms.includes(tab)) return; // sem permissão
     document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    document.getElementById('atabDashboard').style.display = tab === 'dashboard' ? 'block' : 'none';
-    document.getElementById('atabCardapio').style.display = tab === 'cardapio' ? 'block' : 'none';
-    document.getElementById('atabPedidos').style.display = tab === 'pedidos' ? 'block' : 'none';
-    document.getElementById('atabAdicionais').style.display = tab === 'adicionais' ? 'block' : 'none';
-    document.getElementById('atabModulos').style.display = tab === 'modulos' ? 'block' : 'none';
-    document.getElementById('atabCupons').style.display = tab === 'cupons' ? 'block' : 'none';
-    document.getElementById('atabMensagens').style.display = tab === 'mensagens' ? 'block' : 'none';
-    document.getElementById('atabAcessos').style.display = tab === 'acessos' ? 'block' : 'none';
-    document.getElementById('atabErros').style.display = tab === 'erros' ? 'block' : 'none';
-    document.getElementById('atabClientes').style.display = tab === 'clientes' ? 'block' : 'none';
-    document.getElementById('atabEntregas').style.display = tab === 'entregas' ? 'block' : 'none';
-    document.getElementById('atabCozinha').style.display = tab === 'cozinha' ? 'block' : 'none';
-    document.getElementById('atabTv').style.display = tab === 'tv' ? 'block' : 'none';
-    document.getElementById('atabMesas').style.display = tab === 'mesas' ? 'block' : 'none';
-    document.getElementById('atabCaixa').style.display = tab === 'caixa' ? 'block' : 'none';
-    document.getElementById('atabFinanceiro').style.display = tab === 'financeiro' ? 'block' : 'none';
-    document.getElementById('atabEstoque').style.display = tab === 'estoque' ? 'block' : 'none';
-    document.getElementById('atabEquipe').style.display = tab === 'equipe' ? 'block' : 'none';
-    document.getElementById('atabPromocao').style.display = tab === 'promocao' ? 'block' : 'none';
-    document.getElementById('atabLoja').style.display = tab === 'loja' ? 'block' : 'none';
+    // Mostra o painel da aba clicada e esconde os outros.
+    //
+    // Era uma linha escrita à mão por aba, e a do Instalador nunca foi
+    // escrita: a aba existia, acendia ao ser clicada, chamava o render —
+    // e abria uma tela em branco, porque a div dela continuava escondida.
+    // Ficou assim desde o dia em que a aba nasceu.
+    //
+    // Agora o id sai da própria lista de abas. Aba nova já nasce aparecendo,
+    // e esquecer uma linha deixou de ser possível.
+    ALL_TABS.forEach(t => {
+      const painel = document.getElementById('atab' + t.charAt(0).toUpperCase() + t.slice(1));
+      if(painel) painel.style.display = (t === tab) ? 'block' : 'none';
+    });
     if(tab === 'pedidos') renderAdminOrders();
     if(tab === 'adicionais') renderAddonTab();
     if(tab === 'modulos') renderModulos();
@@ -9387,7 +9386,12 @@ powershell -NoProfile -Command "if(-not (Get-PrinterDriver -Name 'Generic / Text
 ${criarImpressoras}
 
 echo.
-for /f "delims=" %%P in ('powershell -NoProfile -Command "$s=Read-Host -AsSecureString '  Senha da conta ${email}'; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($s))"') do set "MK_SENHA=%%P"
+REM O e-mail tambem e perguntado na hora: assim um instalador ja gerado serve
+REM depois de trocar a conta da impressora, sem ninguem editar o arquivo.
+echo.
+set "MK_EMAIL=${email}"
+set /p "MK_EMAIL=  E-mail da conta da impressora [${email}]: "
+for /f "delims=" %%P in ('powershell -NoProfile -Command "$s=Read-Host -AsSecureString '  Senha dessa conta'; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($s))"') do set "MK_SENHA=%%P"
 if "!MK_SENHA!"=="" (
   echo   [X] Senha vazia. Rode de novo.
   pause
@@ -9395,7 +9399,6 @@ if "!MK_SENHA!"=="" (
 )
 
 set "MK_MODO=${modo}"
-set "MK_EMAIL=${email}"
 set "BASE=%USERPROFILE%\\markin-agentes"
 if not exist "%BASE%" mkdir "%BASE%"
 ${blocos}

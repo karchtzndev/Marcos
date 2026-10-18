@@ -183,3 +183,67 @@ describe('o documento gravado pelas duas telas', () => {
     }
   });
 });
+
+/* ==================================================================
+   O INSTALADOR EXISTE EM DOIS LUGARES
+   A aba do painel e a página /instalador montam o mesmo .bat. Esse
+   arquivo roda como ADMINISTRADOR no computador da loja: duas versões
+   divergindo significa uma loja configurada de um jeito e a seguinte de
+   outro, e descobrir isso só quando a comanda sai na impressora errada.
+   ================================================================== */
+const PAGINA_INST = readFileSync('instalador/index.html', 'utf8');
+
+function montadorDe(html){
+  const raw = html.match(/const INST_RAW = '([^']+)'/);
+  assert.ok(raw, 'não achei INST_RAW');
+  return montar(html, 'montarInstalador', {
+    INST_RAW: raw[1],
+    location: { origin: 'https://exemplo.test' },
+  });
+}
+
+describe('o .bat gerado pelas duas telas', () => {
+
+  const casos = [
+    { impressoras: [{nome:'cozinha', share:'COZINHA'}], modo: 'reserva' },
+    { impressoras: [{nome:'cozinha', share:'COZINHA'}, {nome:'balcao', share:'BALCAO'}], modo: 'copia' },
+    { impressoras: [{nome:'cozinha', share:'COZINHA'}, {nome:'balcao', share:'BALCAO'},
+                    {nome:'bar', share:'BAR'}], modo: 'copia' },
+  ];
+
+  test('sai byte a byte igual, com 1, 2 e 3 impressoras', () => {
+    const noPainel = montadorDe(PAINEL);
+    const naPagina = montadorDe(PAGINA_INST);
+    for(const c of casos){
+      assert.strictEqual(
+        naPagina(c.impressoras, c.modo, 'impressora@teste.com'),
+        noPainel(c.impressoras, c.modo, 'impressora@teste.com'),
+        `divergiu com ${c.impressoras.length} impressora(s) em modo ${c.modo}`
+      );
+    }
+  });
+
+  test('a senha nunca entra no arquivo', () => {
+    // O instalador vai para a pasta de downloads e às vezes para um pendrive.
+    // A senha é perguntada na hora de rodar, e tem que continuar assim.
+    const bat = montadorDe(PAINEL)(casos[2].impressoras, 'copia', 'impressora@teste.com');
+    assert.ok(/Read-Host -AsSecureString/.test(bat), 'a senha tem que ser perguntada na hora');
+    assert.ok(!/MK_SENHA=[^%!\r\n]/.test(bat), 'senha escrita direto no arquivo');
+  });
+
+  test('cada impressora vira um agente com o nome e o compartilhamento dela', () => {
+    const bat = montadorDe(PAINEL)(casos[2].impressoras, 'copia', 'impressora@teste.com');
+    for(const p of casos[2].impressoras){
+      assert.ok(bat.includes(`agente-${p.nome}`), `faltou a pasta do agente ${p.nome}`);
+      assert.ok(bat.includes(`\\\\localhost\\${p.share}`), `faltou o caminho de ${p.share}`);
+      assert.ok(bat.includes(`Markin - ${p.nome}`), `faltou a tarefa agendada de ${p.nome}`);
+    }
+    assert.ok(bat.includes('set "MK_MODO=copia"'), 'o modo escolhido tem que ir no config');
+  });
+
+  test('usa o driver embutido do Windows, que serve para impressora sem marca', () => {
+    const bat = montadorDe(PAINEL)(casos[0].impressoras, 'reserva', 'x@y.com');
+    assert.ok(bat.includes("'Generic / Text Only'"),
+      'o driver genérico é o que repassa os bytes do ESC/POS sem desenhar nada');
+  });
+});

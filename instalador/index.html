@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Instalador do computador da loja · O Markin</title>
+<link rel="icon" href="../icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pitch:#120e0b; --char:#1c1613; --cream:#f2e9da;
+    --ember:#e5762e; --mustard:#f0b429; --tomato:#b6382c; --green:#4caf6d;
+    --line:rgba(242,233,218,0.14); --dim:rgba(242,233,218,0.6);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--pitch); color:var(--cream); font-family:'DM Sans',sans-serif; line-height:1.6;}
+  a{color:var(--ember);}
+  .wrap{max-width:720px; margin:0 auto;
+    padding-left:max(16px, env(safe-area-inset-left,0px));
+    padding-right:max(16px, env(safe-area-inset-right,0px));}
+  header{border-bottom:1px solid var(--line); padding:18px 0; position:sticky; top:0;
+    background:rgba(18,14,11,.94); backdrop-filter:blur(8px); z-index:5;}
+  header .wrap{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  .brand{display:flex; align-items:center; gap:10px; min-width:0;}
+  .brand img{width:36px; height:36px; border-radius:50%; object-fit:cover; flex:none;}
+  .brand b{font-family:'Anton',sans-serif; font-size:16px; text-transform:uppercase; letter-spacing:.5px;}
+  .voltar{font-size:14px; font-weight:700; white-space:nowrap;}
+  main{padding:28px 0 80px;}
+  h1{font-family:'Anton',sans-serif; font-size:clamp(25px,6vw,34px); text-transform:uppercase; letter-spacing:.5px; line-height:1.15;}
+  .sub{color:var(--dim); font-size:15px; margin-top:10px;}
+  h2{font-family:'Anton',sans-serif; font-size:18px; text-transform:uppercase; color:var(--mustard); letter-spacing:.4px; margin:30px 0 12px;}
+  .caixa{border:1px solid var(--line); background:var(--char); border-radius:14px; padding:18px; margin:16px 0;}
+  .campo{margin-bottom:16px;}
+  .campo label{display:block; font-size:12.5px; text-transform:uppercase; letter-spacing:.6px; color:var(--dim); margin-bottom:7px; font-weight:700;}
+  input, select{width:100%; background:#0d0a08; color:var(--cream); border:1px solid var(--line);
+    border-radius:10px; padding:13px 14px; font-family:inherit; font-size:15px;}
+  input:focus, select:focus{outline:none; border-color:var(--ember);}
+  .dupla{display:flex; gap:10px; flex-wrap:wrap;}
+  .dupla input{flex:1; min-width:140px; width:auto;}
+  small{display:block; color:var(--dim); font-size:12.5px; margin-top:6px;}
+  .btn{background:var(--ember); color:var(--pitch); border:none; border-radius:999px;
+    padding:14px 26px; font-family:inherit; font-size:15px; font-weight:700; cursor:pointer;}
+  .btn:disabled{opacity:.55; cursor:default;}
+  .btn.sec{background:transparent; color:var(--cream); border:1px solid var(--line);}
+  .erro{color:var(--tomato); font-size:14px; margin-top:12px; min-height:20px;}
+  .ok{color:var(--green);}
+  .nota{border-left:3px solid var(--ember); background:rgba(229,118,46,.08);
+    padding:13px 15px; margin:16px 0; border-radius:0 10px 10px 0; font-size:14.5px;}
+  .passo{display:flex; gap:14px; margin:14px 0; align-items:flex-start;}
+  .passo span{flex:none; width:28px; height:28px; border-radius:50%; background:var(--ember);
+    color:var(--pitch); display:grid; place-items:center; font-weight:700; font-size:14px;}
+  .passo p{font-size:14px; color:var(--dim); margin-top:3px;}
+  #telaLogin, #telaForm, #telaNegado{display:none;}
+  .carregando{text-align:center; color:var(--dim); padding:60px 0;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brand"><img src="../mascot.jpg" alt="Mascote O Markin"><b>Instalador</b></div>
+    <a class="voltar" href="../gerencial/">← Painel</a>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div id="telaCarregando" class="carregando">Verificando quem é você…</div>
+
+  <!-- ---------------- LOGIN ---------------- -->
+  <div id="telaLogin">
+    <h1>Instalador do computador da loja</h1>
+    <p class="sub">Esta página monta o arquivo que configura o PC inteiro. É só sua — entre com a conta de gerente.</p>
+    <div class="caixa">
+      <div class="campo">
+        <label>E-mail</label>
+        <input type="email" id="loginEmail" autocomplete="username">
+      </div>
+      <div class="campo">
+        <label>Senha</label>
+        <input type="password" id="loginSenha" autocomplete="current-password">
+      </div>
+      <button class="btn" id="loginBtn">Entrar</button>
+      <div class="erro" id="loginErro"></div>
+    </div>
+  </div>
+
+  <!-- ---------------- SEM PERMISSÃO ---------------- -->
+  <div id="telaNegado">
+    <h1>Esta página é do gerente</h1>
+    <p class="sub">O instalador monta um arquivo que roda com permissão de administrador no
+       computador da loja. Por isso nenhum funcionário abre esta página, nem com todas as
+       permissões marcadas no painel.</p>
+    <div class="caixa">
+      <button class="btn sec" id="sairBtn">Sair e entrar com outra conta</button>
+    </div>
+  </div>
+
+  <!-- ---------------- FORMULÁRIO ---------------- -->
+  <div id="telaForm">
+    <h1>Instalador do computador da loja</h1>
+    <p class="sub">Preencha e baixe. O arquivo deixa o PC pronto sozinho: instala o Node,
+       cria e compartilha as impressoras, baixa os agentes e põe tudo para subir junto
+       com o Windows.</p>
+
+    <h2>Impressoras</h2>
+    <div class="caixa">
+      <div class="campo">
+        <label>Quantas impressoras</label>
+        <select id="instQtd"><option>1</option><option>2</option><option>3</option></select>
+      </div>
+      <div id="instImpressoras"></div>
+      <div class="campo">
+        <label>Como elas trabalham juntas</label>
+        <select id="instModo">
+          <option value="copia">Cópia — a mesma comanda sai em todas</option>
+          <option value="reserva">Reserva — uma cobre a queda da outra</option>
+        </select>
+      </div>
+    </div>
+
+    <h2>Conta da impressora</h2>
+    <div class="caixa">
+      <div class="campo">
+        <label>E-mail da conta</label>
+        <input type="email" id="instEmail" placeholder="impressora@omarkin.com.br">
+        <small>Crie no painel, em <b>⚙️ Ajustes → 🔐 Acessos</b>, como funcionário
+               <b>sem nenhuma permissão</b>. O instalador pergunta a senha na hora de
+               rodar — ela não vai dentro do arquivo.</small>
+      </div>
+      <button class="btn" id="instGerar">⬇️ Baixar instalador</button>
+      <div class="erro" id="instErro"></div>
+    </div>
+
+    <div id="instPassos" style="display:none;">
+      <h2>Agora, no computador da loja</h2>
+      <div class="caixa">
+        <div class="passo"><span>1</span><div><strong>Ligue e plugue todas as impressoras</strong>
+          <p>Antes de rodar. Ele só enxerga o que já estiver conectado, e precisa achar todas para criar cada uma.</p></div></div>
+        <div class="passo"><span>2</span><div><strong>Clique duas vezes no arquivo baixado</strong>
+          <p>Ele pede permissão de administrador, o e-mail e a senha da conta, e faz todo o resto.
+             Se o Windows avisar que é de origem desconhecida, clique em <b>Mais informações → Executar assim mesmo</b>.</p></div></div>
+        <div class="passo"><span>3</span><div><strong>Cole as etiquetas</strong>
+          <p>No fim, cada impressora cospe uma folha com um nome. Para o Windows elas são idênticas —
+             nenhum programa sabe qual é a da cozinha. Caminhe até elas e etiquete conforme a folha.</p></div></div>
+      </div>
+      <div class="nota">
+        Depois disso, confira no painel em <b>🧩 Módulos → 🖨️ Fila de impressão</b>: a tarja
+        vermelha vira verde quando os agentes acordarem.
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA-7sy4ox0ErDZAw7prhXYJ3MaSA7G_scY",
+    authDomain: "omarkin-burguer-39bda.firebaseapp.com",
+    projectId: "omarkin-burguer-39bda",
+    storageBucket: "omarkin-burguer-39bda.firebasestorage.app",
+    messagingSenderId: "476114578010",
+    appId: "1:476114578010:web:fb22f3159e86edf0a5c663"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const auth = firebase.auth();
+
+  const el = (id) => document.getElementById(id);
+  const mostrar = (qual) => {
+    ['telaCarregando','telaLogin','telaNegado','telaForm']
+      .forEach(t => el(t).style.display = (t === qual) ? 'block' : 'none');
+  };
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  /* ---------------- QUEM ESTÁ ENTRANDO ----------------
+     A mesma trava do painel: só gerente. Esconder a tela não é a proteção de
+     verdade — quem protege o banco são as regras do Firestore. Aqui é para
+     ninguém chegar a um arquivo que roda como administrador na loja. */
+  auth.onAuthStateChanged(async (user) => {
+    if(!user){ mostrar('telaLogin'); return; }
+    try{
+      const doc = await db.collection('users').doc(user.uid).get();
+      const p = doc.exists ? doc.data() : null;
+      if(p && p.active === true && p.role === 'gerente'){
+        mostrar('telaForm');
+        renderInstaladorCampos();
+      }else{
+        mostrar('telaNegado');
+      }
+    }catch(e){
+      mostrar('telaNegado');
+    }
+  });
+
+  el('loginBtn').addEventListener('click', async () => {
+    const b = el('loginBtn'), erro = el('loginErro');
+    erro.textContent = ''; b.disabled = true; b.textContent = 'Entrando…';
+    try{
+      await auth.signInWithEmailAndPassword(el('loginEmail').value.trim(), el('loginSenha').value);
+    }catch(e){
+      erro.textContent = 'E-mail ou senha não conferem.';
+    }
+    b.disabled = false; b.textContent = 'Entrar';
+  });
+  el('loginSenha').addEventListener('keydown', (e) => { if(e.key === 'Enter') el('loginBtn').click(); });
+  el('sairBtn').addEventListener('click', () => auth.signOut());
+
+  /* ---------------- FORMULÁRIO ---------------- */
+  function renderInstaladorCampos(){
+    const n = Number(el('instQtd').value) || 1;
+    const sugestoes = ['cozinha', 'balcao', 'bar'];
+    const box = el('instImpressoras');
+    const antes = {};
+    box.querySelectorAll('[data-inst-nome]').forEach(i => antes[i.dataset.instNome] = i.value);
+    box.querySelectorAll('[data-inst-share]').forEach(i => antes['s'+i.dataset.instShare] = i.value);
+
+    box.innerHTML = Array.from({length:n}, (_,i) => `
+      <div class="campo">
+        <label>Impressora ${i+1}</label>
+        <div class="dupla">
+          <input data-inst-nome="${i}" placeholder="apelido (ex: ${sugestoes[i]||'extra'})"
+                 value="${escapeHtml(antes[i] || sugestoes[i] || '')}">
+          <input data-inst-share="${i}" placeholder="compartilhamento no Windows"
+                 value="${escapeHtml(antes['s'+i] || (sugestoes[i]||'').toUpperCase())}">
+        </div>
+      </div>`).join('');
+  }
+  el('instQtd').addEventListener('change', renderInstaladorCampos);
+
+  const INST_RAW = 'https://raw.githubusercontent.com/karchtzndev/Marcos/main/agente-impressora/';
+
+function montarInstalador(impressoras, modo, email){
+    // Instala as impressoras como "Generic / Text Only": é o driver embutido do
+    // Windows que NÃO desenha nada, só repassa os bytes — que é o que ESC/POS
+    // precisa. Serve para impressora de qualquer marca, inclusive sem marca.
+    //
+    // Nenhum script consegue saber qual porta USB é a impressora da cozinha e
+    // qual é a do balcão: para o Windows elas são idênticas. Por isso cada uma
+    // imprime uma folha com o próprio nome no fim — aí a pessoa caminha até
+    // elas e etiqueta. Adivinhar a ordem daria comanda saindo no lugar errado.
+    const criarImpressoras = impressoras.map((p, i) => `
+powershell -NoProfile -Command "$portas=@(Get-PrinterPort | Where-Object {$_.Name -like 'USB*'} | Sort-Object Name); if($portas.Count -le ${i}){ Write-Host '  [X] Nao achei a ${i+1}a impressora USB. Ligue e plugue todas antes de rodar.'; exit 1 }; $pt=$portas[${i}].Name; if(-not (Get-Printer -Name '${p.share}' -ErrorAction SilentlyContinue)){ Add-Printer -Name '${p.share}' -DriverName 'Generic / Text Only' -PortName $pt }; Set-Printer -Name '${p.share}' -Shared $true -ShareName '${p.share}'; Write-Host ('  [ok] ${p.share} criada na porta ' + $pt)"
+if errorlevel 1 goto :semimpressora`).join('\n');
+
+    const identificar = impressoras.map(p => `
+powershell -NoProfile -Command "$b=[byte[]](0x1B,0x40) + [Text.Encoding]::ASCII.GetBytes(([char]10) + '   ESTA IMPRESSORA E A' + ([char]10) + '   >>> ${p.nome.toUpperCase()} <<<' + ([char]10) + '   cole a etiqueta nela' + ([char]10)+([char]10)+([char]10)) + [byte[]](0x1D,0x56,0x42,0x00); [IO.File]::WriteAllBytes($env:TEMP+'\\mkid.bin',$b)"
+copy /b "%TEMP%\\mkid.bin" "\\\\localhost\\${p.share}" >nul 2>&1`).join('\n');
+
+    const blocos = impressoras.map(p => `
+echo.
+echo   ---- ${p.nome} ----
+set "DEST=%BASE%\\agente-${p.nome}"
+if not exist "!DEST!" mkdir "!DEST!"
+cd /d "!DEST!"
+echo   baixando o agente...
+curl.exe -fsSL -o agente.js "${INST_RAW}agente.js" || goto :semrede
+curl.exe -fsSL -o testar.js "${INST_RAW}testar.js" || goto :semrede
+curl.exe -fsSL -o package.json "${INST_RAW}package.json" || goto :semrede
+curl.exe -fsSL -o config.exemplo.json "${INST_RAW}config.exemplo.json" || goto :semrede
+set "MK_NOME=${p.nome}"
+set "MK_IMPRESSORA=\\\\localhost\\${p.share}"
+node -e "const fs=require('fs');const b=JSON.parse(fs.readFileSync('config.exemplo.json','utf8'));const c={};for(const k in b)if(!k.startsWith('_'))c[k]=b[k];c.nome=process.env.MK_NOME;c.modo=process.env.MK_MODO;c.impressora=process.env.MK_IMPRESSORA;c.usuario=process.env.MK_EMAIL;c.senha=process.env.MK_SENHA;fs.writeFileSync('config.json',JSON.stringify(c,null,2))"
+echo   instalando dependencias (demora um pouco)...
+call npm install --silent --no-audit --no-fund
+powershell -NoProfile -Command "$a=New-ScheduledTaskAction -Execute '!NODEEXE!' -Argument 'agente.js' -WorkingDirectory '!DEST!'; $t=New-ScheduledTaskTrigger -AtLogOn; $s=New-ScheduledTaskSettingsSet -Hidden -RestartCount 99 -RestartInterval (New-TimeSpan -Minutes 1) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries; Register-ScheduledTask -TaskName 'Markin - ${p.nome}' -Action $a -Trigger $t -Settings $s -Force | Out-Null"
+echo   [ok] ${p.nome} pronta`).join('\n');
+
+    const testes = impressoras.map(p =>
+      `echo      cd /d "%BASE%\\agente-${p.nome}" ^&^& npm run testar`).join('\n');
+    const inicios = impressoras.map(p =>
+      `echo      schtasks /run /tn "Markin - ${p.nome}"`).join('\n');
+
+    return `@echo off
+chcp 65001 >nul
+title Instalador - O Markin
+setlocal EnableDelayedExpansion
+
+REM Criar e compartilhar impressora exige direito de administrador. Em vez de
+REM falhar no meio com um erro obscuro, pedimos a elevacao logo de cara.
+net session >nul 2>&1
+if errorlevel 1 (
+  echo   Preciso de permissao de administrador para instalar as impressoras.
+  echo   Vou pedir agora na janela do Windows...
+  powershell -NoProfile -Command "Start-Process -FilePath '%~f0' -Verb RunAs" >nul 2>&1
+  exit /b
+)
+
+echo.
+echo   ==========================================
+echo    O Markin - instalacao completa
+echo   ==========================================
+echo.
+
+REM ---------- 1. Node ----------
+set "NODEEXE="
+where node >nul 2>&1 && for /f "delims=" %%N in ('where node') do set "NODEEXE=%%N"
+if not defined NODEEXE (
+  echo   Node nao encontrado. Instalando...
+  winget install -e --id OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements --silent >nul 2>&1
+  if exist "%ProgramFiles%\\nodejs\\node.exe" set "NODEEXE=%ProgramFiles%\\nodejs\\node.exe"
+  if not defined NODEEXE (
+    echo   [X] Nao consegui instalar o Node automaticamente.
+    echo       Baixe a versao LTS em https://nodejs.org, instale,
+    echo       e rode este arquivo de novo.
+    echo.
+    pause
+    exit /b 1
+  )
+  set "PATH=%ProgramFiles%\\nodejs;!PATH!"
+)
+echo   [ok] Node: !NODEEXE!
+
+REM ---------- 2. Impressoras ----------
+echo.
+echo   Instalando as impressoras...
+REM "Generic / Text Only" e o driver do Windows que NAO desenha nada, so
+REM repassa os bytes. E o que ESC/POS precisa, e serve para qualquer marca.
+powershell -NoProfile -Command "if(-not (Get-PrinterDriver -Name 'Generic / Text Only' -ErrorAction SilentlyContinue)){ Add-PrinterDriver -Name 'Generic / Text Only' }" >nul 2>&1
+${criarImpressoras}
+
+echo.
+REM O e-mail tambem e perguntado na hora: assim um instalador ja gerado serve
+REM depois de trocar a conta da impressora, sem ninguem editar o arquivo.
+echo.
+set "MK_EMAIL=${email}"
+set /p "MK_EMAIL=  E-mail da conta da impressora [${email}]: "
+for /f "delims=" %%P in ('powershell -NoProfile -Command "$s=Read-Host -AsSecureString '  Senha dessa conta'; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($s))"') do set "MK_SENHA=%%P"
+if "!MK_SENHA!"=="" (
+  echo   [X] Senha vazia. Rode de novo.
+  pause
+  exit /b 1
+)
+
+set "MK_MODO=${modo}"
+set "BASE=%USERPROFILE%\\markin-agentes"
+if not exist "%BASE%" mkdir "%BASE%"
+${blocos}
+
+
+REM ---------- Atalho do painel na area de trabalho ----------
+powershell -NoProfile -Command "Set-Content -Encoding ASCII -Path ([Environment]::GetFolderPath('Desktop') + '\\Painel O Markin.url') -Value @('[InternetShortcut]','URL=${location.origin}/gerencial/')" >nul 2>&1
+
+REM ---------- Identificacao fisica ----------
+REM Para o Windows as impressoras USB sao identicas, entao nenhum script sabe
+REM qual e a da cozinha. Cada uma imprime o proprio nome: basta caminhar ate
+REM elas e etiquetar. Adivinhar a ordem daria comanda saindo no lugar errado.
+echo.
+echo   Imprimindo a folha de identificacao em cada impressora...
+${identificar}
+
+echo.
+echo   ==========================================
+echo    Pronto.
+echo   ==========================================
+echo.
+echo   AGORA, NA LOJA:
+echo.
+echo   1) Cada impressora cuspiu uma folha com um nome.
+echo      Cole uma etiqueta em cada uma com o nome que saiu.
+echo.
+echo      Saiu folha numa impressora que NAO e termica? Entao este PC ja
+echo      tinha outra impressora na porta USB. Apague a que foi criada
+echo      errada em Impressoras e scanners e me avise.
+echo.
+echo   2) Nao saiu folha em alguma? Confira cabo e papel, e rode:
+${testes}
+echo.
+echo   3) Com tudo etiquetado, ligue os agentes:
+${inicios}
+echo.
+echo   Eles sobem sozinhos toda vez que voce entrar no Windows.
+echo   Confira no painel: deve aparecer ${impressoras.length} agente(s) conectado(s).
+echo.
+pause
+exit /b 0
+
+:semrede
+echo.
+echo   [X] Nao consegui baixar o agente.
+echo       Verifique a internet e rode de novo.
+echo.
+pause
+exit /b 1
+
+:semimpressora
+echo.
+echo   [X] Nao encontrei todas as impressoras.
+echo       Ligue e plugue as ${impressoras.length} impressoras, espere o Windows
+echo       reconhecer (alguns segundos), e rode este arquivo de novo.
+echo.
+pause
+exit /b 1
+`;
+  }
+
+  el('instGerar').addEventListener('click', () => {
+    const erro = el('instErro');
+    erro.className = 'erro';
+    erro.textContent = '';
+
+    const impressoras = [];
+    const nomes = [...el('instImpressoras').querySelectorAll('[data-inst-nome]')];
+    const shares = [...el('instImpressoras').querySelectorAll('[data-inst-share]')];
+    for(let i = 0; i < nomes.length; i++){
+      const nome = nomes[i].value.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      const share = shares[i].value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if(!nome || !share){ erro.textContent = 'Preencha o apelido e o compartilhamento de cada impressora.'; return; }
+      impressoras.push({nome, share});
+    }
+    if(new Set(impressoras.map(p => p.share)).size !== impressoras.length){
+      erro.textContent = 'Duas impressoras não podem ter o mesmo compartilhamento.';
+      return;
+    }
+    const email = el('instEmail').value.trim();
+    if(!email || email.indexOf('@') < 1){ erro.textContent = 'Informe o e-mail da conta da impressora.'; return; }
+
+    // CRLF: o .bat é lido pelo Windows, e com LF sozinho o interpretador
+    // engasga em linha com rótulo (goto). Já custou uma madrugada.
+    const bat = montarInstalador(impressoras, el('instModo').value, email).replace(/\n/g, '\r\n');
+    const url = URL.createObjectURL(new Blob([bat], {type:'application/octet-stream'}));
+    const a = document.createElement('a');
+    a.href = url; a.download = 'instalar-markin.bat';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+    el('instPassos').style.display = 'block';
+    erro.className = 'erro ok';
+    erro.textContent = 'Pronto. Leve o arquivo para o computador da loja.';
+  });
+})();
+</script>
+
+</body>
+</html>
