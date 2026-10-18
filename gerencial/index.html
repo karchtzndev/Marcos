@@ -7891,12 +7891,24 @@
     }
     if(moduloAtivo('filaimpressao')){
       const st = filaStatus();
+      // Quem acabou de plugar a impressora está nesta tela, não na aba
+      // Instalador — que mora em outro grupo (⚙️ Ajustes) e some para quem
+      // não é gerente. Sem este atalho, achar o instalador vira caça ao
+      // tesouro justamente na hora em que a impressora está esperando.
+      const semAgente = agentesVivos().filter(a => a.seg < 90).length === 0;
+      const atalhoInstalador = currentRole !== 'gerente' ? '' : `
+          <div class="form-actions" style="margin:-6px 0 18px;">
+            <button class="${semAgente ? 'btn-primary' : 'btn-ghost'}" id="irInstalador">
+              🖥️ ${semAgente ? 'Configurar o computador da loja' : 'Abrir o Instalador'}
+            </button>
+          </div>`;
       html += `
         <div class="admin-list">
           <h3>🖨️ Fila de impressão</h3>
           <div class="box-info" style="border-color:${st.cor}; color:${st.cor}; background:${st.bg};">
             ${st.texto}
           </div>
+          ${atalhoInstalador}
           <div class="form-grid">
             <div class="field">
               <label>Imprimir automaticamente</label>
@@ -7960,6 +7972,17 @@
       m.style.color = 'var(--green)';
       m.textContent = 'Pixels salvos ✓ Peça pro gestor conferir no Gerenciador de Eventos.';
       setTimeout(()=>{ m.textContent=''; }, 6000);
+    });
+
+    // Leva direto para a aba Instalador, trocando de grupo junto — clicar só
+    // na aba não adianta se o grupo dela estiver fechado.
+    const irInst = document.getElementById('irInstalador');
+    if(irInst) irInst.addEventListener('click', () => {
+      grupoAtivo = 'config';
+      aplicarGrupo();
+      const aba = document.querySelector('.admin-tab-btn[data-atab="instalador"]');
+      if(aba) aba.click();
+      window.scrollTo({top: 0, behavior: 'smooth'});
     });
 
     const flS = document.getElementById('filaSaveBtn');
