@@ -1882,10 +1882,10 @@
           <div class="addon-intro">
             <div class="ai-icon">🖥️</div>
             <div>
-              <strong>Instalador do agente de impressão</strong>
-              <p>Preencha os campos e baixe o instalador já pronto. Ele configura o
-                 computador da loja sozinho: baixa o agente, cria as pastas, grava as
-                 configurações e deixa tudo subindo junto com o Windows.</p>
+              <strong>Instalador do computador da loja</strong>
+              <p>Preencha os campos e baixe o instalador já pronto. Ele deixa o PC inteiro
+                 configurado sozinho: instala o Node, cria e compartilha as impressoras,
+                 baixa os agentes e põe tudo para subir junto com o Windows.</p>
             </div>
           </div>
 
@@ -1923,15 +1923,18 @@
 
           <div id="instPassos" style="display:none; margin-top:22px;">
             <h3 style="font-size:14px; margin-bottom:12px;">Agora, no computador da loja</h3>
-            <div class="passo-print"><span>1</span><div><strong>Instale o Node</strong>
-              <p>Em <b>nodejs.org</b>, versão LTS. Instalação padrão, só avançar.</p></div></div>
-            <div class="passo-print"><span>2</span><div><strong>Instale as impressoras como "Generic / Text Only"</strong>
-              <p>Adicionar impressora → "não está na lista" → impressora local → porta USB00x →
-                 Fabricante <b>Generic</b>, modelo <b>Generic / Text Only</b>. Depois
-                 Propriedades → Compartilhamento, com o mesmo nome que você digitou acima.</p></div></div>
-            <div class="passo-print"><span>3</span><div><strong>Clique duas vezes no arquivo baixado</strong>
-              <p>Ele pede a senha da conta e faz o resto sozinho. Se o Windows avisar que
-                 é de origem desconhecida, clique em <b>Mais informações → Executar assim mesmo</b>.</p></div></div>
+            <div class="passo-print"><span>1</span><div><strong>Ligue e plugue todas as impressoras</strong>
+              <p>Antes de rodar o instalador. Ele só enxerga o que já estiver conectado,
+                 e precisa achar todas para criar cada uma.</p></div></div>
+            <div class="passo-print"><span>2</span><div><strong>Clique duas vezes no arquivo baixado</strong>
+              <p>Ele pede permissão de administrador e a senha da conta, e faz todo o resto:
+                 instala o Node, cria e compartilha as impressoras, baixa os agentes e deixa
+                 tudo subindo com o Windows. Se o Windows avisar que é de origem desconhecida,
+                 clique em <b>Mais informações → Executar assim mesmo</b>.</p></div></div>
+            <div class="passo-print"><span>3</span><div><strong>Cole as etiquetas</strong>
+              <p>No fim, cada impressora cospe uma folha com um nome. Para o Windows elas são
+                 idênticas — nenhum programa sabe qual é a da cozinha. Caminhe até elas e
+                 etiquete conforme a folha que saiu de cada uma.</p></div></div>
           </div>
 
           <div class="box-info" style="margin-top:18px;">
@@ -9228,6 +9231,22 @@
   }
 
   function montarInstalador(impressoras, modo, email){
+    // Instala as impressoras como "Generic / Text Only": é o driver embutido do
+    // Windows que NÃO desenha nada, só repassa os bytes — que é o que ESC/POS
+    // precisa. Serve para impressora de qualquer marca, inclusive sem marca.
+    //
+    // Nenhum script consegue saber qual porta USB é a impressora da cozinha e
+    // qual é a do balcão: para o Windows elas são idênticas. Por isso cada uma
+    // imprime uma folha com o próprio nome no fim — aí a pessoa caminha até
+    // elas e etiqueta. Adivinhar a ordem daria comanda saindo no lugar errado.
+    const criarImpressoras = impressoras.map((p, i) => `
+powershell -NoProfile -Command "$portas=@(Get-PrinterPort | Where-Object {$_.Name -like 'USB*'} | Sort-Object Name); if($portas.Count -le ${i}){ Write-Host '  [X] Nao achei a ${i+1}a impressora USB. Ligue e plugue todas antes de rodar.'; exit 1 }; $pt=$portas[${i}].Name; if(-not (Get-Printer -Name '${p.share}' -ErrorAction SilentlyContinue)){ Add-Printer -Name '${p.share}' -DriverName 'Generic / Text Only' -PortName $pt }; Set-Printer -Name '${p.share}' -Shared $true -ShareName '${p.share}'; Write-Host ('  [ok] ${p.share} criada na porta ' + $pt)"
+if errorlevel 1 goto :semimpressora`).join('\n');
+
+    const identificar = impressoras.map(p => `
+powershell -NoProfile -Command "$b=[byte[]](0x1B,0x40) + [Text.Encoding]::ASCII.GetBytes(([char]10) + '   ESTA IMPRESSORA E A' + ([char]10) + '   >>> ${p.nome.toUpperCase()} <<<' + ([char]10) + '   cole a etiqueta nela' + ([char]10)+([char]10)+([char]10)) + [byte[]](0x1D,0x56,0x42,0x00); [IO.File]::WriteAllBytes($env:TEMP+'\\mkid.bin',$b)"
+copy /b "%TEMP%\\mkid.bin" "\\\\localhost\\${p.share}" >nul 2>&1`).join('\n');
+
     const blocos = impressoras.map(p => `
 echo.
 echo   ---- ${p.nome} ----
@@ -9254,25 +9273,51 @@ echo   [ok] ${p.nome} pronta`).join('\n');
 
     return `@echo off
 chcp 65001 >nul
-title Instalador do agente de impressao - O Markin
+title Instalador - O Markin
 setlocal EnableDelayedExpansion
+
+REM Criar e compartilhar impressora exige direito de administrador. Em vez de
+REM falhar no meio com um erro obscuro, pedimos a elevacao logo de cara.
+net session >nul 2>&1
+if errorlevel 1 (
+  echo   Preciso de permissao de administrador para instalar as impressoras.
+  echo   Vou pedir agora na janela do Windows...
+  powershell -NoProfile -Command "Start-Process -FilePath '%~f0' -Verb RunAs" >nul 2>&1
+  exit /b
+)
+
 echo.
 echo   ==========================================
-echo    Agente de impressao - O Markin
+echo    O Markin - instalacao completa
 echo   ==========================================
 echo.
 
-where node >nul 2>&1
-if errorlevel 1 (
-  echo   [X] O Node nao esta instalado neste computador.
-  echo       Baixe a versao LTS em https://nodejs.org, instale,
-  echo       e rode este arquivo de novo.
-  echo.
-  pause
-  exit /b 1
+REM ---------- 1. Node ----------
+set "NODEEXE="
+where node >nul 2>&1 && for /f "delims=" %%N in ('where node') do set "NODEEXE=%%N"
+if not defined NODEEXE (
+  echo   Node nao encontrado. Instalando...
+  winget install -e --id OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements --silent >nul 2>&1
+  if exist "%ProgramFiles%\\nodejs\\node.exe" set "NODEEXE=%ProgramFiles%\\nodejs\\node.exe"
+  if not defined NODEEXE (
+    echo   [X] Nao consegui instalar o Node automaticamente.
+    echo       Baixe a versao LTS em https://nodejs.org, instale,
+    echo       e rode este arquivo de novo.
+    echo.
+    pause
+    exit /b 1
+  )
+  set "PATH=%ProgramFiles%\\nodejs;!PATH!"
 )
-for /f "delims=" %%N in ('where node') do set "NODEEXE=%%N"
-echo   [ok] Node encontrado
+echo   [ok] Node: !NODEEXE!
+
+REM ---------- 2. Impressoras ----------
+echo.
+echo   Instalando as impressoras...
+REM "Generic / Text Only" e o driver do Windows que NAO desenha nada, so
+REM repassa os bytes. E o que ESC/POS precisa, e serve para qualquer marca.
+powershell -NoProfile -Command "if(-not (Get-PrinterDriver -Name 'Generic / Text Only' -ErrorAction SilentlyContinue)){ Add-PrinterDriver -Name 'Generic / Text Only' }" >nul 2>&1
+${criarImpressoras}
 
 echo.
 for /f "delims=" %%P in ('powershell -NoProfile -Command "$s=Read-Host -AsSecureString '  Senha da conta ${email}'; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($s))"') do set "MK_SENHA=%%P"
@@ -9288,18 +9333,40 @@ set "BASE=%USERPROFILE%\\markin-agentes"
 if not exist "%BASE%" mkdir "%BASE%"
 ${blocos}
 
+
+REM ---------- Atalho do painel na area de trabalho ----------
+powershell -NoProfile -Command "Set-Content -Encoding ASCII -Path ([Environment]::GetFolderPath('Desktop') + '\\Painel O Markin.url') -Value @('[InternetShortcut]','URL=${location.origin}/gerencial/')" >nul 2>&1
+
+REM ---------- Identificacao fisica ----------
+REM Para o Windows as impressoras USB sao identicas, entao nenhum script sabe
+REM qual e a da cozinha. Cada uma imprime o proprio nome: basta caminhar ate
+REM elas e etiquetar. Adivinhar a ordem daria comanda saindo no lugar errado.
+echo.
+echo   Imprimindo a folha de identificacao em cada impressora...
+${identificar}
+
 echo.
 echo   ==========================================
-echo    Instalado.
+echo    Pronto.
 echo   ==========================================
 echo.
-echo   1) Teste cada impressora ANTES de ligar os agentes:
+echo   AGORA, NA LOJA:
+echo.
+echo   1) Cada impressora cuspiu uma folha com um nome.
+echo      Cole uma etiqueta em cada uma com o nome que saiu.
+echo.
+echo      Saiu folha numa impressora que NAO e termica? Entao este PC ja
+echo      tinha outra impressora na porta USB. Apague a que foi criada
+echo      errada em Impressoras e scanners e me avise.
+echo.
+echo   2) Nao saiu folha em alguma? Confira cabo e papel, e rode:
 ${testes}
 echo.
-echo   2) Saiu o cupom da regua? Entao ligue:
+echo   3) Com tudo etiquetado, ligue os agentes:
 ${inicios}
 echo.
 echo   Eles sobem sozinhos toda vez que voce entrar no Windows.
+echo   Confira no painel: deve aparecer ${impressoras.length} agente(s) conectado(s).
 echo.
 pause
 exit /b 0
@@ -9308,6 +9375,15 @@ exit /b 0
 echo.
 echo   [X] Nao consegui baixar o agente.
 echo       Verifique a internet e rode de novo.
+echo.
+pause
+exit /b 1
+
+:semimpressora
+echo.
+echo   [X] Nao encontrei todas as impressoras.
+echo       Ligue e plugue as ${impressoras.length} impressoras, espere o Windows
+echo       reconhecer (alguns segundos), e rode este arquivo de novo.
 echo.
 pause
 exit /b 1
