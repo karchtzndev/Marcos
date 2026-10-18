@@ -1,5 +1,5 @@
-const CACHE = "omarkin-cliente-v44";
-const ASSETS = ["/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png", "/mascot.jpg", "/mascot.webp"];
+const CACHE = "omarkin-cliente-v45";
+const ASSETS = ["/", "/index.html", "/privacidade", "/manifest.json", "/icon-192.png", "/icon-512.png", "/mascot.jpg", "/mascot.webp"];
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
