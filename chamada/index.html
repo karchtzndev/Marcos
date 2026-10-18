@@ -533,6 +533,40 @@
     }
     ouvirChamadas();
   });
+
+  // A TV da cozinha fica ligada dias seguidos sem ninguém tocar nela, então é
+  // a tela que mais envelhece sem que ninguém perceba. Publicada versão nova,
+  // ela continua com a antiga até alguém lembrar de recarregar — e ninguém
+  // lembra. Daqui ela mesma confere.
+  window.__tvOcupada = () => exibindo || filaEspera.length > 0;
+})();
+
+/* ================= A TV PERCEBE QUE ENVELHECEU =================
+   Compara a identidade do próprio arquivo no servidor (ETag, que a Vercel
+   troca a cada publicação) com a que tinha ao abrir. Aqui não há tarja nem
+   botão: ninguém toca nesta tela. Recarrega sozinha, só no intervalo entre
+   uma chamada e outra — no meio de um pedido na tela seria pior que ficar
+   desatualizada. */
+(function(){
+  const DE_QUANTO_EM_QUANTO = 15 * 60 * 1000;
+  let identidadeAoAbrir = null;
+
+  async function conferir(){
+    try{
+      const r = await fetch(location.pathname + '?v=' + Date.now(),
+                            {method:'HEAD', cache:'no-store'});
+      if(!r.ok) return;
+      const agora = r.headers.get('etag') || r.headers.get('last-modified');
+      if(!agora) return;
+      if(identidadeAoAbrir === null){ identidadeAoAbrir = agora; return; }
+      if(agora === identidadeAoAbrir) return;
+      if(window.__tvOcupada && window.__tvOcupada()) return;  // chamada na tela
+      window.location.reload();
+    }catch(e){ /* sem rede: a próxima rodada tenta de novo */ }
+  }
+
+  conferir();
+  setInterval(conferir, DE_QUANTO_EM_QUANTO);
 })();
 </script>
 

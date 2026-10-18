@@ -1,4 +1,7 @@
-const CACHE = "omarkin-gerencial-v63";
+// A versão sobe junto com mudança no painel. Ela sozinha NÃO é mais o que
+// avisa o painel aberto de que existe código novo — isso agora é o confere
+// de ETag dentro do index.html, que não depende de ninguém lembrar daqui.
+const CACHE = "omarkin-gerencial-v64";
 const ASSETS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./mascot.jpg"];
 
 self.addEventListener('install', (e) => {

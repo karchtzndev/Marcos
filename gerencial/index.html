@@ -9772,6 +9772,87 @@ if('serviceWorker' in navigator){
     });
   });
 }
+
+/* ================= O PAINEL PERCEBE QUE ENVELHECEU =================
+   Isto existe por causa de um dia inteiro perdido procurando uma aba que já
+   estava no ar.
+
+   O aviso de versão nova acima só dispara quando o ARQUIVO sw.js muda. Só que
+   quem muda é o index.html; o sw.js fica meses igual. O navegador baixa o
+   sw.js, vê que é byte a byte o mesmo, e nunca anuncia nada. Resultado: um
+   painel aberto no tablet da loja — ou instalado como aplicativo, que
+   praticamente nunca é fechado — segue rodando o código de semanas atrás,
+   sem nada na tela dizendo isso. Foi exatamente o que aconteceu: a aba
+   Instalador estava publicada havia dias e o painel da loja não a tinha.
+
+   Agora o painel pergunta por si mesmo. Em vez de depender de alguém lembrar
+   de mexer no sw.js, ele compara a identidade do próprio arquivo no servidor
+   (ETag, que a Vercel troca a cada publicação) com a que tinha ao abrir.
+   Mudou, tem versão nova — sem depender de disciplina de ninguém.
+
+   Não recarrega no meio do serviço: se houver janela aberta ou alguém
+   mexendo, mostra a tarja e espera o toque. Sozinho, só quando está parado. */
+(function(){
+  const DE_QUANTO_EM_QUANTO = 10 * 60 * 1000;  // 10 min
+  const PARADO_HA           = 60 * 1000;       // 1 min sem ninguém tocar
+
+  let identidadeAoAbrir = null;
+  let jaAvisou = false;
+  let ultimoToque = Date.now();
+
+  ['click','keydown','touchstart'].forEach(ev =>
+    document.addEventListener(ev, () => { ultimoToque = Date.now(); }, {passive:true}));
+
+  // ETag muda a cada publicação; Last-Modified serve de reserva.
+  async function identidadeNoServidor(){
+    const r = await fetch(location.pathname + '?v=' + Date.now(),
+                          {method:'HEAD', cache:'no-store'});
+    if(!r.ok) return null;
+    return r.headers.get('etag') || r.headers.get('last-modified');
+  }
+
+  function ocupado(){
+    return document.querySelector('.overlay.open')
+        || (Date.now() - ultimoToque) < PARADO_HA;
+  }
+
+  function mostrarTarja(){
+    if(document.getElementById('avisoVersao')) return;
+    const t = document.createElement('div');
+    t.id = 'avisoVersao';
+    t.style.cssText = 'position:fixed; left:0; right:0; bottom:0; z-index:400;' +
+      'background:var(--ember); color:#120e0b; padding:14px 16px; display:flex;' +
+      'align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;' +
+      'font-weight:700; font-size:14px; box-shadow:0 -6px 20px rgba(0,0,0,.4);';
+    t.innerHTML = '<span>🔄 Tem uma versão nova do painel.</span>' +
+      '<button id="avisoVersaoBtn" style="background:#120e0b; color:#f2e9da; border:none;' +
+      'border-radius:999px; padding:10px 20px; font-weight:700; font-size:14px;' +
+      'cursor:pointer; font-family:inherit;">Atualizar agora</button>';
+    document.body.appendChild(t);
+    document.getElementById('avisoVersaoBtn')
+      .addEventListener('click', () => window.location.reload());
+  }
+
+  async function conferir(){
+    try{
+      const agora = await identidadeNoServidor();
+      if(!agora) return;
+      if(identidadeAoAbrir === null){ identidadeAoAbrir = agora; return; }
+      if(agora === identidadeAoAbrir) return;
+
+      // Recarrega sozinho só com a loja parada; com gente trabalhando, avisa.
+      if(!ocupado()){ window.location.reload(); return; }
+      if(!jaAvisou){ jaAvisou = true; mostrarTarja(); }
+    }catch(e){ /* sem rede: a próxima rodada tenta de novo */ }
+  }
+
+  conferir();
+  setInterval(conferir, DE_QUANTO_EM_QUANTO);
+  // voltar para a aba é o momento mais provável de ter versão nova esperando
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'visible') conferir();
+  });
+})();
 </script>
 
 }
