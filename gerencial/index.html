@@ -7386,8 +7386,15 @@
       return;
     }
     if(cuponsUnsub) return;
-    cuponsUnsub = db.collection('cupons').onSnapshot((snap) => {
+    // Única escuta de coleção que não tinha teto: cupom nunca é apagado, e a
+    // lista só cresce. O teto é alto de propósito — e se um dia for atingido,
+    // isso vira um aviso na aba de Erros em vez de cupom sumindo calado.
+    cuponsUnsub = db.collection('cupons').limit(300).onSnapshot((snap) => {
       cupons = snap.docs.map(d => Object.assign({_id: d.id}, d.data()));
+      if(snap.size >= 300){
+        registrarFalha('lista de cupons bateu no teto de 300 — há cupons que deixaram de aparecer no painel', null,
+                       'Apague os cupons vencidos ou aumente o limite em watchCupons().');
+      }
       const badge = document.getElementById('cuponsBadge');
       if(badge){
         const ativos = cupons.filter(c => cupomValido(c).ok).length;

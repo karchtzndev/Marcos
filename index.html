@@ -2478,9 +2478,13 @@
   // (importante: offline não dá pra verificar duplicidade)
   // Consolida o dia num único documento (mantém o painel rápido mesmo com
   // milhares de pedidos por mês)
+  // Firestore recusa . ~ * / [ ] em nome de campo. Mesmo recorte no painel —
+  // um produto chamado "X-Tudo 1/2" precisa virar a MESMA chave nos dois
+  // lugares, senão o dashboard conta o mesmo produto duas vezes.
+  function statsKey(name){ return String(name).replace(/[.~*/\[\]]/g,'_').slice(0,60); }
+
   function bumpDailyStats(order){
     const day = localDateStr(order.createdAt);
-    const ref = db.collection('stats').doc(day);
     const inc = firebase.firestore.FieldValue.increment;
     // Objeto aninhado, não chave com ponto. set() NÃO interpreta ponto como
     // caminho (só update() faz isso), então 'products.X' virava um campo com
@@ -2489,14 +2493,11 @@
     // regra do stats usa hasOnly, que recusava esses nomes, então o dia
     // sequer era criado a partir de um pedido feito pelo site.
     const produtos = {};
-    order.items.forEach(i => {
-      const key = i.name.replace(/[.~*/\[\]]/g, '_').slice(0,60);
-      produtos[key] = inc(i.qty);
-    });
-    ref.set({
+    order.items.forEach(i => { produtos[statsKey(i.name)] = inc(i.qty); });
+    db.collection('stats').doc(day).set({
       date: day,
       orderCount: inc(1),
-      revenue: inc(Number(order.total) || 0),
+      revenue: inc(Number(order.total)||0),
       byType: { [order.orderType]: inc(1) },
       products: produtos
     }, {merge:true}).catch(e => registrarFalha('somar as estatísticas do dia', e));
