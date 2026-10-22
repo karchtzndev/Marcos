@@ -6693,7 +6693,7 @@
       <div class="kpi-card"><div class="kv">${errosLog.length}</div><div class="kl">Erros registrados</div></div>
       <div class="kpi-card"><div class="kv">${recentes.length}</div><div class="kl">Últimas 24h</div></div>
       <div class="kpi-card"><div class="kv">${porPagina.cliente||0}</div><div class="kl">No site do cliente</div></div>
-      <div class="kpi-card"><div class="kv">${(porPagina.gerencial||0)+(porPagina.tv||0)}</div><div class="kl">Painel e TV</div></div>`;
+      <div class="kpi-card"><div class="kv">${(porPagina.gerencial||0)+(porPagina.tv||0)+(porPagina.agente||0)}</div><div class="kl">Painel, TV e impressora</div></div>`;
 
     if(errosLog.length === 0){
       box.innerHTML = '<div class="loading-row">Nenhum erro registrado. 🎉</div>';
@@ -9403,6 +9403,11 @@ set "BASE=%USERPROFILE%\\markin-agentes"
 if not exist "%BASE%" mkdir "%BASE%"
 ${blocos}
 
+
+REM ---------- Diagnostico ----------
+REM Fica ao lado dos agentes. Quando nao imprimir, e este arquivo que diz por
+REM que: Node, impressoras, config, tarefas e as ultimas linhas de cada log.
+curl.exe -fsSL -o "%BASE%\\diagnostico.bat" "${INST_RAW}diagnostico.bat" >nul 2>&1
 
 REM ---------- Atalho do painel na area de trabalho ----------
 powershell -NoProfile -Command "Set-Content -Encoding ASCII -Path ([Environment]::GetFolderPath('Desktop') + '\\Painel O Markin.url') -Value @('[InternetShortcut]','URL=${location.origin}/gerencial/')" >nul 2>&1

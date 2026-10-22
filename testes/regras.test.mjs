@@ -146,6 +146,21 @@ describe('registro de falha das três telas', () => {
     ));
   });
 
+  test('falha do agente de impressão é aceita', async () => {
+    // O agente roda no PC da loja como tarefa oculta: sem isto chegar ao
+    // banco, a única pista fica num log que só quem está na frente do PC lê.
+    // Um campo fora da lista e a gravação é recusada em silêncio — de novo.
+    await assertSucceeds(agente().collection('errorLog').add({
+      mensagem: 'FALHA: "imprimir o cupom" no agente cozinha — ENOENT',
+      detalhe: 'Impressora \\\\localhost\\COZINHA · modo copia · agente versão 2.0.0',
+      pagina: 'agente',
+      plataforma: 'win32',
+      online: true,
+      quando: '2026-10-22T20:00:00.000Z',
+      expiraEm: new Date(Date.now() + 30 * 86400000),
+    }));
+  });
+
   test('mensagem acima de 500 caracteres é recusada', async () => {
     // Por isso registrarFalha() corta em 500: uma stack inteira passaria
     // desse limite e o log sumiria exatamente no erro mais interessante.

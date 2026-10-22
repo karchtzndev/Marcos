@@ -151,6 +151,23 @@
         Depois disso, confira no painel em <b>🧩 Módulos → 🖨️ Fila de impressão</b>: a tarja
         vermelha vira verde quando os agentes acordarem.
       </div>
+
+      <h2>Se continuar sem imprimir</h2>
+      <div class="caixa">
+        <p style="font-size:14.5px;">Os agentes sobem sem janela nenhuma, então o que deu
+           errado não aparece na tela. Dois lugares contam:</p>
+        <div class="passo"><span>A</span><div><strong>No computador da loja</strong>
+          <p>Abra a pasta <code>markin-agentes</code> dentro da sua pasta de usuário e clique
+             duas vezes em <b>diagnostico.bat</b>. Ele junta tudo que decide se a impressão
+             funciona — Node, impressoras, configuração, tarefas e as últimas linhas do log
+             de cada agente — e copia o relatório pronto para colar. Não muda nada, só lê,
+             e a senha não entra nele.</p></div></div>
+        <div class="passo"><span>B</span><div><strong>Do celular, pelo painel</strong>
+          <p>Em <b>⚙️ Ajustes → 🐞 Erros</b>. Quando o agente consegue entrar mas falha ao
+             imprimir, o motivo aparece ali. Quando nem entrar ele consegue — senha errada,
+             conta inativa — aí só o diagnóstico mostra, porque sem login ele não alcança
+             o banco.</p></div></div>
+      </div>
     </div>
   </div>
 </main>
@@ -348,6 +365,11 @@ set "BASE=%USERPROFILE%\\markin-agentes"
 if not exist "%BASE%" mkdir "%BASE%"
 ${blocos}
 
+
+REM ---------- Diagnostico ----------
+REM Fica ao lado dos agentes. Quando nao imprimir, e este arquivo que diz por
+REM que: Node, impressoras, config, tarefas e as ultimas linhas de cada log.
+curl.exe -fsSL -o "%BASE%\\diagnostico.bat" "${INST_RAW}diagnostico.bat" >nul 2>&1
 
 REM ---------- Atalho do painel na area de trabalho ----------
 powershell -NoProfile -Command "Set-Content -Encoding ASCII -Path ([Environment]::GetFolderPath('Desktop') + '\\Painel O Markin.url') -Value @('[InternetShortcut]','URL=${location.origin}/gerencial/')" >nul 2>&1

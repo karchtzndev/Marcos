@@ -43,8 +43,50 @@ function carregarConfig(){
   }
 }
 
+/* ---------------- REGISTRO EM ARQUIVO ----------------
+   O instalador registra o agente como tarefa OCULTA do Windows: ele sobe sem
+   janela nenhuma. Até aqui, tudo que este arquivo tinha a dizer ia para um
+   console que não existe — senha errada, nome de compartilhamento trocado,
+   regra do banco recusando, tudo morria sem deixar nada. De fora parecia
+   simplesmente "não acontece nada", e não havia o que olhar para saber qual
+   dos cinco motivos era.
+
+   Agora cada linha também vai para agente.log, ao lado deste arquivo. */
+const ARQUIVO_LOG = path.join(__dirname, 'agente.log');
+const LIMITE_LOG = 1024 * 1024;   // 1 MB: histórico suficiente, não enche o disco
+
+function gravarNoLog(linha){
+  try{
+    // Gira antes de escrever, não depois: assim o arquivo nunca passa do
+    // limite, e o anterior fica guardado para comparar.
+    try{
+      if(fs.statSync(ARQUIVO_LOG).size > LIMITE_LOG){
+        fs.renameSync(ARQUIVO_LOG, ARQUIVO_LOG + '.anterior');
+      }
+    }catch(e){ /* ainda não existe */ }
+    fs.appendFileSync(ARQUIVO_LOG, linha + os.EOL);
+  }catch(e){ /* disco cheio ou sem permissão: o console ainda tem a linha */ }
+}
+
 function log(...args){
-  console.log(new Date().toLocaleTimeString('pt-BR'), '·', ...args);
+  const agora = new Date();
+  const texto = args.map(a => (a instanceof Error ? a.message : String(a))).join(' ');
+  console.log(agora.toLocaleTimeString('pt-BR'), '·', texto);
+  // No arquivo vai a data inteira: o log é lido dias depois, e só a hora
+  // deixaria a pessoa sem saber se aquilo é de hoje ou da semana passada.
+  gravarNoLog(agora.toLocaleString('pt-BR') + ' · ' + texto);
+}
+
+/* ---------------- A FALHA CHEGA AO PAINEL ----------------
+   O log no PC resolve para quem está na frente dele. Quem está com o celular
+   na mão precisa ver na aba 🐞 Erros. Vai pelo mesmo caminho das telas, nos
+   campos exatos que a regra do errorLog aceita — um a mais e a gravação é
+   recusada, em silêncio, que é justamente o que isto combate. */
+let avisarPainel = null;   // definido depois do login; antes dele não há como
+
+function contarAoPainel(oQue, erro){
+  if(!avisarPainel) return;
+  avisarPainel(oQue, erro).catch(() => {});
 }
 
 /* ============ IMPRESSÃO ============ */
@@ -206,6 +248,7 @@ async function processarFila(db){
     // continua pendente e este agente insiste, porque a via dele é a única
     // que ninguém mais vai tirar.
     log('❌ falhou:', e.message, MODO === 'copia' ? '— vai tentar de novo' : '— devolvido à fila');
+    contarAoPainel('imprimir o cupom', e);
     if(MODO === 'copia') pendentes.push(item);
     else await devolver(db, item.id);
     await new Promise(r => setTimeout(r, 5000));
@@ -225,6 +268,21 @@ async function main(){
   log('conectando…');
   await signInWithEmailAndPassword(getAuth(app), cfg.usuario, cfg.senha);
   log(`conectado como ${cfg.usuario} · agente "${EU}" · modo ${MODO}`);
+
+  // Só agora dá para falar com o banco. Antes do login nada daqui sai do PC,
+  // e é por isso que o arquivo de log continua sendo o canal que nunca falha.
+  avisarPainel = (oQue, erro) => {
+    const motivo = (erro && (erro.code || erro.message)) || String(erro || '');
+    return setDoc(doc(collection(db, 'errorLog')), {
+      mensagem: `FALHA: "${oQue}" no agente ${EU} — ${motivo}`.slice(0, 500),
+      detalhe: `Impressora ${cfg.impressora} · modo ${MODO} · agente versão ${VERSAO}`.slice(0, 500),
+      pagina: 'agente',
+      plataforma: process.platform,
+      online: true,
+      quando: new Date().toISOString(),
+      expiraEm: new Date(Date.now() + 30 * 86400000),
+    });
+  };
   log('imprimindo em', cfg.impressora, `(${process.platform === 'win32' ? 'Windows' : 'Linux'})`);
   if(MODO === 'copia') log(`cada cupom fica ${cfg.janelaMinutos || 10} min na fila para os outros copiarem`);
 
@@ -271,8 +329,21 @@ async function main(){
 // testes), exporta a disputa pela fila para ser verificada contra o emulador.
 if(require.main === module){
   main().catch(e => {
+    // A tarefa agendada reinicia este processo a cada minuto. Sem um motivo
+    // escrito, o log vira mil linhas iguais e nenhuma pista; com ele, a
+    // primeira linha já diz o que arrumar.
+    const codigo = (e && e.code) || '';
+    const pistas = {
+      'auth/invalid-credential': 'e-mail ou senha errados no config.json.',
+      'auth/invalid-email':      'o e-mail no config.json está mal escrito.',
+      'auth/user-not-found':     'essa conta não existe. Crie em Ajustes → Acessos, sem permissão nenhuma.',
+      'auth/wrong-password':     'a senha não confere com a da conta.',
+      'auth/network-request-failed': 'o PC não alcançou a internet.',
+      'permission-denied':       'a conta existe mas o banco recusou. Confira se ela está ativa no painel.',
+    };
     log('não foi possível iniciar:', e.message);
-    log('confira usuário, senha e conexão no config.json');
+    log('>>>', pistas[codigo] || 'confira usuário, senha e conexão no config.json');
+    log('    (este arquivo é o agente.log, na mesma pasta do agente.js)');
     process.exitCode = 1;
   });
 }
