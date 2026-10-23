@@ -5181,7 +5181,9 @@
         </div>
         <span class="status-pill" style="background:${si.color}22;color:${si.color};">${si.label}</span>
       </div>
-      <div class="order-items">${o.items.map(i=>i.qty+'x '+escapeHtml(i.name)+(i.forItem?` <em style="color:var(--mustard);">(no ${escapeHtml(i.forItem)})</em>`:'')).join(', ')}</div>
+      <div class="order-items">${o.items.map(i=>i.qty+'x '+escapeHtml(i.name)
+        +(i.ponto?` <em style="color:var(--mustard);">[${escapeHtml(i.ponto)}]</em>`:'')
+        +(i.forItem?` <em style="color:var(--mustard);">(no ${escapeHtml(i.forItem)})</em>`:'')).join(', ')}</div>
       ${o.notes?`<div class="order-meta" style="color:var(--mustard);">📝 ${escapeHtml(o.notes)}</div>`:''}
       ${o.cupom ? `<div class="order-meta" style="color:var(--green);">🏷️ Cupom ${escapeHtml(o.cupom)}${Number(o.desconto)>0?' — '+money(o.desconto)+' de desconto':''}</div>` : ''}
       ${(()=>{const d=conferirTotal(o);
@@ -5326,6 +5328,9 @@
       html += p.premio
         ? `<div class="p-premio">🎁 ${p.qty}x ${escapeHtml(p.name.replace(' — PRÊMIO FIDELIDADE',''))}<br><small>*** BRINDE FIDELIDADE — NAO COBRAR ***</small></div>`
         : `<div class="p-item"><span>${p.qty}x ${escapeHtml(p.name)}</span><span>${money(p.price*p.qty)}</span></div>`;
+      // O ponto vai logo abaixo do lanche, recuado como adicional: é a linha
+      // que a chapa lê, e ela não pode se perder no meio dos acréscimos.
+      if(p.ponto) html += `<div class="p-addon"><span>>> ${escapeHtml(p.ponto.toUpperCase())}</span><span></span></div>`;
       addons.filter(a => a.forItem === p.name).forEach(a => {
         html += `<div class="p-addon"><span>+ ${a.qty}x ${escapeHtml(a.name)}</span><span>${money(a.price*a.qty)}</span></div>`;
       });
@@ -7937,6 +7942,8 @@
      desc:'Permite deixar na conta e acertar depois.', tab:null},
     {key:'previsao',    icon:'📈', nome:'Previsão de demanda',
      desc:'Estima o movimento dos próximos dias com base no seu histórico.', tab:null},
+    {key:'pontoCarne',  icon:'🔥', nome:'Ponto da carne',
+     desc:'O cliente escolhe mal passado, ao ponto ou bem passado em cada hambúrguer. Sai na comanda e na tela da cozinha. Vem ligado; desligue se a chapa não trabalha com ponto.', tab:null},
     {key:'filaimpressao', icon:'🖨️', nome:'Fila de impressão',
      desc:'A comanda sai sozinha, de qualquer aparelho — iPhone, Android ou tablet. Precisa do agente rodando num PC ou Raspberry Pi ligado na térmica. Dois agentes podem rodar juntos, um de reserva do outro.', tab:null},
     {key:'cupons',      icon:'🏷️', nome:'Cupons de desconto',
@@ -8797,6 +8804,9 @@
             let h = '';
             principais.forEach(p => {
               h += `<li${p.premio ? ' class="kc-premio"' : ''}><b>${p.qty}x</b> ${escapeHtml(p.name)}`;
+              // Quem está na chapa lê esta tela de longe: o ponto vai em
+              // destaque, não escondido no meio dos adicionais.
+              if(p.ponto) h += ` <em style="color:var(--mustard); font-weight:700;">· ${escapeHtml(p.ponto.toUpperCase())}</em>`;
               const meus = addons.filter(a => a.forItem === p.name);
               if(meus.length) h += `<ul class="kc-addons">${meus.map(a => `<li>+ ${a.qty}x ${escapeHtml(a.name)}</li>`).join('')}</ul>`;
               h += `</li>`;
@@ -8906,10 +8916,22 @@
       : moCart.map((i, idx) => `
         <div class="prod-row" style="${i.forItem ? 'margin-left:22px; border-left:2px solid var(--mustard);' : ''}">
           <div class="pi">${i.icon || (i.forItem ? '➕' : '🍔')}</div>
-          <div class="pn"><strong>${i.forItem ? '+ ' : ''}${i.qty}x ${escapeHtml(i.name)}</strong><span>${money(i.price)} un.${i.forItem ? ' · no ' + escapeHtml(i.forItem) : ''}</span></div>
+          <div class="pn"><strong>${i.forItem ? '+ ' : ''}${i.qty}x ${escapeHtml(i.name)}</strong><span>${money(i.price)} un.${i.forItem ? ' · no ' + escapeHtml(i.forItem) : ''}</span>
+            ${i.ponto ? `<select data-moponto="${idx}" style="margin-top:6px; font-size:13px; padding:6px 8px;">
+                 ${PONTOS.map(pt => `<option value="${pt}" ${i.ponto === pt ? 'selected' : ''}>🔥 ${pt}</option>`).join('')}
+               </select>` : ''}</div>
           <div class="pp">${money(i.price * i.qty)}</div>
           <div class="row-actions"><button class="icon-btn danger" data-morm="${idx}">🗑</button></div>
         </div>`).join('');
+    box.querySelectorAll('[data-moponto]').forEach(s => s.addEventListener('change', () => {
+      const it = moCart[Number(s.dataset.moponto)];
+      if(!it) return;
+      const irmao = moCart.find((o,k) => k !== Number(s.dataset.moponto) &&
+        chaveMo(o.productId, o.forItem, o.ponto) === chaveMo(it.productId, it.forItem, s.value));
+      if(irmao){ irmao.qty += it.qty; moCart.splice(Number(s.dataset.moponto), 1); }
+      else it.ponto = s.value;
+      renderMoItems();
+    }));
     box.querySelectorAll('[data-morm]').forEach(b => b.addEventListener('click', () => {
       const rm = moCart[Number(b.dataset.morm)];
       moCart.splice(Number(b.dataset.morm), 1);
@@ -8919,11 +8941,31 @@
     }));
     document.getElementById('moTotal').textContent = money(moCart.reduce((s,i)=>s+i.price*i.qty,0));
   }
-  function moPush(p, qty, forItem){
-    const chave = p.id + "|" + (forItem||"");
-    const ex = moCart.find(i => (i.productId + "|" + (i.forItem||"")) === chave);
+  /* ---------- PONTO DA CARNE ----------
+     A MESMA lista do site do cliente. Se as duas divergirem, a cozinha recebe
+     "Ao ponto" de um lado e outra palavra do outro para a mesma coisa — e um
+     teste cobra que elas sejam iguais, porque divergir aqui é silencioso.
+
+     Nasce desligado, como todo módulo, para o interruptor em Módulos dizer a
+     verdade sobre o próprio estado. Ligado, vale para TODO hambúrguer. */
+  const PONTOS = ['Mal passado', 'Ao ponto', 'Bem passado'];
+  const PONTO_PADRAO = 'Ao ponto';
+
+  function pedePonto(p){
+    if(!moduloAtivo('pontoCarne')) return false;
+    return p && p.cat === 'burguers';
+  }
+
+  // Dois lanches iguais com pontos diferentes sao duas linhas. Juntar os dois
+  // mandaria um ponto so para a chapa.
+  const chaveMo = (id, forItem, ponto) => id + "|" + (forItem||"") + "|" + (ponto||"");
+
+  function moPush(p, qty, forItem, ponto){
+    const comPonto = pedePonto(p) ? (ponto || PONTO_PADRAO) : "";
+    const chave = chaveMo(p.id, forItem, comPonto);
+    const ex = moCart.find(i => chaveMo(i.productId, i.forItem, i.ponto) === chave);
     if(ex) ex.qty += qty;
-    else moCart.push({productId:p.id, cat:p.cat, name:p.name, price:p.price, icon:p.icon, qty, forItem: forItem||""});
+    else moCart.push({productId:p.id, cat:p.cat, name:p.name, price:p.price, icon:p.icon, qty, forItem: forItem||"", ponto: comPonto});
   }
 
   document.getElementById('moAddItemBtn').addEventListener('click', () => {
@@ -9045,7 +9087,7 @@
         customerName: name, phone, address, table, orderType: moType,
         payment: document.getElementById('moPayment').value,
         notes: document.getElementById('moNotes').value.trim(),
-        items: moCart.map(i => ({name:i.name, price:i.price, qty:i.qty, forItem:i.forItem || ""})),
+        items: moCart.map(i => ({name:i.name, price:i.price, qty:i.qty, forItem:i.forItem || "", ponto:i.ponto || ""})),
         subtotal, deliveryFee: fee, total: subtotal + fee,
         status: 'aceito',
         tabClosed: moType === 'mesa' ? false : true,

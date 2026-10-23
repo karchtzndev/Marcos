@@ -2099,11 +2099,37 @@
   document.getElementById('extrasConfirm').addEventListener('click', () => confirmarExtras(true));
   document.getElementById('extrasSkip').addEventListener('click', () => confirmarExtras(false));
 
-  function pushToCart(p, forItem, silencioso){
-    const key = p.id + "|" + (forItem || "");
+  /* ---------- PONTO DA CARNE ----------
+     Vale para todo hambúrguer. Sai preselecionado em "Ao ponto", que é o
+     pedido mais comum: deixar em branco faria a cozinha ter que adivinhar, e
+     obrigar a escolher põe um passo a mais entre o cliente e o pedido.
+
+     Dois lanches iguais com pontos diferentes precisam ser DUAS linhas no
+     carrinho — por isso o ponto entra na chave que junta item repetido. Sem
+     isso, pedir um mal passado e um bem passado viraria "2x" de um ponto só,
+     e um dos dois sairia errado da chapa. */
+  const PONTOS = ['Mal passado', 'Ao ponto', 'Bem passado'];
+  const PONTO_PADRAO = 'Ao ponto';
+
+  function pedePonto(p){
+    // Ligado em Módulos, no painel. Vale para TODO hambúrguer.
+    if(features.pontoCarne !== true) return false;
+    return p && p.cat === 'burguers';
+  }
+
+  /* A chave junta item repetido no carrinho. Precisa sair de UM lugar só:
+     montada à mão em dois pontos, basta um deles esquecer o ponto da carne
+     para o carrinho parar de somar o item repetido — ou pior, somar dois que
+     deviam ficar separados. */
+  const chaveItem = (produtoId, forItem, ponto) =>
+    produtoId + "|" + (forItem || "") + "|" + (ponto || "");
+
+  function pushToCart(p, forItem, silencioso, ponto){
+    const comPonto = pedePonto(p) ? (ponto || PONTO_PADRAO) : "";
+    const key = chaveItem(p.id, forItem, comPonto);
     const existing = cart.find(c => c.key === key);
     if(existing) existing.qty += 1;
-    else cart.push({key, productId: p.id, cat: p.cat, name: p.name, price: p.price, icon: p.icon, photo: p.photo || "", qty: 1, forItem: forItem || ""});
+    else cart.push({key, productId: p.id, cat: p.cat, name: p.name, price: p.price, icon: p.icon, photo: p.photo || "", qty: 1, forItem: forItem || "", ponto: comPonto});
     updateCartUI(); renderMenu();
     if(!existing && !silencioso) showToast(p.name + (forItem ? " → " + forItem : "") + " adicionado ✓");
     rastrear('AddToCart', {
@@ -2129,9 +2155,27 @@
   }
 
   // Permite trocar (ou tirar) o lanche vinculado a um adicional já no carrinho
+  function trocarPonto(cartKey, novoPonto){
+    const item = cart.find(c => c.key === cartKey); if(!item) return;
+    const novaKey = chaveItem(item.productId, item.forItem, novoPonto);
+    const jaExiste = cart.find(c => c.key === novaKey && c.key !== cartKey);
+    if(jaExiste){
+      // Já havia o mesmo lanche nesse ponto: junta, em vez de deixar duas
+      // linhas iguais no carrinho.
+      jaExiste.qty += item.qty;
+      cart = cart.filter(c => c.key !== cartKey);
+    }else{
+      item.ponto = novoPonto;
+      item.key = novaKey;
+    }
+    salvarCarrinho();
+    updateCartUI();
+    showToast(`${item.name}: ${novoPonto} ✓`);
+  }
+
   function relinkAddon(cartKey, newFor){
     const item = cart.find(c => c.key === cartKey); if(!item) return;
-    const novaKey = item.productId + "|" + (newFor || "");
+    const novaKey = chaveItem(item.productId, newFor, item.ponto);
     const jaExiste = cart.find(c => c.key === novaKey && c.key !== cartKey);
     if(jaExiste){
       // já tem esse adicional no mesmo lanche: junta as quantidades
@@ -2189,6 +2233,9 @@
                    </select>`
                 : `<span class="addon-warn">Adicione um lanche pra vincular</span>`
             ) : ''}
+            ${c.ponto ? `<select class="addon-link" data-ponto="${c.key}" aria-label="Ponto da carne">
+                 ${PONTOS.map(pt => `<option value="${pt}" ${c.ponto === pt ? 'selected' : ''}>🔥 ${pt}</option>`).join('')}
+               </select>` : ''}
           </div>
           <div class="qty-ctrl">
             <button data-qty="${c.key}" data-delta="-1">−</button>
@@ -2197,6 +2244,7 @@
           </div>
         </div>`;
       }).join('');
+      box.querySelectorAll('[data-ponto]').forEach(sel => sel.addEventListener('change', () => trocarPonto(sel.dataset.ponto, sel.value)));
       box.querySelectorAll('[data-qty]').forEach(btn => btn.addEventListener('click', () => changeQty(btn.dataset.qty, parseInt(btn.dataset.delta))));
       box.querySelectorAll('[data-linkfor]').forEach(sel => sel.addEventListener('change', () => relinkAddon(sel.dataset.linkfor, sel.value)));
     }
@@ -2738,7 +2786,7 @@
       order = {
         code, dailyNumber,
         customerName: name, phone, address, table, orderType: selectedOrderType, payment, notes,
-        items: cart.map(c => ({name:c.name, price:c.price, qty:c.qty, forItem:c.forItem || ""})),
+        items: cart.map(c => ({name:c.name, price:c.price, qty:c.qty, forItem:c.forItem || "", ponto:c.ponto || ""})),
         subtotal: cartSubtotal(),
         deliveryFee: taxaEntregaFinal(),
         feePending: taxaACombinar(),
@@ -2838,7 +2886,9 @@
     if(o.orderType === 'mesa' && o.table) lines.push("*Mesa:* " + o.table);
     lines.push("");
     lines.push("*ITENS:*");
-    o.items.forEach(i => lines.push("• " + i.qty + "x " + i.name + (i.forItem ? " (no " + i.forItem + ")" : "") + " — " + money(i.price * i.qty)));
+    o.items.forEach(i => lines.push("• " + i.qty + "x " + i.name
+      + (i.ponto ? " [" + i.ponto + "]" : "")
+      + (i.forItem ? " (no " + i.forItem + ")" : "") + " — " + money(i.price * i.qty)));
     lines.push("");
     if(o.feePending){
       lines.push("Subtotal: " + money(o.subtotal));
