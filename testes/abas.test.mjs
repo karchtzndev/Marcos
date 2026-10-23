@@ -75,6 +75,26 @@ describe('abas do painel', () => {
       "algum módulo voltou a apontar tab:'impressora' — isso esconde a aba quando ele está desligado");
   });
 
+  test('nenhuma aba está DENTRO de outra', () => {
+    // Faltou um </div> ao montar a aba Impressora, e oito abas — TV, Mesas,
+    // Caixa, Financeiro, Estoque, Equipe, Promoção e Loja — passaram a viver
+    // dentro dela. O clique mostrava a div certa, mas o PAI estava escondido:
+    // a aba acendia e a tela ficava em branco. O mesmo sintoma de sempre, por
+    // um motivo novo, e invisível olhando só o JavaScript.
+    const pilha = [];
+    const aninhadas = [];
+    const corpo = PAINEL.slice(PAINEL.indexOf('<div id="atabDashboard"'), PAINEL.indexOf('</body>'));
+    for(const m of corpo.matchAll(/<(\/?)div([^>]*)>/g)){
+      if(m[1]){ pilha.pop(); continue; }
+      const id = (m[2].match(/id="([^"]+)"/) || [])[1] || '';
+      const donos = pilha.filter(Boolean).filter(x => x.startsWith('atab'));
+      if(id.startsWith('atab') && donos.length) aninhadas.push(`${id} dentro de ${donos.join(' > ')}`);
+      pilha.push(id);
+    }
+    assert.deepStrictEqual(aninhadas, [],
+      'aba dentro de aba: a de fora esconde a de dentro e a tela fica em branco');
+  });
+
   test('cada botão da barra pertence a um grupo que existe', () => {
     // Sem grupo válido, o botão nunca é exibido: aplicarGrupo() filtra por data-g.
     const grupos = new Set([...PAINEL.matchAll(/data-grupo="([a-z]+)"/g)].map(m => m[1]));
