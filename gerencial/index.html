@@ -3671,8 +3671,37 @@
     medio:   '\x1D\x21\x01',
     normal:  '\x1D\x21\x00',
     cortar:  '\x1D\x56\x42\x00',
+    // Branco sobre preto. É o recurso que mais muda a cara de um cupom
+    // térmico: destaca o número do pedido e o título da observação sem
+    // gastar papel nem depender de desenho.
+    inverso:    '\x1D\x42\x01',
+    inversoOff: '\x1D\x42\x00',
     linhas:  '\n\n\n'
   };
+
+  /* ---------------- LOGO NA TÉRMICA ----------------
+     Impressora térmica não entende imagem: entende pontos. Este é o mascote
+     convertido em 160x160 pontos, 1 bit, já no formato que o comando GS v 0
+     espera — a tela mostra o desenho, aqui ele vira uma linha de bytes.
+     Vai em base64 porque o arquivo é HTML e bytes crus de controle não
+     sobrevivem a copiar, colar e salvar.
+
+     Custa 3,2 KB em cada cupom enviado à fila. Por isso dá para desligar em
+     Ajustes → Impressora: numa comanda de cozinha, que ninguém guarda, o
+     papel gasto pode não valer a pena. */
+  const LOGO_TERMICA_B64 = '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/wAAD4AgAAAAAAAAAAH//1wOZ///AAAPAAAAAAAAAAAAAP//5z+f//4BEA8AQAAAAAAAAAAAf//4f3///AIYBwAAAAAAAAAAAAB///t3///4AAAOAAAAAAAAAAAAAD///8///+AEAAQAAAAAAAAAAAAAP///v///wAQABAAAAAAAAAAAAAAf//////+ACAAEAAAAAAAAAAAAAA///////wAAAAwgAAAAAAAAAAAAD3/////8AAACGAAAAAAAAAAAgAAGR////9gAEAZYAAAAAAAAAAAAAALwH///AAAYBNgAAAAAAAAAAAAAA/gAf/gAABgM+AAAAAAAAAAAAAAB/AAwAAAAAA2gAAAAAAAAAAAAAAD+AB//AAAAGYAAAAAAAAAAAACAAP8AAHjAAAA+AAAAAAAAAAAAACAAf4AAAEAAEDwAAAAAAAAAAAAAAAB/wAAAI+Aw+AAAAAAAAAAAAAAEAD/gAAAH4BAAAAAAAAAAAAAAAAAAP+AAABfgMAAAAAAAAAAAAAAAACA/4MAAD+AAAAAAAAAAAAAAAAAAAB/wwAAP4AAAAAAAAAAAAAAAAAABH/gAAA/gAAAAAAAAAAAAAAAAAAAH4AAAD+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAA==';
+
+  function logoEscPos(){
+    if(features.filaLogo === false) return '';
+    try{
+      // atob devolve a cadeia de bytes como está, que é o que a impressora
+      // espera. Converter para utf8 aqui estragaria todo byte acima de 127.
+      return ESC.center + atob(LOGO_TERMICA_B64) + '\n';
+    }catch(e){
+      registrarFalha('montar o logo da impressão', e);
+      return '';
+    }
+  }
   // Colunas que cabem no papel: 48 em bobina de 80mm, 32 em 58mm. Estava fixo
   // em 32 enquanto a impressora da loja (MP-4200 TH) é 80mm — o cupom saía
   // ocupando meia largura, com as colunas de valor desalinhadas.
@@ -3700,7 +3729,10 @@
       const txt = semAcento((el.textContent || '').trim());
 
       if(cls.includes('p-logo')){
-        out += ESC.center + ESC.grande + ESC.bold + txt + '\n' + ESC.normal + ESC.boldOff;
+        // Logo em pontos, depois o nome em corpo alto. Antes era só o nome em
+        // letra grande — o que a loja chamava, com razão, de cru.
+        out += logoEscPos() + ESC.center + ESC.medio + ESC.bold + txt + '\n' +
+               ESC.normal + ESC.boldOff;
       }else if(cls.includes('p-sub')){
         out += ESC.center + ESC.bold + txt + '\n' + ESC.boldOff;
       }else if(cls.includes('p-emp') || cls.includes('p-code')){
@@ -3708,7 +3740,10 @@
       }else if(cls.includes('p-doc')){
         out += ESC.center + ESC.bold + txt + '\n' + ESC.boldOff;
       }else if(cls.includes('p-num')){
-        out += ESC.center + ESC.grande + ESC.bold + txt + '\n' + ESC.normal + ESC.boldOff;
+        // Faixa branca sobre preta: o número do pedido é o que a cozinha
+        // procura de longe, com a comanda na mão e pressa.
+        out += ESC.center + ESC.medio + ESC.bold + ESC.inverso +
+               ' ' + txt + ' ' + ESC.inversoOff + '\n' + ESC.normal + ESC.boldOff;
       }else if(cls.includes('p-table')){
         out += ESC.center + ESC.grande + ESC.bold + txt + '\n' + ESC.normal + ESC.boldOff;
       }else if(cls.includes('p-raw')){
@@ -3717,7 +3752,10 @@
         // colunas que ela serve justamente para medir.
         out += ESC.left + txt + '\n';
       }else if(cls.includes('p-line')){
-        out += ESC.left + separador('-') + '\n';
+        // Régua dupla separa blocos; a simples, de '-', ficou para dentro dos
+        // itens. Dois pesos diferentes é o que faz o cupom parecer desenhado
+        // em vez de digitado.
+        out += ESC.left + separador('=') + '\n';
       }else if(cls.includes('p-cols')){
         const sp = el.querySelectorAll('span');
         out += ESC.left + ESC.bold + (sp.length ? semAcento(Array.from(sp).map(s=>s.textContent).join(' ')) : txt) + '\n' + ESC.boldOff;
@@ -3743,7 +3781,12 @@
                ESC.normal + 'BRINDE FIDELIDADE - NAO COBRAR' + '\n' +
                ESC.boldOff + ESC.left + separador('*') + '\n';
       }else if(cls.includes('p-notes') || cls.includes('p-aviso')){
-        out += ESC.left + separador('-') + '\n' + txt + '\n';
+        // O que o cliente pediu em texto livre é o que mais dá errado quando
+        // passa batido. Vai com título em faixa invertida, não solto no meio.
+        const corpo = txt.replace(/^OBSERVAÇÕES:?\s*/i, '').trim();
+        out += ESC.left + separador('=') + '\n' +
+               ESC.bold + ESC.inverso + ' OBSERVACOES ' + ESC.inversoOff + ESC.boldOff + '\n' +
+               semAcento(corpo) + '\n';
       }else if(cls.includes('p-foot')){
         out += ESC.center + '\n' + txt + '\n';
       }else if(txt){
@@ -7990,6 +8033,17 @@
               <input type="number" id="filaVias" min="1" max="3" value="${features.filaVias || 1}">
             </div>
             <div class="field">
+              <label>Logo na impressão</label>
+              <select id="filaLogo">
+                <option value="sim" ${features.filaLogo === false ? '' : 'selected'}>Imprimir o mascote no topo</option>
+                <option value="nao" ${features.filaLogo === false ? 'selected' : ''}>Só o nome, sem desenho</option>
+              </select>
+              <small style="display:block; color:rgba(242,233,218,.5); margin-top:6px;">
+                O desenho gasta alguns centímetros de papel por cupom. Na comanda
+                da cozinha, que ninguém guarda, pode não compensar.
+              </small>
+            </div>
+            <div class="field">
               <label>Largura do papel</label>
               <select id="filaColunas">
                 <option value="32" ${Number(features.filaColunas)===32?'selected':''}>55 ou 58 mm — 32 colunas</option>
@@ -8030,7 +8084,8 @@
       await db.collection('store').doc('features').set({
         filaAuto: document.getElementById('filaAuto').value,
         filaVias: parseInt(document.getElementById('filaVias').value) || 1,
-        filaColunas: parseInt(document.getElementById('filaColunas').value) || 48
+        filaColunas: parseInt(document.getElementById('filaColunas').value) || 48,
+        filaLogo: document.getElementById('filaLogo').value === 'sim'
       }, {merge:true});
       showToast('Fila de impressão configurada ✓');
     });
