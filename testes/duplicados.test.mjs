@@ -231,14 +231,55 @@ describe('o .bat gerado pelas duas telas', () => {
     assert.ok(!/MK_SENHA=[^%!\r\n]/.test(bat), 'senha escrita direto no arquivo');
   });
 
-  test('cada impressora vira um agente com o nome e o compartilhamento dela', () => {
+  test('cada impressora vira um agente com pasta e tarefa propria', () => {
     const bat = montadorDe(PAINEL)(casos[2].impressoras, 'copia', 'impressora@teste.com');
     for(const p of casos[2].impressoras){
       assert.ok(bat.includes(`agente-${p.nome}`), `faltou a pasta do agente ${p.nome}`);
-      assert.ok(bat.includes(`\\\\localhost\\${p.share}`), `faltou o caminho de ${p.share}`);
       assert.ok(bat.includes(`Markin - ${p.nome}`), `faltou a tarefa agendada de ${p.nome}`);
     }
     assert.ok(bat.includes('set "MK_MODO=copia"'), 'o modo escolhido tem que ir no config');
+  });
+
+  test('a impressora e ESCOLHIDA numa lista, nao digitada', () => {
+    // Digitar o nome do compartilhamento as cegas era o erro mais facil de
+    // cometer numa instalacao, e o mais silencioso: nome errado e a comanda
+    // vai para lugar nenhum, sem aviso. Quem conhece os nomes e o Windows do
+    // computador onde o arquivo roda, entao a escolha acontece la.
+    const bat = montadorDe(PAINEL)(casos[1].impressoras, 'copia', 'a@b.c');
+    assert.ok(/Get-Printer \| Select-Object -ExpandProperty Name/.test(bat),
+      'o instalador precisa listar as impressoras do computador');
+    assert.ok(/Qual delas e a cozinha/.test(bat), 'e precisa perguntar qual e qual');
+    assert.ok(bat.includes('set "MK_IMPRESSORA=\\\\localhost\\!SHARE!"'),
+      'o caminho tem que sair da escolha, nao vir fixo do formulario');
+    // E ainda deve dar a saida de criar uma nova, para PC sem impressora.
+    assert.ok(/criar uma nova numa porta USB/.test(bat));
+  });
+
+  test('o Node tem plano B quando a loja do Windows nao resolve', () => {
+    // winget nao existe em todo Windows. Sem plano B, a instalacao morre na
+    // casa do cliente com "instale o Node e rode de novo".
+    const bat = montadorDe(PAINEL)(casos[0].impressoras, 'reserva', 'a@b.c');
+    assert.ok(/winget install/.test(bat), 'primeiro tenta a loja');
+    assert.ok(/nodejs\.org\/dist\/index\.json/.test(bat),
+      'depois baixa direto, descobrindo a versao na hora');
+    assert.ok(/msiexec \/i/.test(bat), 'e instala o pacote baixado');
+  });
+
+  test('no fim ele CONFERE se o agente entrou, em vez de supor', () => {
+    // Sem isto, senha errada so aparece horas depois, como tarja vermelha no
+    // painel, sem motivo nenhum escrito.
+    const bat = montadorDe(PAINEL)(casos[0].impressoras, 'reserva', 'a@b.c');
+    assert.ok(/agente\.log/.test(bat), 'tem que ler o log do agente');
+    assert.ok(/conectado como/.test(bat), 'e procurar a linha que prova a conexao');
+    assert.ok(/naoconectou/.test(bat), 'com um desfecho proprio para quando nao entra');
+    assert.ok(/INSTALOU, MAS O AGENTE NAO ENTROU/.test(bat),
+      'e dizendo em portugues claro o que aconteceu');
+  });
+
+  test('para se as dependencias nao instalarem', () => {
+    const bat = montadorDe(PAINEL)(casos[0].impressoras, 'reserva', 'a@b.c');
+    assert.ok(/node_modules/.test(bat),
+      'npm install silencioso que falha deixaria o agente sem como rodar');
   });
 
   test('usa o driver embutido do Windows, que serve para impressora sem marca', () => {

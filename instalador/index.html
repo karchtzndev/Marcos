@@ -258,26 +258,70 @@
 
   const INST_RAW = 'https://raw.githubusercontent.com/karchtzndev/Marcos/main/agente-impressora/';
 
-function montarInstalador(impressoras, modo, email){
-    // Instala as impressoras como "Generic / Text Only": é o driver embutido do
-    // Windows que NÃO desenha nada, só repassa os bytes — que é o que ESC/POS
-    // precisa. Serve para impressora de qualquer marca, inclusive sem marca.
+  function montarInstalador(impressoras, modo, email){
+    // Instala tudo que o computador da loja precisa, numa passada só, e no
+    // fim DIZ se funcionou — lendo o log de cada agente em vez de supor.
     //
-    // Nenhum script consegue saber qual porta USB é a impressora da cozinha e
-    // qual é a do balcão: para o Windows elas são idênticas. Por isso cada uma
-    // imprime uma folha com o próprio nome no fim — aí a pessoa caminha até
-    // elas e etiqueta. Adivinhar a ordem daria comanda saindo no lugar errado.
-    const criarImpressoras = impressoras.map((p, i) => `
-powershell -NoProfile -Command "$portas=@(Get-PrinterPort | Where-Object {$_.Name -like 'USB*'} | Sort-Object Name); if($portas.Count -le ${i}){ Write-Host '  [X] Nao achei a ${i+1}a impressora USB. Ligue e plugue todas antes de rodar.'; exit 1 }; $pt=$portas[${i}].Name; if(-not (Get-Printer -Name '${p.share}' -ErrorAction SilentlyContinue)){ Add-Printer -Name '${p.share}' -DriverName 'Generic / Text Only' -PortName $pt }; Set-Printer -Name '${p.share}' -Shared $true -ShareName '${p.share}'; Write-Host ('  [ok] ${p.share} criada na porta ' + $pt)"
-if errorlevel 1 goto :semimpressora`).join('\n');
+    // Escrito para ser usado na casa do cliente, onde não há como voltar
+    // depois: cada etapa que pode falhar falha com motivo e com saída, em vez
+    // de seguir em frente e deixar o problema aparecer dias depois.
+    //
+    // Nada de "!" fora de !VAR!: o arquivo roda com EnableDelayedExpansion,
+    // onde o cmd come esse caractere antes do programa ver a linha. E nada de
+    // "^" dentro de for /f, onde ele também é escape do cmd.
 
-    const identificar = impressoras.map(p => `
-powershell -NoProfile -Command "$b=[byte[]](0x1B,0x40) + [Text.Encoding]::ASCII.GetBytes(([char]10) + '   ESTA IMPRESSORA E A' + ([char]10) + '   >>> ${p.nome.toUpperCase()} <<<' + ([char]10) + '   cole a etiqueta nela' + ([char]10)+([char]10)+([char]10)) + [byte[]](0x1D,0x56,0x42,0x00); [IO.File]::WriteAllBytes($env:TEMP+'\\mkid.bin',$b)"
-copy /b "%TEMP%\\mkid.bin" "\\\\localhost\\${p.share}" >nul 2>&1`).join('\n');
+    const nomesJson = impressoras.map(p => `'${p.nome}'`).join(',');
 
-    const blocos = impressoras.map(p => `
+    // Para cada impressora: escolher na lista do Windows, compartilhar,
+    // instalar o agente e deixá-lo subindo com o sistema.
+    const blocos = impressoras.map((p, i) => `
 echo.
-echo   ---- ${p.nome} ----
+echo   ======== impressora ${i+1} de ${impressoras.length}: ${p.nome} ========
+echo.
+echo   Impressoras instaladas neste computador:
+echo.
+set /a N=0
+for /f "usebackq delims=" %%P in ("%TEMP%\\mk-prn.txt") do (
+  set /a N+=1
+  echo      [!N!]  %%P
+)
+echo      [0]  criar uma nova numa porta USB, com o nome ${p.share}
+echo.
+set "ESC="
+set /p "ESC=  Qual delas e a ${p.nome}?  numero: "
+
+set "MK_ALVO="
+if "!ESC!"=="0" goto :criar${i}
+set /a K=0
+for /f "usebackq delims=" %%P in ("%TEMP%\\mk-prn.txt") do (
+  set /a K+=1
+  if "!K!"=="!ESC!" set "MK_ALVO=%%P"
+)
+if defined MK_ALVO goto :compartilhar${i}
+echo   [X] Numero invalido. Rode de novo e escolha um da lista.
+pause
+exit /b 1
+
+:criar${i}
+REM Nenhum script sabe qual porta USB e qual impressora: para o Windows elas
+REM sao identicas. Pega a primeira porta USB ainda sem impressora.
+powershell -NoProfile -Command "$usadas=@(Get-Printer | Select-Object -ExpandProperty PortName); $livre=@(Get-PrinterPort | Where-Object { $_.Name -like 'USB*' -and $usadas -notcontains $_.Name } | Sort-Object Name | Select-Object -First 1); if($livre.Count -eq 0){ Write-Host '  [X] Nenhuma porta USB livre. Ligue e plugue a impressora antes.'; exit 1 }; Add-Printer -Name '${p.share}' -DriverName 'Generic / Text Only' -PortName $livre[0].Name; Write-Host ('  [ok] ${p.share} criada na porta ' + $livre[0].Name)"
+if errorlevel 1 goto :semimpressora
+set "MK_ALVO=${p.share}"
+
+:compartilhar${i}
+REM O agente entrega os bytes pelo compartilhamento. Se a impressora
+REM escolhida ainda nao estiver compartilhada, compartilha agora com um nome
+REM limpo — sem espaco nem acento, que o caminho \\\\localhost nao aceita.
+for /f "delims=" %%S in ('powershell -NoProfile -Command "$p=Get-Printer -Name $env:MK_ALVO; $s=$p.ShareName; if(-not $p.Shared -or [string]::IsNullOrWhiteSpace($s)){ $s=($p.Name -replace '[\\W_]',''); if($s.Length -gt 12){ $s=$s.Substring(0,12) }; Set-Printer -Name $p.Name -Shared $true -ShareName $s }; $s"') do set "SHARE=%%S"
+if not defined SHARE (
+  echo   [X] Nao consegui compartilhar a impressora !MK_ALVO!.
+  pause
+  exit /b 1
+)
+set "SH${i}=!SHARE!"
+echo   [ok] !MK_ALVO!  entrega em  \\\\localhost\\!SHARE!
+
 set "DEST=%BASE%\\agente-${p.nome}"
 if not exist "!DEST!" mkdir "!DEST!"
 cd /d "!DEST!"
@@ -286,27 +330,34 @@ curl.exe -fsSL -o agente.js "${INST_RAW}agente.js" || goto :semrede
 curl.exe -fsSL -o testar.js "${INST_RAW}testar.js" || goto :semrede
 curl.exe -fsSL -o package.json "${INST_RAW}package.json" || goto :semrede
 curl.exe -fsSL -o config.exemplo.json "${INST_RAW}config.exemplo.json" || goto :semrede
+
 set "MK_NOME=${p.nome}"
-set "MK_IMPRESSORA=\\\\localhost\\${p.share}"
-REM Este arquivo roda com "setlocal EnableDelayedExpansion", onde o ponto de
-REM exclamacao e caractere especial do proprio cmd. A versao anterior montava
-REM o config.json com um node -e cuja condicao comecava por negacao. O cmd
-REM COMIA o sinal de negacao antes do node ver a linha: a condicao invertia,
-REM o config saia com os comentarios do modelo dentro e o usuario gravado
-REM errado. O agente era recusado no login e morria, sem nada na tela.
-REM Em PowerShell, com -notlike, nao sobra sinal nenhum para o cmd estragar.
-powershell -NoProfile -Command "$b=Get-Content -Raw 'config.exemplo.json' | ConvertFrom-Json; $c=[ordered]@{}; foreach($p in $b.PSObject.Properties){ if($p.Name -notlike '_*'){ $c[$p.Name]=$p.Value } }; $c['nome']=$env:MK_NOME; $c['modo']=$env:MK_MODO; $c['impressora']=$env:MK_IMPRESSORA; $c['usuario']=$env:MK_EMAIL; $c['senha']=$env:MK_SENHA; if([string]::IsNullOrWhiteSpace($c['usuario']) -or [string]::IsNullOrWhiteSpace($c['senha'])){ Write-Host '  [X] e-mail ou senha vazios'; exit 1 }; [IO.File]::WriteAllText((Join-Path (Get-Location) 'config.json'), ($c | ConvertTo-Json -Depth 6), (New-Object Text.UTF8Encoding $false)); Write-Host ('  [ok] entra como ' + $c['usuario'] + ' e imprime em ' + $c['impressora'])"
+set "MK_IMPRESSORA=\\\\localhost\\!SHARE!"
+REM O config sai do PowerShell, e nao de um node -e: a versao antiga tinha uma
+REM negacao que o cmd comia, a condicao invertia e o arquivo nascia errado.
+REM E grava com UTF8Encoding sem marca de ordem de bytes — aqueles tres bytes
+REM invisiveis no comeco do arquivo que o JSON do agente recusa ler.
+powershell -NoProfile -Command "$b=Get-Content -Raw 'config.exemplo.json' | ConvertFrom-Json; $c=[ordered]@{}; foreach($pr in $b.PSObject.Properties){ if($pr.Name -notlike '_*'){ $c[$pr.Name]=$pr.Value } }; $c['nome']=$env:MK_NOME; $c['modo']=$env:MK_MODO; $c['impressora']=$env:MK_IMPRESSORA; $c['usuario']=$env:MK_EMAIL; $c['senha']=$env:MK_SENHA; if([string]::IsNullOrWhiteSpace($c['usuario']) -or [string]::IsNullOrWhiteSpace($c['senha'])){ Write-Host '  [X] e-mail ou senha vazios'; exit 1 }; [IO.File]::WriteAllText((Join-Path (Get-Location) 'config.json'), ($c | ConvertTo-Json -Depth 6), (New-Object Text.UTF8Encoding $false)); Write-Host ('  [ok] entra como ' + $c['usuario'])"
 if errorlevel 1 goto :semconfig
-echo   instalando dependencias (demora um pouco)...
+
+echo   instalando dependencias, demora um pouco...
 call npm install --silent --no-audit --no-fund
-powershell -NoProfile -Command "$a=New-ScheduledTaskAction -Execute '!NODEEXE!' -Argument 'agente.js' -WorkingDirectory '!DEST!'; $t=New-ScheduledTaskTrigger -AtLogOn; $s=New-ScheduledTaskSettingsSet -Hidden -RestartCount 99 -RestartInterval (New-TimeSpan -Minutes 1) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries; Register-ScheduledTask -TaskName 'Markin - ${p.nome}' -Action $a -Trigger $t -Settings $s -Force | Out-Null"
-REM O gatilho da tarefa e "ao entrar no Windows". Sem esta linha o agente so
-REM subiria no proximo login — e quem acabou de instalar fica olhando a tarja
+if not exist "!DEST!\\node_modules" (
+  echo   [X] As dependencias nao instalaram. Sem internet ou npm bloqueado.
+  pause
+  exit /b 1
+)
+
+powershell -NoProfile -Command "$a=New-ScheduledTaskAction -Execute '!NODEEXE!' -Argument 'agente.js' -WorkingDirectory '!DEST!'; $t=New-ScheduledTaskTrigger -AtLogOn; $s=New-ScheduledTaskSettingsSet -Hidden -RestartCount 99 -RestartInterval (New-TimeSpan -Minutes 1) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Days 0); Register-ScheduledTask -TaskName 'Markin - ${p.nome}' -Action $a -Trigger $t -Settings $s -Force | Out-Null"
+REM A tarefa dispara "ao entrar no Windows". Sem esta linha o agente so
+REM subiria no proximo login, e quem instalou ficaria olhando a tarja
 REM vermelha achando que nao funcionou.
 schtasks /run /tn "Markin - ${p.nome}" >nul 2>&1
-echo   [ok] ${p.nome} pronta e rodando`).join('\n');
+echo   [ok] agente ${p.nome} instalado e ligado`).join('\n');
 
-    const nomesJson = impressoras.map(p => `'${p.nome}'`).join(',');
+    const identificar = impressoras.map((p, i) => `
+powershell -NoProfile -Command "$b=[byte[]](0x1B,0x40) + [Text.Encoding]::ASCII.GetBytes(([char]10) + '   ESTA IMPRESSORA E A' + ([char]10) + '   >>> ${p.nome.toUpperCase()} <<<' + ([char]10) + '   cole a etiqueta nela' + ([char]10)+([char]10)+([char]10)) + [byte[]](0x1D,0x56,0x42,0x00); [IO.File]::WriteAllBytes($env:TEMP+'\\mkid.bin',$b)"
+copy /b "%TEMP%\\mkid.bin" "\\\\localhost\\!SH${i}!" >nul 2>&1`).join('\n');
 
     const testes = impressoras.map(p =>
       `echo      cd /d "%BASE%\\agente-${p.nome}" ^&^& npm run testar`).join('\n');
@@ -330,107 +381,131 @@ if errorlevel 1 (
 
 echo.
 echo   ==========================================
-echo    O Markin - instalacao completa
+echo    O Markin - instalacao do computador
 echo   ==========================================
-echo.
+echo    ${impressoras.length} impressora(s) - modo ${modo}
+echo   ==========================================
 
 REM ---------- 1. Node ----------
+echo.
+echo   [1/6] Node
 set "NODEEXE="
 where node >nul 2>&1 && for /f "delims=" %%N in ('where node') do set "NODEEXE=%%N"
 if not defined NODEEXE (
-  echo   Node nao encontrado. Instalando...
+  echo   nao encontrado, instalando pela loja do Windows...
   winget install -e --id OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements --silent >nul 2>&1
   if exist "%ProgramFiles%\\nodejs\\node.exe" set "NODEEXE=%ProgramFiles%\\nodejs\\node.exe"
-  if not defined NODEEXE (
-    echo   [X] Nao consegui instalar o Node automaticamente.
-    echo       Baixe a versao LTS em https://nodejs.org, instale,
-    echo       e rode este arquivo de novo.
-    echo.
-    pause
-    exit /b 1
-  )
-  set "PATH=%ProgramFiles%\\nodejs;!PATH!"
 )
-echo   [ok] Node: !NODEEXE!
+if not defined NODEEXE (
+  REM Nem todo Windows tem winget. Baixa direto do site do Node, descobrindo
+  REM a versao atual na hora em vez de deixar um endereco fixo envelhecer.
+  echo   a loja nao resolveu, baixando direto do nodejs.org...
+  for /f "delims=" %%V in ('powershell -NoProfile -Command "try{ (Invoke-RestMethod https://nodejs.org/dist/index.json | Where-Object { $_.lts } | Select-Object -First 1).version }catch{ '' }"') do set "NODEVER=%%V"
+  if defined NODEVER (
+    echo   versao !NODEVER!, aguarde o download...
+    curl.exe -fsSL -o "%TEMP%\\node-markin.msi" "https://nodejs.org/dist/!NODEVER!/node-!NODEVER!-x64.msi"
+    if exist "%TEMP%\\node-markin.msi" msiexec /i "%TEMP%\\node-markin.msi" /qn /norestart
+  )
+  if exist "%ProgramFiles%\\nodejs\\node.exe" set "NODEEXE=%ProgramFiles%\\nodejs\\node.exe"
+)
+if not defined NODEEXE (
+  echo.
+  echo   [X] Nao consegui instalar o Node de jeito nenhum.
+  echo       Baixe a versao LTS em https://nodejs.org, instale,
+  echo       e rode este arquivo de novo.
+  echo.
+  pause
+  exit /b 1
+)
+set "PATH=%ProgramFiles%\\nodejs;!PATH!"
+echo   [ok] !NODEEXE!
 
-REM ---------- 2. Impressoras ----------
+REM ---------- 2. Conta ----------
 echo.
-echo   Instalando as impressoras...
-REM "Generic / Text Only" e o driver do Windows que NAO desenha nada, so
-REM repassa os bytes. E o que ESC/POS precisa, e serve para qualquer marca.
-powershell -NoProfile -Command "if(-not (Get-PrinterDriver -Name 'Generic / Text Only' -ErrorAction SilentlyContinue)){ Add-PrinterDriver -Name 'Generic / Text Only' }" >nul 2>&1
-${criarImpressoras}
-
-echo.
-REM O e-mail tambem e perguntado na hora: assim um instalador ja gerado serve
-REM depois de trocar a conta da impressora, sem ninguem editar o arquivo.
+echo   [2/6] Conta da impressora
+echo   Crie no painel em Ajustes, Equipe, com a funcao Impressora.
 echo.
 set "MK_EMAIL=${email}"
-set /p "MK_EMAIL=  E-mail da conta da impressora [${email}]: "
-for /f "delims=" %%P in ('powershell -NoProfile -Command "$s=Read-Host -AsSecureString '  Senha dessa conta'; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($s))"') do set "MK_SENHA=%%P"
+set /p "MK_EMAIL=  E-mail  [${email}]: "
+for /f "delims=" %%P in ('powershell -NoProfile -Command "$s=Read-Host -AsSecureString '  Senha'; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($s))"') do set "MK_SENHA=%%P"
 if "!MK_SENHA!"=="" (
   echo   [X] Senha vazia. Rode de novo.
   pause
   exit /b 1
 )
-
 set "MK_MODO=${modo}"
 set "BASE=%USERPROFILE%\\markin-agentes"
 if not exist "%BASE%" mkdir "%BASE%"
 
+REM ---------- 3. Driver e limpeza ----------
+echo.
+echo   [3/6] Preparando
+REM "Generic / Text Only" e o driver do Windows que NAO desenha nada, so
+REM repassa os bytes. E o que ESC/POS precisa, e serve para qualquer marca,
+REM inclusive impressora sem marca nenhuma.
+powershell -NoProfile -Command "if(-not (Get-PrinterDriver -Name 'Generic / Text Only' -ErrorAction SilentlyContinue)){ Add-PrinterDriver -Name 'Generic / Text Only' }" >nul 2>&1
 REM Instalacao anterior com mais impressoras deixa agentes orfaos: eles ficam
 REM tentando imprimir numa impressora que nao existe mais, falhando em laco e
 REM poluindo o painel com um agente parado que ninguem sabe de onde veio.
-powershell -NoProfile -Command "$manter=@(${nomesJson}); Get-ScheduledTask | Where-Object { $_.TaskName -like 'Markin - *' -and ($_.TaskName -replace '^Markin - ','') -notin $manter } | ForEach-Object { Unregister-ScheduledTask -TaskName $_.TaskName -Confirm:$false; Write-Host ('  [ok] removido agente antigo: ' + $_.TaskName) }" 2>nul
+powershell -NoProfile -Command "$manter=@(${nomesJson}); Get-ScheduledTask | Where-Object { $_.TaskName -like 'Markin - *' -and ($_.TaskName -replace 'Markin - ','') -notin $manter } | ForEach-Object { Unregister-ScheduledTask -TaskName $_.TaskName -Confirm:$false; Write-Host ('  [ok] removido agente antigo: ' + $_.TaskName) }" 2>nul
+powershell -NoProfile -Command "Get-Printer | Select-Object -ExpandProperty Name" > "%TEMP%\\mk-prn.txt"
+echo   [ok] pronto
+
+REM ---------- 4. Impressoras e agentes ----------
+echo.
+echo   [4/6] Impressoras
 ${blocos}
 
-
-REM ---------- Diagnostico ----------
-REM Fica ao lado dos agentes. Quando nao imprimir, e este arquivo que diz por
-REM que: Node, impressoras, config, tarefas e as ultimas linhas de cada log.
-curl.exe -fsSL -o "%BASE%\\diagnostico.bat" "${INST_RAW}diagnostico.bat" >nul 2>&1
-
-REM ---------- Atalho do painel na area de trabalho ----------
-powershell -NoProfile -Command "Set-Content -Encoding ASCII -Path ([Environment]::GetFolderPath('Desktop') + '\\Painel O Markin.url') -Value @('[InternetShortcut]','URL=${location.origin}/gerencial/')" >nul 2>&1
-
-REM ---------- Identificacao fisica ----------
-REM Para o Windows as impressoras USB sao identicas, entao nenhum script sabe
-REM qual e a da cozinha. Cada uma imprime o proprio nome: basta caminhar ate
-REM elas e etiquetar. Adivinhar a ordem daria comanda saindo no lugar errado.
+REM ---------- 5. Identificacao fisica ----------
 echo.
-echo   Imprimindo a folha de identificacao em cada impressora...
+echo   [5/6] Folha de identificacao
+REM Para o Windows as impressoras USB sao identicas, entao nenhum programa
+REM sabe qual e a da cozinha. Cada uma imprime o proprio nome: basta caminhar
+REM ate elas e etiquetar. Adivinhar a ordem daria comanda no lugar errado.
 ${identificar}
+echo   [ok] saiu uma folha em cada uma
+
+REM ---------- 6. Veredito ----------
+REM Aqui o instalador para de supor. Ele espera, LE o log de cada agente e diz
+REM se conectou de verdade. Sem isto, uma senha errada so apareceria horas
+REM depois, na forma de "Nenhum agente conectado" no painel, sem motivo.
+echo.
+echo   [6/6] Conferindo se os agentes entraram no sistema...
+powershell -NoProfile -Command "Start-Sleep -Seconds 15; $base=Join-Path $env:USERPROFILE 'markin-agentes'; $erro=0; Get-ChildItem $base -Directory -Filter 'agente-*' | ForEach-Object { $log=Join-Path $_.FullName 'agente.log'; if(Test-Path $log){ $u=Get-Content $log -Tail 25; $ok=$u | Where-Object { $_ -match 'conectado como' } | Select-Object -Last 1; $ruim=$u | Where-Object { $_ -match 'iniciar|falhou|recusad' } | Select-Object -Last 1; if($ok){ Write-Host ('  [ok] ' + $_.Name + ' CONECTADO') } else { $erro++; Write-Host ('  [X] ' + $_.Name); if($ruim){ Write-Host ('       ' + $ruim) } } } else { $erro++; Write-Host ('  [X] ' + $_.Name + ' nao chegou a rodar') } }; exit $erro"
+if errorlevel 1 goto :naoconectou
 
 echo.
 echo   ==========================================
-echo    Pronto.
+echo    TUDO PRONTO
 echo   ==========================================
 echo.
-echo   AGORA, NA LOJA:
+echo   No painel, em Ajustes, Impressora, a tarja deve estar VERDE.
+echo   Confira a largura do papel e mande um teste: ele sai com uma
+echo   regua para voce ver se as colunas estao certas.
 echo.
-echo   1) Cada impressora cuspiu uma folha com um nome.
-echo      Cole uma etiqueta em cada uma com o nome que saiu.
-echo.
-echo      Saiu folha numa impressora que NAO e termica? Entao este PC ja
-echo      tinha outra impressora na porta USB. Apague a que foi criada
-echo      errada em Impressoras e scanners e me avise.
-echo.
-echo   2) Nao saiu folha em alguma? Confira cabo e papel, e rode:
-${testes}
-echo.
-echo   3) Com tudo etiquetado, ligue os agentes:
+echo   Se precisar um dia:
 ${inicios}
-echo.
-echo   Eles sobem sozinhos toda vez que voce entrar no Windows.
-echo   Confira no painel: deve aparecer ${impressoras.length} agente(s) conectado(s).
+${testes}
 echo.
 pause
 exit /b 0
 
-:semrede
+:naoconectou
 echo.
-echo   [X] Nao consegui baixar o agente.
-echo       Verifique a internet e rode de novo.
+echo   ==========================================
+echo    INSTALOU, MAS O AGENTE NAO ENTROU
+echo   ==========================================
+echo.
+echo   As impressoras estao prontas, o agente esta instalado, mas ele
+echo   nao conseguiu entrar no sistema. O motivo esta na linha acima.
+echo.
+echo   Quase sempre e uma destas:
+echo     - a senha digitada nao e a da conta
+echo     - a conta nao existe com esse e-mail
+echo     - a conta foi criada sem a funcao Impressora
+echo.
+echo   Crie ou confira a conta no painel, em Ajustes, Equipe, e rode
+echo   este arquivo de novo. Nada do que ja foi feito se perde.
 echo.
 pause
 exit /b 1
@@ -446,9 +521,17 @@ exit /b 1
 
 :semimpressora
 echo.
-echo   [X] Nao encontrei todas as impressoras.
-echo       Ligue e plugue as ${impressoras.length} impressoras, espere o Windows
-echo       reconhecer (alguns segundos), e rode este arquivo de novo.
+echo   [X] Nao encontrei a impressora.
+echo       Ligue e plugue todas, espere o Windows reconhecer,
+echo       e rode este arquivo de novo.
+echo.
+pause
+exit /b 1
+
+:semrede
+echo.
+echo   [X] Nao consegui baixar o agente.
+echo       Verifique a internet e rode de novo.
 echo.
 pause
 exit /b 1
