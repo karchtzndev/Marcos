@@ -3892,6 +3892,115 @@
             texto:`🟡 <b>Sem resposta há ${Math.round(seg/60)} min</b> — confira se o agente está ligado e rodando.`};
   }
 
+
+  /* ================= RAJADA DE TESTE =================
+     Dez comandas seguidas, cada uma mirando uma coisa que costuma quebrar na
+     térmica. Um cupom bonito não prova nada: o que derruba impressão é nome
+     comprido que estoura a coluna, acento que vira caractere errado, pedido
+     com muitos itens, e vários chegando ao mesmo tempo enquanto o agente
+     ainda está com o anterior.
+
+     Cada papel sai numerado de 1 a 10 — basta conferir se saíram todos, na
+     ordem, e com as linhas inteiras. */
+  function comandasDeTeste(){
+    const linha = (q, nome, v) => `<div class="p-item"><span>${q}x ${escapeHtml(nome)}</span><span>${money(v)}</span></div>`;
+    const add   = (nome, v) => `<div class="p-addon"><span>+ ${escapeHtml(nome)}</span><span>${money(v)}</span></div>`;
+
+    return [
+      { oque: 'o basico, um item so',
+        corpo: linha(1,'X-Burguer',22) + '<div class="p-total"><span>TOTAL</span><span>R$ 22,00</span></div>' },
+
+      { oque: 'muitos itens, papel comprido',
+        corpo: Array.from({length:12},(_,i)=>linha(i%3+1,'Item numero '+(i+1), (i+1)*7.5)).join('') +
+               '<div class="p-total"><span>TOTAL</span><span>R$ 585,00</span></div>' },
+
+      { oque: 'nome comprido, estoura a coluna',
+        corpo: linha(1,'Hamburguer Artesanal Duplo com Cheddar Bacon e Cebola Caramelizada',68.9) +
+               linha(2,'Porcao Gigante de Batata Rustica com Alecrim',49.8) +
+               '<div class="p-total"><span>TOTAL</span><span>R$ 118,70</span></div>' },
+
+      { oque: 'acentuacao e simbolos',
+        corpo: linha(1,'Coração à Moda da Casa — ñ, ç, ã, É, ü',33.5) +
+               linha(1,'Refrigerante 350ml (lata) 1/2 preço',4.95) +
+               '<div class="p-notes"><strong>OBSERVAÇÕES:</strong><br>Não usar cebola. Ponto: ao ponto. Trocar queijo por cheddar.</div>' +
+               '<div class="p-total"><span>TOTAL</span><span>R$ 38,45</span></div>' },
+
+      { oque: 'pedido de mesa',
+        mesa: '12',
+        corpo: linha(3,'Chopp 300ml',14.7) + linha(1,'Porcao de Calabresa',32) +
+               '<div class="p-total"><span>TOTAL</span><span>R$ 46,70</span></div>' },
+
+      { oque: 'entrega com endereco longo',
+        tipo: 'ENTREGA',
+        endereco: 'Rua Professor Joaquim Alcides de Albuquerque, 1847, apto 302B, bloco 4, Residencial Jardim das Acacias, ponto de referencia: em frente a padaria',
+        corpo: linha(2,'Combo Familia',89.8) +
+               '<div class="p-row"><span>Taxa entrega:</span><span>R$ 12,00</span></div>' +
+               '<div class="p-total"><span>TOTAL</span><span>R$ 101,80</span></div>' },
+
+      { oque: 'observacao gigante',
+        corpo: linha(1,'X-Salada',26) +
+               '<div class="p-notes"><strong>OBSERVAÇÕES:</strong><br>Sem tomate, sem cebola, pouco sal, carne bem passada, pao sem gergelim, maionese a parte, cortar ao meio, embalar separado, mandar dois guardanapos e um canudo. Cliente alergico a castanha: conferir o molho.</div>' +
+               '<div class="p-total"><span>TOTAL</span><span>R$ 26,00</span></div>' },
+
+      { oque: 'itens com adicionais',
+        corpo: linha(1,'X-Tudo',34) + add('Bacon extra',6) + add('Ovo',3) + add('Cheddar duplo',5) +
+               linha(1,'Batata M',18) + add('Queijo e bacon',9) +
+               '<div class="p-total"><span>TOTAL</span><span>R$ 75,00</span></div>' },
+
+      { oque: 'valor alto, alinhamento',
+        corpo: linha(20,'Combo Festa',1234.5) + linha(7,'Refrigerante 2L',97.3) +
+               '<div class="p-total"><span>TOTAL</span><span>R$ 1.331,80</span></div>' },
+
+      { oque: 'o minimo: sem cliente, sem telefone',
+        semCliente: true,
+        corpo: linha(1,'Agua',5) + '<div class="p-total"><span>TOTAL</span><span>R$ 5,00</span></div>' },
+    ];
+  }
+
+  async function enviarRajadaTeste(botao){
+    const m = document.getElementById('filaMsg');
+    const lista = comandasDeTeste();
+    if(!confirm(`Enviar ${lista.length} comandas de teste para a impressora?\n\nVai sair bastante papel — é de proposito: a ideia e ver como ela se comporta com tudo chegando junto.`)) return;
+
+    botao.disabled = true;
+    const area = document.getElementById('printArea');
+    const agora = new Date().toLocaleString('pt-BR');
+    let enviadas = 0, falhas = 0;
+
+    for(let i = 0; i < lista.length; i++){
+      const c = lista[i];
+      botao.textContent = `enviando ${i+1} de ${lista.length}...`;
+      area.innerHTML = `
+        <div class="p-logo">O MARKIN</div>
+        <div class="p-sub">TESTE ${i+1} DE ${lista.length}</div>
+        <div class="p-line"></div>
+        <div class="p-num">#T${i+1}</div>
+        ${c.mesa ? `<div class="p-table">MESA ${c.mesa}</div>` : ''}
+        <div class="p-code">${escapeHtml(c.oque)}</div>
+        <div class="p-code">${agora}</div>
+        <div class="p-line"></div>
+        ${c.semCliente ? '' : '<div class="p-row"><span>Cliente:</span><span>Teste da Silva</span></div><div class="p-row"><span>Telefone:</span><span>(11) 99999-0000</span></div>'}
+        <div class="p-row"><span>Tipo:</span><span>${c.tipo || (c.mesa ? 'MESA ' + c.mesa : 'BALCAO')}</span></div>
+        ${c.endereco ? `<div class="p-row"><span>Endereço:</span><span>${escapeHtml(c.endereco)}</span></div>` : ''}
+        <div class="p-line"></div>
+        ${c.corpo}
+        <div class="p-foot">teste ${i+1}/${lista.length} — ${escapeHtml(c.oque)}</div>`;
+
+      // Sem pausa entre um e outro, de proposito: e assim que o movimento
+      // chega numa sexta a noite, e e quando a disputa pela fila aparece.
+      const ok = await enviarParaFila('teste', `Rajada ${i+1}/${lista.length}`);
+      ok ? enviadas++ : falhas++;
+    }
+
+    botao.disabled = false;
+    botao.textContent = '🧪 Rajada: 10 comandas de teste';
+    m.style.color = falhas ? 'var(--tomato)' : 'var(--green)';
+    m.textContent = falhas
+      ? `${enviadas} enviadas, ${falhas} falharam. Veja a aba Erros.`
+      : `${enviadas} comandas na fila ✓ Confira se sairam TODAS, numeradas de 1 a ${lista.length}, na ordem e sem linha quebrada.`;
+    if(falhas) registrarFalha('rajada de teste da impressao', null, `${falhas} de ${lista.length} nao entraram na fila`);
+  }
+
   // Coloca o cupom na fila que o computador vai consumir
   async function enviarParaFila(tipo, titulo){
     const html = document.getElementById('printArea').innerHTML;
@@ -8066,6 +8175,7 @@
           <div class="form-actions">
             <button class="btn-primary" id="filaSaveBtn">Salvar</button>
             <button class="btn-ghost" id="filaTesteBtn">🧾 Enviar teste pra fila</button>
+            <button class="btn-ghost" id="filaRajadaBtn">🧪 Rajada: 10 comandas de teste</button>
           </div>
           <div class="error-msg" id="filaMsg"></div>
         </div>`;
@@ -8115,6 +8225,9 @@
       m.style.color = ok ? 'var(--green)' : 'var(--tomato)';
       m.textContent = ok ? 'Enviado pra fila ✓ Se o PC estiver rodando, sai em segundos.' : 'Não foi possível enviar.';
     });
+
+    const flR = document.getElementById('filaRajadaBtn');
+    if(flR) flR.addEventListener('click', () => enviarRajadaTeste(flR));
   }
 
   function renderModuloConfig(){

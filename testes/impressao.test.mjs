@@ -78,3 +78,42 @@ describe('branco sobre preto não pode vazar', () => {
       'o resto do cupom sairia gigante');
   });
 });
+
+describe('rajada de teste', () => {
+
+  const fonte = PAINEL.slice(PAINEL.indexOf('function comandasDeTeste'),
+                             PAINEL.indexOf('async function enviarRajadaTeste'));
+
+  test('são dez comandas', () => {
+    const casos = (fonte.match(/oque: '/g) || []).length;
+    assert.strictEqual(casos, 10, 'a rajada precisa ter dez casos');
+  });
+
+  test('cada uma mira um jeito diferente de quebrar', () => {
+    // Dez cupons iguais não provam nada. O que derruba impressão térmica é
+    // nome comprido, acento, muitos itens e tudo chegando junto.
+    for(const alvo of ['nome comprido', 'acentuacao', 'muitos itens',
+                       'endereco longo', 'observacao gigante', 'adicionais',
+                       'valor alto', 'mesa', 'sem cliente']){
+      assert.ok(fonte.includes(alvo), `faltou o caso: ${alvo}`);
+    }
+  });
+
+  test('o teste de acento tem acento de verdade', () => {
+    // Se os casos forem escritos sem acento, o teste passa e não testa nada —
+    // justamente o byte que o latin1 erra se alguém trocar a codificação.
+    assert.ok(/[áàâãéêíóôõúüç]/i.test(fonte), 'nenhum acento nos casos de teste');
+  });
+
+  test('os papéis saem numerados, para dar para conferir', () => {
+    const envio = PAINEL.slice(PAINEL.indexOf('async function enviarRajadaTeste'));
+    assert.ok(envio.includes('TESTE ${i+1} DE ${lista.length}'),
+      'sem numero no papel nao da para saber qual faltou');
+    assert.ok(/Rajada \$\{i\+1\}\/\$\{lista\.length\}/.test(envio));
+  });
+
+  test('pergunta antes, porque gasta papel', () => {
+    const envio = PAINEL.slice(PAINEL.indexOf('async function enviarRajadaTeste'));
+    assert.ok(envio.includes('confirm('), 'dez cupons de uma vez sem avisar e maldade');
+  });
+});
