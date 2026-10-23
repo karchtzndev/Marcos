@@ -247,3 +247,53 @@ describe('o .bat gerado pelas duas telas', () => {
       'o driver genérico é o que repassa os bytes do ESC/POS sem desenhar nada');
   });
 });
+
+/* ==================================================================
+   O CMD NÃO PODE ESTRAGAR O .BAT ANTES DE ELE RODAR
+   O instalador roda com EnableDelayedExpansion, onde "!" é caractere
+   especial do próprio cmd. Uma linha com if(!k.startsWith('_')) teve o
+   "!" COMIDO antes do node ver: a condição inverteu, o config.json saiu
+   errado e o agente foi recusado no login — na loja, em silêncio, com a
+   impressora plugada esperando.
+   ================================================================== */
+describe('caracteres que o cmd interpreta', () => {
+
+  const bat = () => montadorDe(PAINEL)(
+    [{nome:'cozinha', share:'COZINHA'}, {nome:'balcao', share:'BALCAO'}],
+    'copia', 'impressora@teste.com'
+  );
+
+  test('nenhum "!" solto — só as expansões !VAR! do próprio cmd', () => {
+    const linhas = bat().split('\n');
+    const ruins = [];
+    linhas.forEach((linha, i) => {
+      // tira as expansões legítimas e vê se sobrou algum "!"
+      if(linha.replace(/![A-Za-z_][A-Za-z0-9_]*!/g, '').includes('!')){
+        ruins.push(`linha ${i+1}: ${linha.slice(0, 120)}`);
+      }
+    });
+    assert.deepStrictEqual(ruins, [],
+      'um "!" fora de !VAR! é comido pelo cmd antes do programa ver a linha');
+  });
+
+  test('o config do agente é escrito e CONFERIDO na tela', () => {
+    const b = bat();
+    assert.ok(/ConvertTo-Json/.test(b), 'o config tem que ser montado em PowerShell');
+    assert.ok(/IsNullOrWhiteSpace/.test(b), 'e-mail ou senha vazios têm que parar a instalação');
+    // Sem esta linha, um config errado só apareceria dias depois, na loja.
+    assert.ok(/entra como/.test(b), 'o instalador precisa mostrar com qual conta o agente vai entrar');
+  });
+
+  test('o agente sobe na hora, não só no próximo login', () => {
+    // O gatilho da tarefa é AtLogOn. Sem o schtasks /run, quem instala fica
+    // olhando a tarja vermelha achando que não funcionou.
+    assert.ok(/schtasks \/run \/tn "Markin - cozinha"/.test(bat()));
+  });
+
+  test('agente de instalação antiga é removido', () => {
+    const b = bat();
+    assert.ok(/Unregister-ScheduledTask/.test(b));
+    assert.ok(/\$manter=@\('cozinha','balcao'\)/.test(b),
+      'a lista do que manter tem que ser a desta instalação');
+  });
+});

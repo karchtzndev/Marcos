@@ -288,11 +288,25 @@ curl.exe -fsSL -o package.json "${INST_RAW}package.json" || goto :semrede
 curl.exe -fsSL -o config.exemplo.json "${INST_RAW}config.exemplo.json" || goto :semrede
 set "MK_NOME=${p.nome}"
 set "MK_IMPRESSORA=\\\\localhost\\${p.share}"
-node -e "const fs=require('fs');const b=JSON.parse(fs.readFileSync('config.exemplo.json','utf8'));const c={};for(const k in b)if(!k.startsWith('_'))c[k]=b[k];c.nome=process.env.MK_NOME;c.modo=process.env.MK_MODO;c.impressora=process.env.MK_IMPRESSORA;c.usuario=process.env.MK_EMAIL;c.senha=process.env.MK_SENHA;fs.writeFileSync('config.json',JSON.stringify(c,null,2))"
+REM Este arquivo roda com "setlocal EnableDelayedExpansion", onde o ponto de
+REM exclamacao e caractere especial do proprio cmd. A versao anterior montava
+REM o config.json com um node -e cuja condicao comecava por negacao. O cmd
+REM COMIA o sinal de negacao antes do node ver a linha: a condicao invertia,
+REM o config saia com os comentarios do modelo dentro e o usuario gravado
+REM errado. O agente era recusado no login e morria, sem nada na tela.
+REM Em PowerShell, com -notlike, nao sobra sinal nenhum para o cmd estragar.
+powershell -NoProfile -Command "$b=Get-Content -Raw 'config.exemplo.json' | ConvertFrom-Json; $c=[ordered]@{}; foreach($p in $b.PSObject.Properties){ if($p.Name -notlike '_*'){ $c[$p.Name]=$p.Value } }; $c['nome']=$env:MK_NOME; $c['modo']=$env:MK_MODO; $c['impressora']=$env:MK_IMPRESSORA; $c['usuario']=$env:MK_EMAIL; $c['senha']=$env:MK_SENHA; if([string]::IsNullOrWhiteSpace($c['usuario']) -or [string]::IsNullOrWhiteSpace($c['senha'])){ Write-Host '  [X] e-mail ou senha vazios'; exit 1 }; ($c | ConvertTo-Json -Depth 6) | Set-Content -Encoding UTF8 'config.json'; Write-Host ('  [ok] entra como ' + $c['usuario'] + ' e imprime em ' + $c['impressora'])"
+if errorlevel 1 goto :semconfig
 echo   instalando dependencias (demora um pouco)...
 call npm install --silent --no-audit --no-fund
 powershell -NoProfile -Command "$a=New-ScheduledTaskAction -Execute '!NODEEXE!' -Argument 'agente.js' -WorkingDirectory '!DEST!'; $t=New-ScheduledTaskTrigger -AtLogOn; $s=New-ScheduledTaskSettingsSet -Hidden -RestartCount 99 -RestartInterval (New-TimeSpan -Minutes 1) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries; Register-ScheduledTask -TaskName 'Markin - ${p.nome}' -Action $a -Trigger $t -Settings $s -Force | Out-Null"
-echo   [ok] ${p.nome} pronta`).join('\n');
+REM O gatilho da tarefa e "ao entrar no Windows". Sem esta linha o agente so
+REM subiria no proximo login — e quem acabou de instalar fica olhando a tarja
+REM vermelha achando que nao funcionou.
+schtasks /run /tn "Markin - ${p.nome}" >nul 2>&1
+echo   [ok] ${p.nome} pronta e rodando`).join('\n');
+
+    const nomesJson = impressoras.map(p => `'${p.nome}'`).join(',');
 
     const testes = impressoras.map(p =>
       `echo      cd /d "%BASE%\\agente-${p.nome}" ^&^& npm run testar`).join('\n');
@@ -363,6 +377,11 @@ if "!MK_SENHA!"=="" (
 set "MK_MODO=${modo}"
 set "BASE=%USERPROFILE%\\markin-agentes"
 if not exist "%BASE%" mkdir "%BASE%"
+
+REM Instalacao anterior com mais impressoras deixa agentes orfaos: eles ficam
+REM tentando imprimir numa impressora que nao existe mais, falhando em laco e
+REM poluindo o painel com um agente parado que ninguem sabe de onde veio.
+powershell -NoProfile -Command "$manter=@(${nomesJson}); Get-ScheduledTask | Where-Object { $_.TaskName -like 'Markin - *' -and ($_.TaskName -replace '^Markin - ','') -notin $manter } | ForEach-Object { Unregister-ScheduledTask -TaskName $_.TaskName -Confirm:$false; Write-Host ('  [ok] removido agente antigo: ' + $_.TaskName) }" 2>nul
 ${blocos}
 
 
@@ -412,6 +431,15 @@ exit /b 0
 echo.
 echo   [X] Nao consegui baixar o agente.
 echo       Verifique a internet e rode de novo.
+echo.
+pause
+exit /b 1
+
+:semconfig
+echo.
+echo   [X] Nao consegui gravar a configuracao do agente.
+echo       O e-mail ou a senha chegaram vazios. Rode de novo e
+echo       digite os dois quando ele perguntar.
 echo.
 pause
 exit /b 1
