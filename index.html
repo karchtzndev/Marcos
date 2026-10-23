@@ -1783,6 +1783,26 @@
     window.scrollTo(0, scrollTravado);
   }
 
+  /* Abrir uma janela trava o fundo com position:fixed no body — sem isso, no
+     celular, a página de trás rola por baixo da janela. Se algo interromper o
+     caminho da destrava, o body fica fixo e o site inteiro para de rolar, sem
+     nenhuma explicação na tela. Aqui isso significaria um cliente preso no
+     meio do pedido. Qualquer tentativa de rolar solta a trava se não houver
+     janela aberta de verdade. */
+  function conferirTravaPresa(){
+    if(document.body.style.position !== 'fixed') return;
+    if(document.querySelector('.overlay.open')) return;
+    destravarFundo();
+  }
+  const TECLAS_DE_ROLAGEM = ['ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' '];
+  document.addEventListener('keydown', (e) => {
+    const alvo = e.target;
+    if(alvo && /^(INPUT|TEXTAREA|SELECT)$/.test(alvo.tagName)) return;
+    if(TECLAS_DE_ROLAGEM.includes(e.key)) conferirTravaPresa();
+  });
+  document.addEventListener('click', conferirTravaPresa, true);
+  document.addEventListener('touchstart', conferirTravaPresa, {capture:true, passive:true});
+
   function openOverlay(id){
     if(!document.querySelector('.overlay.open')) travarFundo();
     const ov = document.getElementById(id);

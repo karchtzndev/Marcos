@@ -2937,6 +2937,38 @@
     const aberto = document.querySelector('.overlay.open');
     if(aberto) closeOverlay(aberto.id);
   });
+
+  /* ---------- TRAVA DE ROLAGEM PRESA ----------
+     Abrir uma janela trava o fundo com position:fixed no body — sem isso, no
+     iPhone, a pagina de tras rola por baixo da janela. A destrava acontece ao
+     fechar. Se algo interromper esse caminho (um erro no meio, a janela
+     sumindo por outro motivo), o body fica fixo: a pagina para de rolar, e
+     seta para baixo, roda do mouse e barra de espaco deixam de funcionar sem
+     nenhuma explicacao na tela.
+
+     Em vez de confiar que o caminho sempre se completa, qualquer tentativa de
+     rolar com o teclado confere e solta a trava se nao houver janela aberta
+     de verdade. */
+  function conferirTravaPresa(){
+    if(document.body.style.position !== 'fixed') return false;
+    if(document.querySelector('.overlay.open')) return false;
+    destravarFundo();
+    return true;
+  }
+
+  const TECLAS_DE_ROLAGEM = ['ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' '];
+  document.addEventListener('keydown', (e) => {
+    if(!TECLAS_DE_ROLAGEM.includes(e.key)) return;
+    // Em campo de texto a seta move o cursor; nao e tentativa de rolar.
+    const alvo = e.target;
+    if(alvo && /^(INPUT|TEXTAREA|SELECT)$/.test(alvo.tagName)) return;
+    if(conferirTravaPresa()){
+      registrarFalha('trava de rolagem presa — soltei ao tentar rolar com o teclado', null,
+                     'A pagina tinha ficado sem rolar. Se isto se repetir, o caminho de fechar janela esta falhando.');
+    }
+  });
+  document.addEventListener('click', conferirTravaPresa, true);
+
   // Ao voltar pro app (celular que bloqueou a tela, trocou de aba), confere
   // se sobrou alguma trava sem overlay nenhum aberto de verdade.
   document.addEventListener('visibilitychange', () => {
