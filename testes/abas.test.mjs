@@ -63,6 +63,18 @@ describe('abas do painel', () => {
       `voltaram ${naMao.length} linha(s) de display escritas à mão — é assim que uma aba some em silêncio`);
   });
 
+  test('a aba Impressora nunca é escondida por um módulo desligado', () => {
+    // Já aconteceu: a aba ficava atrás de moduloAtivo('filaimpressao'), e com
+    // o módulo desligado ela simplesmente não existia na barra. Procuraram
+    // por ela durante uma semana.
+    //
+    // É a tela de controle da impressora: se ela some justamente quando a
+    // impressão está desligada, não há por onde ligar. A aba fica visível e
+    // explica — o módulo desligado vira um botão, não um sumiço.
+    assert.ok(!/tab:\s*'impressora'/.test(PAINEL),
+      "algum módulo voltou a apontar tab:'impressora' — isso esconde a aba quando ele está desligado");
+  });
+
   test('cada botão da barra pertence a um grupo que existe', () => {
     // Sem grupo válido, o botão nunca é exibido: aplicarGrupo() filtra por data-g.
     const grupos = new Set([...PAINEL.matchAll(/data-grupo="([a-z]+)"/g)].map(m => m[1]));

@@ -7691,7 +7691,7 @@
     {key:'previsao',    icon:'📈', nome:'Previsão de demanda',
      desc:'Estima o movimento dos próximos dias com base no seu histórico.', tab:null},
     {key:'filaimpressao', icon:'🖨️', nome:'Fila de impressão',
-     desc:'A comanda sai sozinha, de qualquer aparelho — iPhone, Android ou tablet. Precisa do agente rodando num PC ou Raspberry Pi ligado na térmica. Dois agentes podem rodar juntos, um de reserva do outro.', tab:'impressora'},
+     desc:'A comanda sai sozinha, de qualquer aparelho — iPhone, Android ou tablet. Precisa do agente rodando num PC ou Raspberry Pi ligado na térmica. Dois agentes podem rodar juntos, um de reserva do outro.', tab:null},
     {key:'cupons',      icon:'🏷️', nome:'Cupons de desconto',
      desc:'Códigos promocionais que o cliente digita no checkout. Percentual, valor fixo ou frete grátis.', tab:'cupons'},
     {key:'pixels',      icon:'📣', nome:'Pixels de anúncio (Meta / Google / TikTok)',
@@ -7871,11 +7871,42 @@
     if(!box) return;
 
     if(!moduloAtivo('filaimpressao')){
+      // Esta aba NÃO some quando o módulo está desligado, e isso é de
+      // propósito. A versão anterior sumia — e sumir foi exatamente o que
+      // fez procurarem por ela durante uma semana. Some uma aba e ninguém
+      // descobre que ela existe; mostre-a explicando, e o problema vira um
+      // clique. Por isso também o botão está aqui, em vez de um recado
+      // mandando procurar em outra tela.
       box.innerHTML = `
-        <div class="box-info" style="border-color:var(--mustard); color:var(--mustard); background:rgba(240,180,41,.1);">
-          ⚠️ A <b>Fila de impressão</b> está desligada em 🧩 Módulos. Ligue lá para
-          a comanda sair sozinha na térmica.
+        <div class="admin-list">
+          <h3>🖨️ Fila de impressão</h3>
+          <div class="box-info" style="border-color:var(--mustard); color:var(--mustard); background:rgba(240,180,41,.1);">
+            ⚠️ A <b>Fila de impressão</b> está <b>desligada</b>. Enquanto estiver assim,
+            a comanda não sai sozinha na térmica — só pelo navegador.
+          </div>
+          <div class="form-actions">
+            ${currentRole === 'gerente'
+              ? '<button class="btn-primary" id="ligarFila">Ligar a fila de impressão</button>'
+              : '<span style="color:rgba(242,233,218,.6); font-size:14px;">Peça ao gerente para ligar em 🧩 Módulos.</span>'}
+          </div>
+          <div class="error-msg" id="filaMsg"></div>
         </div>`;
+
+      const lig = document.getElementById('ligarFila');
+      if(lig) lig.addEventListener('click', async () => {
+        lig.disabled = true; lig.textContent = 'Ligando…';
+        try{
+          await db.collection('store').doc('features').set({filaimpressao: true}, {merge:true});
+          showToast('Fila de impressão ligada ✓');
+          // A escuta de features repinta sozinha, mas sem isto a aba fica
+          // parada na tela antiga até a pessoa sair e voltar.
+          setTimeout(renderImpressora, 400);
+        }catch(e){
+          registrarFalha('ligar a fila de impressão', e);
+          lig.disabled = false; lig.textContent = 'Ligar a fila de impressão';
+          document.getElementById('filaMsg').textContent = 'Não foi possível ligar. Tente de novo.';
+        }
+      });
     }else{
       box.innerHTML = `
         <div class="admin-list">
