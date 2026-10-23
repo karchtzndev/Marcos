@@ -284,6 +284,16 @@ describe('caracteres que o cmd interpreta', () => {
     assert.ok(/entra como/.test(b), 'o instalador precisa mostrar com qual conta o agente vai entrar');
   });
 
+  test('o config é gravado SEM o caractere invisível do Windows', () => {
+    // Set-Content -Encoding UTF8 no PowerShell do Windows cola um BOM no
+    // começo do arquivo, e aí o agente não consegue ler o próprio config.
+    const b = bat();
+    assert.ok(!/Set-Content -Encoding UTF8 'config.json'/.test(b),
+      'Set-Content -Encoding UTF8 grava com BOM — o agente não lê');
+    assert.ok(/UTF8Encoding \$false/.test(b),
+      'o config precisa ser gravado com UTF8Encoding $false, que não põe BOM');
+  });
+
   test('o agente sobe na hora, não só no próximo login', () => {
     // O gatilho da tarefa é AtLogOn. Sem o schtasks /run, quem instala fica
     // olhando a tarja vermelha achando que não funcionou.

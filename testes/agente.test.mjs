@@ -18,6 +18,7 @@ import { initializeTestEnvironment } from '@firebase/rules-unit-testing';
 // de um lado não é reconhecido pelas funções do outro.
 const require = createRequire(import.meta.url);
 const {
+  lerConfig,
   reivindicar, reivindicarPreso, devolver,
   marcarMinhaVia, jaImprimiAqui, fecharAntigos, chaveAgente,
 } = require('../agente-impressora/agente.js');
@@ -176,5 +177,39 @@ describe('modo cópia', () => {
     assert.strictEqual((await ler(velho)).status, 'impresso', 'velho devia ter sido fechado');
     assert.strictEqual((await ler(novo)).status, 'pendente',
       'o recente precisa continuar na fila — a impressora que estava desligada ainda vai copiar');
+  });
+});
+
+/* ==================================================================
+   O CARACTERE INVISÍVEL
+   O instalador gravava o config.json pelo PowerShell do Windows, que
+   cola três bytes invisíveis (BOM) no começo do arquivo. JSON.parse
+   recusa, e a mensagem — "Unexpected token" — não parece nada com "há
+   um caractere invisível aqui". O agente morria na primeira linha, a
+   tarefa reiniciava, e na loja isso aparecia só como a tarja vermelha
+   de sempre.
+
+   O instalador foi corrigido, mas o BOM pode voltar por outro caminho:
+   basta alguém abrir o config.json no Bloco de Notas e salvar.
+   ================================================================== */
+describe('config.json salvo no Windows', () => {
+
+  const BOM = '\uFEFF';
+  const bom = JSON.stringify({ nome: 'cozinha', modo: 'copia', usuario: 'a@b.c' });
+
+  test('config com BOM continua sendo lido', () => {
+    const c = lerConfig(BOM + bom);
+    assert.strictEqual(c.nome, 'cozinha');
+    assert.strictEqual(c.usuario, 'a@b.c');
+  });
+
+  test('config normal continua sendo lido', () => {
+    assert.strictEqual(lerConfig(bom).modo, 'copia');
+  });
+
+  test('config realmente quebrado ainda reclama', () => {
+    // Engolir o BOM não pode virar engolir erro de verdade: um config
+    // digitado errado precisa continuar falhando, e falhando alto.
+    assert.throws(() => lerConfig('{isto nao e json'));
   });
 });

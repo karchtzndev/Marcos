@@ -34,8 +34,16 @@ const VERSAO = '2.0.0';
 let cfg = {};
 let EU = os.hostname();
 let MODO = 'reserva';
+// Tira o BOM: tres bytes invisiveis que o PowerShell do Windows e o Bloco de
+// Notas colam no comeco do arquivo ao salvar em UTF-8. JSON.parse recusa, e a
+// mensagem que sai — Unexpected token — nao parece nada com "ha um caractere
+// invisivel aqui". Custou uma noite na loja, com a impressora plugada.
+function lerConfig(texto){
+  return JSON.parse(String(texto).replace(/^\uFEFF/, ''));
+}
+
 function carregarConfig(){
-  cfg = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8'));
+  cfg = lerConfig(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8'));
   EU = cfg.nome || os.hostname();
   MODO = cfg.modo || 'reserva';
   if(!MODOS.includes(MODO)){
@@ -349,6 +357,7 @@ if(require.main === module){
 }
 
 module.exports = {
+  lerConfig,
   reivindicar, reivindicarPreso, devolver,
   marcarMinhaVia, jaImprimiAqui, fecharAntigos, chaveAgente,
 };
