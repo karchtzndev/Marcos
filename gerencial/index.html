@@ -2176,7 +2176,14 @@
             <div class="field"><label>Estoque mínimo (alerta)</label><input type="number" step="0.01" id="stMin" placeholder="Ex: 10"></div>
           </div>
           <button class="btn-primary" id="addStockBtn">Adicionar item</button>
+          <button class="btn-ghost" id="stockPadraoBtn">📋 Começar com uma lista pronta</button>
           <div class="error-msg" id="stError"></div>
+          <div class="box-info" style="margin-top:14px;">
+            A lista pronta foi montada a partir do <b>seu cardápio</b>: pães, carnes,
+            frango, bacon, cupim, queijos, verduras, molhos, batata, bebidas e
+            descartáveis. Tudo entra com <b>quantidade zero</b> — você só preenche o
+            que tem. Itens que já existem não são duplicados, e nada é apagado.
+          </div>
           <div class="admin-list">
             <h3>Itens em estoque</h3>
             <div id="stockList"><div class="loading-row">Carregando...</div></div>
@@ -5645,6 +5652,107 @@
       catch(e){ alert("Não foi possível excluir o item."); }
     }));
   }
+
+  /* ================= LISTA DE ESTOQUE PRONTA =================
+     Montada a partir do cardápio real da loja: 10 hambúrgueres, as entradas,
+     as bebidas e os cinco adicionais. Não é uma lista genérica de internet —
+     tem cupim por causa da croqueta, mussarela por causa do dadinho, e filé
+     de frango por causa do Prime Chicken.
+
+     Tudo entra com quantidade ZERO, de propósito: chutar quantidade é pior
+     que não ter, porque o alerta de estoque baixo passa a mentir. O mínimo
+     vem sugerido, e é só ajustar.
+
+     Nada é apagado e nada é duplicado: item que já existe pela mesma grafia
+     é pulado. Dá para apertar duas vezes sem estrago. */
+  const ESTOQUE_PADRAO = [
+    // --- pão e carnes ---
+    {name:'Pão de hambúrguer',            unit:'un',  min:40},
+    {name:'Pão brioche',                  unit:'un',  min:20},
+    {name:'Hambúrguer de carne 150g',     unit:'un',  min:40},
+    {name:'Filé de frango empanado',      unit:'un',  min:20},
+    {name:'Bacon em fatias',              unit:'kg',  min:2},
+    {name:'Cupim desfiado',               unit:'kg',  min:1},
+    // --- queijos ---
+    {name:'Queijo cheddar fatiado',       unit:'un',  min:50},
+    {name:'Cheddar cremoso',              unit:'kg',  min:1},
+    {name:'Queijo mussarela',             unit:'kg',  min:2},
+    // --- verduras ---
+    {name:'Alface americana',             unit:'un',  min:4},
+    {name:'Tomate',                       unit:'kg',  min:2},
+    {name:'Cebola',                       unit:'kg',  min:2},
+    {name:'Cebola roxa',                  unit:'kg',  min:1},
+    {name:'Picles',                       unit:'kg',  min:1},
+    // --- molhos ---
+    {name:'Maionese',                     unit:'kg',  min:2},
+    {name:'Ketchup',                      unit:'kg',  min:2},
+    {name:'Mostarda',                     unit:'kg',  min:1},
+    {name:'Molho barbecue',               unit:'kg',  min:1},
+    {name:'Molho da casa',                unit:'kg',  min:1},
+    // --- fritura e entradas ---
+    {name:'Batata congelada',             unit:'kg',  min:5},
+    {name:'Óleo de fritura',              unit:'l',   min:5},
+    {name:'Croqueta de cupim',            unit:'un',  min:20},
+    {name:'Dadinho de mussarela',         unit:'un',  min:20},
+    // --- bebidas ---
+    {name:'Refrigerante lata',            unit:'un',  min:24},
+    {name:'Suco lata',                    unit:'un',  min:12},
+    {name:'Água com gás',                 unit:'un',  min:12},
+    // --- embalagem e consumo ---
+    {name:'Embalagem de hambúrguer',      unit:'un',  min:50},
+    {name:'Embalagem de porção',          unit:'un',  min:30},
+    {name:'Papel manteiga',               unit:'un',  min:50},
+    {name:'Sacola de entrega',            unit:'un',  min:50},
+    {name:'Guardanapo',                   unit:'pct', min:4},
+    {name:'Talher descartável',           unit:'un',  min:50},
+    // --- o que para a operação se acabar ---
+    {name:'Bobina térmica 55mm',          unit:'un',  min:4},
+    {name:'Gás de cozinha',               unit:'un',  min:1},
+  ];
+
+  const normalizarNome = (s) => String(s || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase().replace(/\s+/g, ' ').trim();
+
+  async function semearEstoque(botao){
+    const jaTem = new Set(inventory.map(i => normalizarNome(i.name)));
+    const novos = ESTOQUE_PADRAO
+      .filter(i => !jaTem.has(normalizarNome(i.name)))
+      .map(i => ({id: genId(), name: i.name, unit: i.unit, qty: 0, min: i.min}));
+
+    const errEl = document.getElementById('stError');
+    errEl.style.color = '';
+    if(novos.length === 0){
+      errEl.style.color = 'var(--green)';
+      errEl.textContent = 'Todos os itens da lista já estão cadastrados. Nada a fazer.';
+      return;
+    }
+    const pulados = ESTOQUE_PADRAO.length - novos.length;
+    if(!confirm(`Adicionar ${novos.length} itens ao estoque, todos com quantidade zero?\n`
+      + (pulados ? `\n${pulados} já existem e serão pulados.` : '')
+      + `\n\nNada do que já está lá é alterado ou apagado.`)) return;
+
+    botao.disabled = true;
+    botao.textContent = 'adicionando...';
+    try{
+      // Uma gravação só, com arrayUnion: trinta chamadas separadas poderiam
+      // parar no meio e deixar a lista pela metade. E arrayUnion não sofre a
+      // corrida de reescrever o vetor inteiro, que já custou venda neste
+      // sistema.
+      await db.collection('store').doc('inventory').set(
+        {list: firebase.firestore.FieldValue.arrayUnion(...novos)}, {merge:true});
+      errEl.style.color = 'var(--green)';
+      errEl.textContent = `${novos.length} itens adicionados ✓ Agora é só preencher a quantidade de cada um.`;
+      showToast('Estoque montado ✓');
+    }catch(e){
+      registrarFalha('montar a lista de estoque', e);
+      errEl.style.color = 'var(--tomato)';
+      errEl.textContent = 'Não foi possível adicionar. Veja a aba Erros.';
+    }
+    botao.disabled = false;
+    botao.textContent = '📋 Começar com uma lista pronta';
+  }
+
   document.getElementById('addStockBtn').addEventListener('click', async () => {
     const name = document.getElementById('stName').value.trim();
     const unit = document.getElementById('stUnit').value;
@@ -5659,6 +5767,9 @@
     }catch(e){ errEl.textContent = "Não foi possível salvar."; return; }
     document.getElementById('stName').value = ""; document.getElementById('stQty').value = ""; document.getElementById('stMin').value = "";
   });
+
+  document.getElementById('stockPadraoBtn')
+    ?.addEventListener('click', (e) => semearEstoque(e.currentTarget));
 
   /* ================= CAIXA ================= */
   let register = {isOpen:false};
