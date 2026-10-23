@@ -104,3 +104,42 @@ describe('abas do painel', () => {
     }
   });
 });
+
+/* ==================================================================
+   LIXO QUE O NAVEGADOR MOSTRA NA TELA
+   Sobrou um "}" e um </script> órfãos depois do fim do script do
+   painel. O navegador não tem como saber que aquilo era código: mostra
+   a chave como texto, solta num canto da página. Ficou semanas assim,
+   aparecendo em print atrás de print, e passou por cima de todas as
+   outras verificações porque JavaScript inválido não era — era texto.
+   ================================================================== */
+describe('sobras de edição aparecendo na página', () => {
+
+  const TELAS = ['gerencial/index.html', 'index.html', 'chamada/index.html',
+                 'instalador/index.html', 'privacidade.html'];
+
+  for(const tela of TELAS){
+    test(`${tela} não mostra chave solta como texto`, () => {
+      const html = readFileSync(tela, 'utf8');
+      const visivel = html
+        .replace(/<script[\s\S]*?<\/script>/g, '')
+        .replace(/<style[\s\S]*?<\/style>/g, '')
+        .replace(/<!--[\s\S]*?-->/g, '')
+        .replace(/<[^>]+>/g, '\n');
+      const sobras = visivel.split('\n').map(l => l.trim())
+        .filter(l => ['{', '}', '};', '});', ')', ';'].includes(l));
+      assert.deepStrictEqual(sobras, [],
+        'isso vira texto solto na tela do usuário');
+    });
+
+    test(`${tela} fecha cada <script> que abre`, () => {
+      const html = readFileSync(tela, 'utf8');
+      // conta só as tags de verdade: um '<script>' dentro de string (o painel
+      // monta a janela de impressão assim) não abre bloco nenhum.
+      const semStrings = html.replace(/<script[\s\S]*?<\/script>/g, '<script></script>');
+      const abre = (semStrings.match(/<script[^>]*>/g) || []).length;
+      const fecha = (semStrings.match(/<\/script>/g) || []).length;
+      assert.strictEqual(abre, fecha, `${abre} aberturas para ${fecha} fechamentos`);
+    });
+  }
+});
