@@ -3632,6 +3632,11 @@
         out += ESC.center + ESC.grande + ESC.bold + txt + '\n' + ESC.normal + ESC.boldOff;
       }else if(cls.includes('p-table')){
         out += ESC.center + ESC.grande + ESC.bold + txt + '\n' + ESC.normal + ESC.boldOff;
+      }else if(cls.includes('p-raw')){
+        // Texto cru, alinhado à esquerda, sem separador nem negrito. Existe
+        // para a régua de largura: qualquer enfeite mudaria a contagem de
+        // colunas que ela serve justamente para medir.
+        out += ESC.left + txt + '\n';
       }else if(cls.includes('p-line')){
         out += ESC.left + separador('-') + '\n';
       }else if(cls.includes('p-cols')){
@@ -7929,7 +7934,26 @@
               <label>Vias da comanda</label>
               <input type="number" id="filaVias" min="1" max="3" value="${features.filaVias || 1}">
             </div>
+            <div class="field">
+              <label>Largura do papel</label>
+              <select id="filaColunas">
+                <option value="32" ${Number(features.filaColunas)===32?'selected':''}>55 ou 58 mm — 32 colunas</option>
+                <option value="42" ${Number(features.filaColunas)===42?'selected':''}>55 ou 58 mm, letra miúda — 42 colunas</option>
+                <option value="48" ${Number(features.filaColunas)===48?'selected':''}>80 mm — 48 colunas</option>
+              </select>
+              <small style="display:block; color:rgba(242,233,218,.5); margin-top:6px;">
+                Quantos caracteres cabem numa linha. Errado para mais, cada linha
+                quebra no meio e a comanda sai embaralhada.
+              </small>
+            </div>
           </div>
+          ${features.filaColunas ? '' : `
+          <div class="box-info" style="border-color:var(--mustard); color:var(--mustard); background:rgba(240,180,41,.1);">
+            ⚠️ <b>A largura nunca foi escolhida</b>, então está valendo 48 colunas (80 mm).
+            Numa impressora de 55 ou 58 mm isso faz cada linha quebrar no meio.
+            Escolha acima e salve — depois mande o teste, que sai com uma régua
+            para conferir no papel.
+          </div>`}
           <div class="form-actions">
             <button class="btn-primary" id="filaSaveBtn">Salvar</button>
             <button class="btn-ghost" id="filaTesteBtn">🧾 Enviar teste pra fila</button>
@@ -7995,12 +8019,19 @@
     if(flS) flS.addEventListener('click', async () => {
       await db.collection('store').doc('features').set({
         filaAuto: document.getElementById('filaAuto').value,
-        filaVias: parseInt(document.getElementById('filaVias').value) || 1
+        filaVias: parseInt(document.getElementById('filaVias').value) || 1,
+        filaColunas: parseInt(document.getElementById('filaColunas').value) || 48
       }, {merge:true});
       showToast('Fila de impressão configurada ✓');
     });
     const flT = document.getElementById('filaTesteBtn');
     if(flT) flT.addEventListener('click', async () => {
+      // Régua: uma linha com exatamente a largura configurada, marcada de 10
+      // em 10. Se ela couber numa linha só, a largura está certa; se quebrar,
+      // está grande demais. É a única forma de conferir isso — no papel.
+      const cols = larguraPapel();
+      let regua = '';
+      for(let i = 1; i <= cols; i++) regua += (i % 10 === 0) ? String(i/10 % 10) : '.';
       document.getElementById('printArea').innerHTML = `
         <div class="p-logo">O MARKIN</div>
         <div class="p-sub">TESTE DA FILA DE IMPRESSAO</div>
@@ -8008,6 +8039,11 @@
         <div class="p-code">${new Date().toLocaleString('pt-BR')}</div>
         <div class="p-line"></div>
         <div class="p-item"><span>1x Teste</span><span>R$ 0,00</span></div>
+        <div class="p-line"></div>
+        <div class="p-raw">REGUA DE ${cols} COLUNAS</div>
+        <div class="p-raw">${regua}</div>
+        <div class="p-raw">Coube numa linha so? largura certa.</div>
+        <div class="p-raw">Quebrou em duas? escolha menos.</div>
         <div class="p-foot">Se saiu, a fila esta funcionando!</div>`;
       const ok = await enviarParaFila('teste', 'Teste do sistema');
       const m = document.getElementById('filaMsg');
