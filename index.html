@@ -217,11 +217,21 @@
      No iPhone, centralizar com flex e rolar dentro do painel ao mesmo
      tempo travava o gesto de arrastar. */
   .overlay{
-    position:fixed; inset:0; background:rgba(8,6,4,0.82); backdrop-filter:blur(4px);
+    position:fixed; inset:0; background:rgba(8,6,4,0.93);
+    /* Sem backdrop-filter. Desfocar a tela inteira obriga o celular a manter
+       uma camada composta do tamanho do visor e a repinta-la junto com tudo
+       que muda atras — e um toque dado no meio disso se perde. Aqui dentro e
+       onde o cliente fecha o pedido: toque perdido e venda perdida. */
     z-index:100; display:none; padding:20px;
     overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
   }
   .overlay.open{display:block;}
+  /* Sem isto o Safari segura cada toque esperando para ver se vira um duplo
+     toque de zoom: aparece como atraso e, as vezes, como toque que nao
+     acontece. */
+  button, select, input, textarea, a, label{
+    touch-action: manipulation;
+  }
   .panel{
     background:var(--char); border:1px solid var(--line); border-radius:20px;
     width:100%; max-width:920px; margin:0 auto;

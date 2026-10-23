@@ -178,11 +178,21 @@
      No iPhone, centralizar com flex e rolar dentro do painel ao mesmo
      tempo travava o gesto de arrastar. */
   .overlay{
-    position:fixed; inset:0; background:rgba(8,6,4,0.82); backdrop-filter:blur(4px);
+    position:fixed; inset:0; background:rgba(8,6,4,0.93);
+    /* Sem backdrop-filter. Desfocar a tela inteira obriga o iPhone a manter
+       uma camada composta do tamanho do visor e a repinta-la junto com tudo
+       que muda atras — no meio de um toque, o toque se perde. O fundo mais
+       escuro faz o mesmo trabalho de destacar a janela, de graca. */
     z-index:100; display:none; padding:20px;
     overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
   }
   .overlay.open{display:block;}
+  /* Sem isto o Safari segura cada toque esperando para ver se vira um duplo
+     toque de zoom. Em botao e campo isso aparece como atraso, e as vezes
+     como toque que simplesmente nao acontece. */
+  button, select, input, textarea, a, label, .dia-row, [data-close]{
+    touch-action: manipulation;
+  }
   .panel{
     background:var(--char); border:1px solid var(--line); border-radius:20px;
     width:100%; max-width:920px; margin:0 auto;
@@ -2913,7 +2923,11 @@
   }
   function closeOverlay(id){
     document.getElementById(id).classList.remove('open');
-    if(!document.querySelector('.overlay.open')) destravarFundo();
+    if(!document.querySelector('.overlay.open')){
+      destravarFundo();
+      // O que o banco mudou enquanto a janela estava aberta ficou esperando.
+      if(pendenteRedesenho){ pendenteRedesenho = false; scheduleRender(); }
+    }
   }
 
   // Rede de segurança: destrava mesmo se algo tiver dado errado no meio
@@ -3899,6 +3913,9 @@
   /* ---------------- RENDER AGRUPADO ---------------- */
   // Antes, cada mudança redesenhava 6 telas — inclusive abas invisíveis.
   let renderQueued = false;
+  // Marca que o banco mudou enquanto uma janela estava aberta; a tela de tras
+  // alcanca o que perdeu assim que a janela fecha.
+  let pendenteRedesenho = false;
   function currentTab(){
     const btn = document.querySelector('.admin-tab-btn.active');
     return btn ? btn.dataset.atab : 'pedidos';
@@ -3909,6 +3926,18 @@
     requestAnimationFrame(() => {
       renderQueued = false;
       updateTabBadges();                    // contadores: baratos, sempre
+
+      // Com uma janela aberta, redesenhar a tela de TRAS e trabalho jogado
+      // fora — ninguem esta olhando para ela. No iPhone e pior que inutil: o
+      // aparelho refaz uma lista grande por baixo de um vidro fosco em tela
+      // cheia, e o dedo que encostou no meio disso nao vira clique. Era isso
+      // que fazia o toque responder uma hora sim, outra nao.
+      //
+      // Cada pedido que chega, cada sinal do agente de impressao a cada 30s,
+      // dispara esta funcao. Lancar um pedido no balcao leva um minuto: dava
+      // tempo de acontecer varias vezes no meio.
+      if(document.querySelector('.overlay.open')){ pendenteRedesenho = true; return; }
+
       const tab = currentTab();
       if(tab === 'pedidos')        renderAdminOrders();
       else if(tab === 'cozinha')   renderKitchen();
