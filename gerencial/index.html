@@ -4736,20 +4736,49 @@
       return;
     }
 
-    if(!confirm('ÚLTIMA CONFIRMAÇÃO\n\nApagar todo o histórico de pedidos, faturamento e clientes?\n\nIsso não pode ser desfeito.')){
+    if(!confirm('ÚLTIMA CONFIRMAÇÃO\n\n'
+      + 'APAGA: pedidos, estatísticas, clientes, fechamentos de caixa,\n'
+      + 'movimento do financeiro, chamadas da TV, fila de impressão,\n'
+      + 'visitas, mensagens, acessos e registro de erros.\n\n'
+      + 'NÃO TOCA: cardápio, adicionais, equipe, cupons, estoque,\n'
+      + 'módulos e configurações da loja.\n\n'
+      + 'Isso não pode ser desfeito.')){
       btn.disabled = false; btn.textContent = 'Apagar tudo permanentemente';
       return;
     }
 
     prog.style.display = 'block';
     btn.textContent = 'Apagando...';
-    const cols = ['orders','stats','customers','closings','calls'];
+    /* O botão prometia apagar "pedidos, faturamento e clientes" e deixava o
+       faturamento intacto: o caixa mora em store/cashflow, que não estava na
+       lista. Quem zerasse antes de abrir de verdade começaria com o dinheiro
+       dos testes no movimento, e descobriria no primeiro fechamento.
+
+       Também ficavam para trás a fila de impressão, as visitas, os acessos e
+       as mensagens — tudo que os testes enchem. */
+    const cols = ['orders','stats','customers','closings','calls',
+                  'printQueue','visitas','mensagens','acessos','errorLog'];
+    // Documentos de configuração que guardam movimento dentro de si: aqui a
+    // lista é esvaziada, o documento continua existindo.
+    const zerarListas = [
+      ['cashflow',     'list',     [], 'movimento do caixa'],
+      ['tempoPreparo', 'amostras', [], 'tempos de preparo medidos'],
+    ];
     let apagados = 0;
+    const naoDeu = [];
 
     try{
       for(const col of cols){
         prog.innerHTML = `<div class="zr-prog">🧹 Limpando ${col}...</div>`;
-        apagados += await apagarColecao(col);
+        // Cada coleção por sua conta: uma recusa da regra não pode abortar a
+        // limpeza inteira e deixar o sistema pela metade.
+        try{ apagados += await apagarColecao(col); }
+        catch(e){ naoDeu.push(col); registrarFalha('zerar a coleção ' + col, e); }
+      }
+      for(const [doc, campo, vazio, oque] of zerarListas){
+        prog.innerHTML = `<div class="zr-prog">🧹 Zerando ${oque}...</div>`;
+        try{ await db.collection('store').doc(doc).set({[campo]: vazio}, {merge:true}); }
+        catch(e){ naoDeu.push(oque); registrarFalha('zerar ' + oque, e); }
       }
       // contador diário e caixa
       prog.innerHTML = '<div class="zr-prog">🧹 Zerando contador e caixa...</div>';
@@ -4758,7 +4787,9 @@
       await db.collection('store').doc('register').set({isOpen:false})
         .catch(e => registrarFalha('fechar o caixa ao zerar o sistema', e));
 
-      prog.innerHTML = `<div class="zr-prog ok">✅ Pronto! ${apagados} registro(s) apagado(s).<br>O sistema está limpo para a abertura.</div>`;
+      prog.innerHTML = naoDeu.length
+        ? `<div class="zr-prog">⚠️ ${apagados} registro(s) apagado(s), mas isto resistiu: <b>${naoDeu.join(', ')}</b>.<br>Quase sempre é regra do banco não publicada. Veja a aba Erros.</div>`
+        : `<div class="zr-prog ok">✅ Pronto! ${apagados} registro(s) apagado(s).<br>O sistema está limpo para a abertura.</div>`;
       showToast('Dados zerados ✓');
       setTimeout(() => {
         closeOverlay('zerarOverlay');
