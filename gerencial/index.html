@@ -2192,6 +2192,7 @@
                 <option value="garcom">🍽️ Garçom — mesas e pedidos</option>
                 <option value="cozinha">👨‍🍳 Cozinha — pedidos e estoque</option>
                 <option value="entregador">🛵 Entregador — só os pedidos</option>
+                <option value="impressora">🖨️ Impressora — conta do agente, sem acesso a nada</option>
                 <option value="custom">⚙️ Personalizado — eu escolho</option>
               </select>
             </div>
@@ -2560,7 +2561,8 @@
           <option value="garcom">🍽️ Garçom — mesas e pedidos</option>
           <option value="cozinha">👨‍🍳 Cozinha — pedidos e estoque</option>
           <option value="entregador">🛵 Entregador — só os pedidos</option>
-          <option value="custom">⚙️ Personalizado — eu escolho</option>
+          <option value="impressora">🖨️ Impressora — conta do agente, sem acesso a nada</option>
+                <option value="custom">⚙️ Personalizado — eu escolho</option>
         </select>
       </div>
       <div id="permEditGrid" class="perm-grid" style="margin-bottom:18px;"></div>
@@ -9173,6 +9175,11 @@
     garcom:      {label:'Garçom',      perms: ['pedidos','mesas']},
     cozinha:     {label:'Cozinha',     perms: ['cozinha','tv','pedidos','estoque']},
     entregador:  {label:'Entregador',  perms: ['pedidos']},
+    // Conta de máquina, não de gente: o agente de impressão só precisa ler a
+    // fila e marcar o cupom como impresso, e isso as regras liberam para
+    // qualquer conta ativa. Zero permissão é o objetivo, não um descuido — é
+    // o que faz o PC da loja, se for invadido, não enxergar caixa nem cliente.
+    impressora:  {label:'Impressora (agente)', perms: []},
     custom:      {label:'Personalizado', perms: []}
   };
   function roleLabel(role){ return (ROLE_PRESETS[role] && ROLE_PRESETS[role].label) || 'Funcionário'; }
@@ -9319,7 +9326,16 @@
     try{
       // cria no app secundário pra não deslogar o gerente
       const perms = selectedPerms();
-      if(perms.length === 0){ errEl.textContent = "Selecione ao menos uma permissão."; return; }
+      // "Nenhuma permissão" é erro para uma pessoa — ela não conseguiria
+      // trabalhar. Para a conta do agente de impressão é o objetivo, e esta
+      // trava impedia criá-la: a mensagem mandava escolher alguma coisa, e
+      // quem seguisse o conselho daria ao PC da loja acesso que ele não
+      // precisa. Sem a conta, o agente nunca entra e o painel só mostra
+      // "Nenhum agente conectado", sem dizer que a conta nem existe.
+      if(perms.length === 0 && role !== 'impressora'){
+        errEl.textContent = "Selecione ao menos uma permissão — ou escolha a função 🖨️ Impressora, que é a conta sem acesso nenhum.";
+        return;
+      }
       const cred = await secondaryApp.auth().createUserWithEmailAndPassword(email, pass);
       await db.collection('users').doc(cred.user.uid).set({
         name, email, role, perms, active: true, createdAt: new Date().toISOString()
