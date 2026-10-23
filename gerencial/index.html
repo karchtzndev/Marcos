@@ -1429,7 +1429,7 @@
           <button class="admin-tab-btn" data-atab="equipe" data-g="config">👥 Equipe</button>
           <button class="admin-tab-btn" data-atab="acessos" data-g="config">🔐 Acessos <span id="acessosBadge"></span></button>
           <button class="admin-tab-btn" data-atab="modulos" data-g="config">🧩 Módulos</button>
-          <button class="admin-tab-btn" data-atab="instalador" data-g="config">🖥️ Instalador</button>
+          <button class="admin-tab-btn" data-atab="impressora" data-g="config">🖨️ Impressora <span id="impressoraBadge"></span></button>
           <button class="admin-tab-btn" data-atab="erros" data-g="config">🐞 Erros <span id="errosBadge"></span></button>
         </div>
 
@@ -1878,29 +1878,35 @@
           <div id="modulesList"></div>
         </div>
 
-        <div id="atabInstalador" style="display:none;">
+        <div id="atabImpressora" style="display:none;">
           <div class="addon-intro">
-            <div class="ai-icon">🖥️</div>
+            <div class="ai-icon">🖨️</div>
             <div>
-              <strong>Instalador do computador da loja</strong>
-              <p>Preencha os campos e baixe o instalador já pronto. Ele deixa o PC inteiro
-                 configurado sozinho: instala o Node, cria e compartilha as impressoras,
-                 baixa os agentes e põe tudo para subir junto com o Windows.</p>
+              <strong>Impressora</strong>
+              <p>Tudo da impressão num lugar só: como está agora, a largura do papel,
+                 o instalador do computador da loja e o que olhar quando não sair nada.</p>
             </div>
           </div>
 
-          <div class="box-info" style="margin-bottom:18px;">
-            🔒 Esta aba é só sua. Nenhum funcionário vê, mesmo com todas as permissões.
-          </div>
+          <!-- status + largura + vias + teste, montados por renderImpressora() -->
+          <div id="impressoraConfig"></div>
 
-          <div class="box-info" style="margin-bottom:18px;">
-            🔗 O mesmo instalador também tem endereço próprio:
-            <a href="../instalador/" target="_blank" rel="noopener"><b>/instalador</b></a> —
-            abre direto, sem depender desta aba, e dá para mandar o link para o
-            computador da loja.
-          </div>
-
-          <div class="field">
+          <!-- Gerar o instalador. Só o gerente vê: o arquivo roda com permissão
+               de administrador no PC da loja. renderImpressora() mostra ou
+               esconde conforme a função. -->
+          <div id="impressoraInstalador" style="display:none;">
+            <div class="admin-list">
+              <h3>🖥️ Instalador do computador da loja</h3>
+              <div class="box-info" style="margin-bottom:18px;">
+                Ele deixa o PC pronto sozinho: instala o Node, cria e compartilha as
+                impressoras com o driver que já vem no Windows, baixa os agentes e põe
+                tudo para subir junto com o sistema.
+                <br><br>🔒 Só você vê esta parte. Nenhum funcionário, mesmo com todas as permissões.
+                <br><br>🔗 O mesmo formulário tem endereço próprio em
+                <a href="../instalador/" target="_blank" rel="noopener"><b>/instalador</b></a> —
+                dá para abrir direto no computador da loja e baixar por lá, sem passar o painel.
+              </div>
+<div class="field">
             <label>Quantas impressoras</label>
             <select id="instQtd"><option>1</option><option>2</option><option>3</option></select>
           </div>
@@ -1947,6 +1953,30 @@
           <div class="box-info" style="margin-top:18px;">
             ⚠️ A senha <b>não vai dentro do arquivo</b>. O instalador pergunta na hora de rodar,
             para ela não ficar guardada na pasta de downloads.
+          
+            </div>
+          </div>
+
+          <div class="admin-list">
+            <h3>🩺 Quando não sair nada</h3>
+            <div class="box-info" style="margin-bottom:16px;">
+              Os agentes sobem sem janela nenhuma, então o que deu errado não aparece
+              em tela. Dois lugares contam:
+            </div>
+            <div class="passo-print"><span>A</span><div><strong>No computador da loja</strong>
+              <p>Abra a pasta <code>markin-agentes</code> dentro da sua pasta de usuário e
+                 clique duas vezes em <b>diagnostico.bat</b>. Ele junta Node, impressoras,
+                 portas USB, configuração, tarefas e as últimas linhas do log de cada
+                 agente, e copia o relatório pronto para colar. Só lê, não muda nada, e a
+                 senha não entra nele.</p></div></div>
+            <div class="passo-print"><span>B</span><div><strong>Daqui mesmo, do celular</strong>
+              <p>Na aba <b>🐞 Erros</b>. Quando o agente entra mas falha ao imprimir, o
+                 motivo aparece lá. Quando nem entrar ele consegue — senha errada, conta
+                 inativa — só o diagnóstico mostra, porque sem login ele não alcança o banco.</p></div></div>
+            <div class="form-actions">
+              <a class="btn-ghost" href="https://raw.githubusercontent.com/karchtzndev/Marcos/main/agente-impressora/diagnostico.bat"
+                 download="diagnostico.bat">⬇️ Baixar o diagnóstico</a>
+            </div>
           </div>
         </div>
 
@@ -3713,6 +3743,9 @@
   function watchFilaAgente(){
     db.collection('store').doc('printer').onSnapshot((doc) => {
       filaAgente = doc.exists ? doc.data() : null;
+      // O status agora mora na aba Impressora; sem isto, o verde só apareceria
+      // ao trocar de aba e voltar — e a pessoa acharia que não conectou.
+      if(currentTab() === 'impressora') pintarStatusImpressora();
       if(currentTab() === 'modulos') renderModuloConfig();
     }, () => {});
   }
@@ -7658,7 +7691,7 @@
     {key:'previsao',    icon:'📈', nome:'Previsão de demanda',
      desc:'Estima o movimento dos próximos dias com base no seu histórico.', tab:null},
     {key:'filaimpressao', icon:'🖨️', nome:'Fila de impressão',
-     desc:'A comanda sai sozinha, de qualquer aparelho — iPhone, Android ou tablet. Precisa do agente rodando num PC ou Raspberry Pi ligado na térmica. Dois agentes podem rodar juntos, um de reserva do outro.', tab:null},
+     desc:'A comanda sai sozinha, de qualquer aparelho — iPhone, Android ou tablet. Precisa do agente rodando num PC ou Raspberry Pi ligado na térmica. Dois agentes podem rodar juntos, um de reserva do outro.', tab:'impressora'},
     {key:'cupons',      icon:'🏷️', nome:'Cupons de desconto',
      desc:'Códigos promocionais que o cliente digita no checkout. Percentual, valor fixo ou frete grátis.', tab:'cupons'},
     {key:'pixels',      icon:'📣', nome:'Pixels de anúncio (Meta / Google / TikTok)',
@@ -7814,6 +7847,126 @@
   }
 
   // configurações que só aparecem com o módulo ligado
+
+  /* ================= ABA IMPRESSORA =================
+     Reúne num lugar só o que antes estava espalhado: o status ficava dentro
+     de Módulos, o instalador numa aba à parte que abria em branco, e o
+     diagnóstico em lugar nenhum. Quem liga uma impressora não deveria ter de
+     saber em qual dos três procurar. */
+  /* O sinal de vida do agente chega de 30 em 30 segundos. Redesenhar o
+     formulário inteiro a cada sinal apagaria a largura que a pessoa acabou de
+     escolher, no meio da escolha — então só a tarja de status se repinta. */
+  function pintarStatusImpressora(){
+    const alvo = document.getElementById('impressoraStatus');
+    if(!alvo) return;
+    const st = filaStatus();
+    alvo.innerHTML = `
+      <div class="box-info" style="border-color:${st.cor}; color:${st.cor}; background:${st.bg};">
+        ${st.texto}
+      </div>`;
+  }
+
+  function renderImpressora(){
+    const box = document.getElementById('impressoraConfig');
+    if(!box) return;
+
+    if(!moduloAtivo('filaimpressao')){
+      box.innerHTML = `
+        <div class="box-info" style="border-color:var(--mustard); color:var(--mustard); background:rgba(240,180,41,.1);">
+          ⚠️ A <b>Fila de impressão</b> está desligada em 🧩 Módulos. Ligue lá para
+          a comanda sair sozinha na térmica.
+        </div>`;
+    }else{
+      box.innerHTML = `
+        <div class="admin-list">
+          <h3>🖨️ Fila de impressão</h3>
+          <div id="impressoraStatus"></div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Imprimir automaticamente</label>
+              <select id="filaAuto">
+                <option value="aceito" ${features.filaAuto==='aceito'?'selected':''}>Quando eu aceitar o pedido</option>
+                <option value="novo" ${features.filaAuto==='novo'?'selected':''}>Assim que o pedido chegar</option>
+                <option value="manual" ${(!features.filaAuto||features.filaAuto==='manual')?'selected':''}>Só quando eu mandar</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Vias da comanda</label>
+              <input type="number" id="filaVias" min="1" max="3" value="${features.filaVias || 1}">
+            </div>
+            <div class="field">
+              <label>Largura do papel</label>
+              <select id="filaColunas">
+                <option value="32" ${Number(features.filaColunas)===32?'selected':''}>55 ou 58 mm — 32 colunas</option>
+                <option value="42" ${Number(features.filaColunas)===42?'selected':''}>55 ou 58 mm, letra miúda — 42 colunas</option>
+                <option value="48" ${Number(features.filaColunas)===48?'selected':''}>80 mm — 48 colunas</option>
+              </select>
+              <small style="display:block; color:rgba(242,233,218,.5); margin-top:6px;">
+                Quantos caracteres cabem numa linha. Errado para mais, cada linha
+                quebra no meio e a comanda sai embaralhada.
+              </small>
+            </div>
+          </div>
+          ${features.filaColunas ? '' : `
+          <div class="box-info" style="border-color:var(--mustard); color:var(--mustard); background:rgba(240,180,41,.1);">
+            ⚠️ <b>A largura nunca foi escolhida</b>, então está valendo 48 colunas (80 mm).
+            Numa impressora de 55 ou 58 mm isso faz cada linha quebrar no meio.
+            Escolha acima e salve — depois mande o teste, que sai com uma régua
+            para conferir no papel.
+          </div>`}
+          <div class="form-actions">
+            <button class="btn-primary" id="filaSaveBtn">Salvar</button>
+            <button class="btn-ghost" id="filaTesteBtn">🧾 Enviar teste pra fila</button>
+          </div>
+          <div class="error-msg" id="filaMsg"></div>
+        </div>`;
+    }
+
+    pintarStatusImpressora();
+
+    // O instalador roda como administrador no PC da loja: é só do gerente.
+    const inst = document.getElementById('impressoraInstalador');
+    if(inst){
+      inst.style.display = (currentRole === 'gerente') ? 'block' : 'none';
+      if(currentRole === 'gerente') renderInstaladorCampos();
+    }
+    const flS = document.getElementById('filaSaveBtn');
+    if(flS) flS.addEventListener('click', async () => {
+      await db.collection('store').doc('features').set({
+        filaAuto: document.getElementById('filaAuto').value,
+        filaVias: parseInt(document.getElementById('filaVias').value) || 1,
+        filaColunas: parseInt(document.getElementById('filaColunas').value) || 48
+      }, {merge:true});
+      showToast('Fila de impressão configurada ✓');
+    });
+    const flT = document.getElementById('filaTesteBtn');
+    if(flT) flT.addEventListener('click', async () => {
+      // Régua: uma linha com exatamente a largura configurada, marcada de 10
+      // em 10. Se ela couber numa linha só, a largura está certa; se quebrar,
+      // está grande demais. É a única forma de conferir isso — no papel.
+      const cols = larguraPapel();
+      let regua = '';
+      for(let i = 1; i <= cols; i++) regua += (i % 10 === 0) ? String(i/10 % 10) : '.';
+      document.getElementById('printArea').innerHTML = `
+        <div class="p-logo">O MARKIN</div>
+        <div class="p-sub">TESTE DA FILA DE IMPRESSAO</div>
+        <div class="p-line"></div>
+        <div class="p-code">${new Date().toLocaleString('pt-BR')}</div>
+        <div class="p-line"></div>
+        <div class="p-item"><span>1x Teste</span><span>R$ 0,00</span></div>
+        <div class="p-line"></div>
+        <div class="p-raw">REGUA DE ${cols} COLUNAS</div>
+        <div class="p-raw">${regua}</div>
+        <div class="p-raw">Coube numa linha so? largura certa.</div>
+        <div class="p-raw">Quebrou em duas? escolha menos.</div>
+        <div class="p-foot">Se saiu, a fila esta funcionando!</div>`;
+      const ok = await enviarParaFila('teste', 'Teste do sistema');
+      const m = document.getElementById('filaMsg');
+      m.style.color = ok ? 'var(--green)' : 'var(--tomato)';
+      m.textContent = ok ? 'Enviado pra fila ✓ Se o PC estiver rodando, sai em segundos.' : 'Não foi possível enviar.';
+    });
+  }
+
   function renderModuloConfig(){
     const box = document.getElementById('modExtra');
     if(!box) return;
@@ -7901,66 +8054,6 @@
           </div>
         </div>`;
     }
-    if(moduloAtivo('filaimpressao')){
-      const st = filaStatus();
-      // Quem acabou de plugar a impressora está nesta tela, não na aba
-      // Instalador — que mora em outro grupo (⚙️ Ajustes) e some para quem
-      // não é gerente. Sem este atalho, achar o instalador vira caça ao
-      // tesouro justamente na hora em que a impressora está esperando.
-      const semAgente = agentesVivos().filter(a => a.seg < 90).length === 0;
-      const atalhoInstalador = currentRole !== 'gerente' ? '' : `
-          <div class="form-actions" style="margin:-6px 0 18px;">
-            <button class="${semAgente ? 'btn-primary' : 'btn-ghost'}" id="irInstalador">
-              🖥️ ${semAgente ? 'Configurar o computador da loja' : 'Abrir o Instalador'}
-            </button>
-          </div>`;
-      html += `
-        <div class="admin-list">
-          <h3>🖨️ Fila de impressão</h3>
-          <div class="box-info" style="border-color:${st.cor}; color:${st.cor}; background:${st.bg};">
-            ${st.texto}
-          </div>
-          ${atalhoInstalador}
-          <div class="form-grid">
-            <div class="field">
-              <label>Imprimir automaticamente</label>
-              <select id="filaAuto">
-                <option value="aceito" ${features.filaAuto==='aceito'?'selected':''}>Quando eu aceitar o pedido</option>
-                <option value="novo" ${features.filaAuto==='novo'?'selected':''}>Assim que o pedido chegar</option>
-                <option value="manual" ${(!features.filaAuto||features.filaAuto==='manual')?'selected':''}>Só quando eu mandar</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Vias da comanda</label>
-              <input type="number" id="filaVias" min="1" max="3" value="${features.filaVias || 1}">
-            </div>
-            <div class="field">
-              <label>Largura do papel</label>
-              <select id="filaColunas">
-                <option value="32" ${Number(features.filaColunas)===32?'selected':''}>55 ou 58 mm — 32 colunas</option>
-                <option value="42" ${Number(features.filaColunas)===42?'selected':''}>55 ou 58 mm, letra miúda — 42 colunas</option>
-                <option value="48" ${Number(features.filaColunas)===48?'selected':''}>80 mm — 48 colunas</option>
-              </select>
-              <small style="display:block; color:rgba(242,233,218,.5); margin-top:6px;">
-                Quantos caracteres cabem numa linha. Errado para mais, cada linha
-                quebra no meio e a comanda sai embaralhada.
-              </small>
-            </div>
-          </div>
-          ${features.filaColunas ? '' : `
-          <div class="box-info" style="border-color:var(--mustard); color:var(--mustard); background:rgba(240,180,41,.1);">
-            ⚠️ <b>A largura nunca foi escolhida</b>, então está valendo 48 colunas (80 mm).
-            Numa impressora de 55 ou 58 mm isso faz cada linha quebrar no meio.
-            Escolha acima e salve — depois mande o teste, que sai com uma régua
-            para conferir no papel.
-          </div>`}
-          <div class="form-actions">
-            <button class="btn-primary" id="filaSaveBtn">Salvar</button>
-            <button class="btn-ghost" id="filaTesteBtn">🧾 Enviar teste pra fila</button>
-          </div>
-          <div class="error-msg" id="filaMsg"></div>
-        </div>`;
-    }
     if(moduloAtivo('fiado')){
       html += `
         <div class="admin-list">
@@ -8007,49 +8100,6 @@
 
     // Leva direto para a aba Instalador, trocando de grupo junto — clicar só
     // na aba não adianta se o grupo dela estiver fechado.
-    const irInst = document.getElementById('irInstalador');
-    if(irInst) irInst.addEventListener('click', () => {
-      // Abre a página separada, não a aba. A aba já sumiu uma vez em silêncio
-      // e a pessoa ficou sem instalador com a impressora plugada esperando;
-      // uma página própria não depende de nada disso para aparecer.
-      window.open('../instalador/', '_blank', 'noopener');
-    });
-
-    const flS = document.getElementById('filaSaveBtn');
-    if(flS) flS.addEventListener('click', async () => {
-      await db.collection('store').doc('features').set({
-        filaAuto: document.getElementById('filaAuto').value,
-        filaVias: parseInt(document.getElementById('filaVias').value) || 1,
-        filaColunas: parseInt(document.getElementById('filaColunas').value) || 48
-      }, {merge:true});
-      showToast('Fila de impressão configurada ✓');
-    });
-    const flT = document.getElementById('filaTesteBtn');
-    if(flT) flT.addEventListener('click', async () => {
-      // Régua: uma linha com exatamente a largura configurada, marcada de 10
-      // em 10. Se ela couber numa linha só, a largura está certa; se quebrar,
-      // está grande demais. É a única forma de conferir isso — no papel.
-      const cols = larguraPapel();
-      let regua = '';
-      for(let i = 1; i <= cols; i++) regua += (i % 10 === 0) ? String(i/10 % 10) : '.';
-      document.getElementById('printArea').innerHTML = `
-        <div class="p-logo">O MARKIN</div>
-        <div class="p-sub">TESTE DA FILA DE IMPRESSAO</div>
-        <div class="p-line"></div>
-        <div class="p-code">${new Date().toLocaleString('pt-BR')}</div>
-        <div class="p-line"></div>
-        <div class="p-item"><span>1x Teste</span><span>R$ 0,00</span></div>
-        <div class="p-line"></div>
-        <div class="p-raw">REGUA DE ${cols} COLUNAS</div>
-        <div class="p-raw">${regua}</div>
-        <div class="p-raw">Coube numa linha so? largura certa.</div>
-        <div class="p-raw">Quebrou em duas? escolha menos.</div>
-        <div class="p-foot">Se saiu, a fila esta funcionando!</div>`;
-      const ok = await enviarParaFila('teste', 'Teste do sistema');
-      const m = document.getElementById('filaMsg');
-      m.style.color = ok ? 'var(--green)' : 'var(--tomato)';
-      m.textContent = ok ? 'Enviado pra fila ✓ Se o PC estiver rodando, sai em segundos.' : 'Não foi possível enviar.';
-    });
 
     const fis = document.getElementById('fiadoSaveBtn');
     if(fis) fis.addEventListener('click', async () => {
@@ -9075,14 +9125,14 @@
   }
 
   /* ---------------- FUNÇÕES E PERMISSÕES ---------------- */
-  const ALL_TABS = ['dashboard','cardapio','adicionais','pedidos','cozinha','tv','mesas','caixa','clientes','entregas','financeiro','estoque','equipe','promocao','loja','modulos','instalador','erros','cupons','mensagens','acessos'];
+  const ALL_TABS = ['dashboard','cardapio','adicionais','pedidos','cozinha','tv','mesas','caixa','clientes','entregas','financeiro','estoque','equipe','promocao','loja','modulos','impressora','erros','cupons','mensagens','acessos'];
   // Abas que nem o dono consegue liberar para funcionário: o instalador monta um
   // arquivo que roda no computador da loja, então fica só com quem é gerente.
-  const TABS_SO_GERENTE = ['instalador'];
+  const TABS_SO_GERENTE = [];
   const TAB_LABEL = {
     dashboard:'📊 Dashboard', cardapio:'🍔 Cardápio', adicionais:'➕ Adicionais', pedidos:'📋 Pedidos', cozinha:'👨‍🍳 Cozinha', tv:'📺 Painel TV', mesas:'🪑 Mesas',
     caixa:'💳 Caixa', clientes:'👥 Clientes', entregas:'🛵 Entregas', financeiro:'💰 Financeiro', modulos:'🧩 Módulos', erros:'🐞 Erros', cupons:'🏷️ Cupons', mensagens:'💬 Mensagens', acessos:'🔐 Acessos', estoque:'📦 Estoque', equipe:'👥 Equipe',
-    promocao:'📣 Promoção', loja:'🏪 Loja', instalador:'🖥️ Instalador'
+    promocao:'📣 Promoção', loja:'🏪 Loja', impressora:'🖨️ Impressora'
   };
   const ROLE_PRESETS = {
     gerente:     {label:'Gerente',     perms: ALL_TABS.slice()},
@@ -9297,7 +9347,7 @@
     if(tab === 'estoque') renderStockList();
     if(tab === 'equipe') { renderEmployeeList(); renderEmployeeRanking(); }
     if(tab === 'promocao') renderPromoForm();
-    if(tab === 'instalador') renderInstaladorCampos();
+    if(tab === 'impressora') renderImpressora();
   }));
 
   /* ================= INSTALADOR DO AGENTE ================= */
