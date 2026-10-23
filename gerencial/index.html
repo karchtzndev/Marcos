@@ -9851,7 +9851,10 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').then(reg => {
       // detecta quando uma versão nova do SW instala e recarrega automaticamente
       reg.addEventListener('updatefound', () => {
+        // Pode vir vazio: entre o evento e esta linha o worker já pode ter
+        // saído de "installing". Sem esta guarda, estoura aqui.
         const newSW = reg.installing;
+        if(!newSW) return;
         newSW.addEventListener('statechange', () => {
           if(newSW.state === 'installed' && navigator.serviceWorker.controller){
             // nova versão pronta — recarrega em 1s

@@ -4327,7 +4327,11 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js', {scope:'/'}).then(reg => {
       reg.addEventListener('updatefound', () => {
+        // Pode vir vazio: entre o evento e esta linha o worker já pode ter
+        // saído de "installing". Sem esta guarda, estoura aqui — foi o que o
+        // registro de falhas pegou assim que entrou no ar.
         const nw = reg.installing;
+        if(!nw) return;
         nw.addEventListener('statechange', () => {
           if(nw.state === 'installed' && navigator.serviceWorker.controller){
             // Nunca recarrega no meio de um pedido. Espera o carrinho
