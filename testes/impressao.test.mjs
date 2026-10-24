@@ -154,3 +154,60 @@ describe('impressão direta no Android, pelo RawBT', () => {
       'confirma que o utf8 inchava a imagem — e por isso quebrava');
   });
 });
+
+describe('imprimir pelo celular sem mentir pro operador', () => {
+
+  const rawbt = (PAINEL.match(/function enviarParaRawBT[\s\S]*?\n  \}/) || [''])[0];
+  const print = (PAINEL.match(/function doPrint[\s\S]*?\n  \}/) || [''])[0];
+
+  test('achei as duas funções', () => {
+    assert.ok(rawbt.length > 100, 'enviarParaRawBT sumiu');
+    assert.ok(print.length > 100, 'doPrint sumiu');
+  });
+
+  test('enviarParaRawBT responde se a comanda foi aceita', () => {
+    // Clicar num endereço rawbt: quando o app não existe não dá erro nenhum:
+    // o navegador ignora em silêncio. Sem essa resposta, o painel avisava
+    // "enviado" com a cozinha sem papel na mão.
+    assert.match(rawbt, /return new Promise/,
+      'voltou a ser disparo cego — o painel diria "enviado" sem ter enviado');
+    assert.match(rawbt, /resolve\(/, 'a promessa nunca se resolve: o print trava');
+  });
+
+  test('percebe o RawBT assumindo a tela', () => {
+    assert.match(rawbt, /addEventListener\('blur'/,
+      'sem ouvir o foco, não há como saber se o app atendeu');
+    assert.match(rawbt, /visibilitychange/,
+      'alguns Android não disparam blur, só visibilitychange');
+    assert.match(rawbt, /removeEventListener\('blur'/,
+      'ouvinte deixado para trás: a cada impressão sobra um, e o painel fica pesado');
+  });
+
+  test('o aviso de sucesso só sai depois da confirmação', () => {
+    const trecho = print.slice(print.indexOf('rawbt'));
+    assert.ok(/envio\.then\(/.test(trecho),
+      'o toast voltou a sair antes de saber o resultado');
+    assert.ok(/entregue/.test(trecho),
+      'ninguém está lendo a resposta do envio');
+  });
+
+  test('quando o RawBT não atende, registra a falha e imprime de outro jeito', () => {
+    const trecho = print.slice(print.indexOf('rawbt'));
+    assert.match(trecho, /registrarFalha\(/,
+      'falha engolida: é exatamente o problema que passamos a semana caçando');
+    assert.match(trecho, /imprimirNoNavegador\(html, mode\)/,
+      'a comanda se perderia — melhor abrir a janela do que não sair nada');
+  });
+
+  test('aparelho marcado "direto na térmica" não é desviado pra fila', () => {
+    // A cozinha fica longe do balcão: quem marcou direto quer a térmica do
+    // lado, não a impressora do caixa.
+    assert.match(print, /diretoForcado/,
+      'a fila voltou a engolir a escolha do aparelho');
+    assert.match(print, /escolhaDoAparelho === 'rawbt'/,
+      'está olhando o modo efetivo, não a escolha explícita — ' +
+      'no automático a fila precisa continuar ganhando');
+    assert.match(print, /if\(!diretoForcado && mode !== 'a4' && moduloAtivo\('filaimpressao'\)\)/,
+      'a fila deixou de respeitar a escolha do aparelho');
+  });
+});

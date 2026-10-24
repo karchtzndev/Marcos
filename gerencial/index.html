@@ -3883,12 +3883,36 @@
     const b64 = btoa(bin);
     const url = 'rawbt:base64,' + b64;
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => a.remove(), 1000);
+    /* O clique num endereco rawbt: e um tiro no escuro: se o RawBT nao
+       estiver instalado, ou a impressora estiver fora de alcance, o navegador
+       simplesmente nao faz nada e nenhum erro acontece. Era assim que o painel
+       dizia "Enviado para a impressora" com a comanda nunca tendo saido.
+
+       Nao da pra perguntar ao Android se deu certo, mas da pra perceber: quando
+       o RawBT assume, ele vem pra frente e esta pagina perde o foco. Se depois
+       de 1,8s a pagina continuar na frente, ninguem atendeu o chamado. */
+    return new Promise((resolve) => {
+      let assumiu = false;
+      const marcar = () => { assumiu = true; };
+      const aoTrocar = () => { if(document.hidden) assumiu = true; };
+      window.addEventListener('blur', marcar);
+      window.addEventListener('pagehide', marcar);
+      document.addEventListener('visibilitychange', aoTrocar);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+
+      setTimeout(() => {
+        window.removeEventListener('blur', marcar);
+        window.removeEventListener('pagehide', marcar);
+        document.removeEventListener('visibilitychange', aoTrocar);
+        a.remove();
+        resolve(assumiu || document.hidden);
+      }, 1800);
+    });
   }
 
   document.getElementById('testPrintBtn')?.addEventListener('click', () => {
@@ -4104,8 +4128,16 @@
     const html = document.getElementById('printArea').innerHTML;
     if(!html.trim()){ alert("Nada para imprimir."); return; }
 
-    // 1º) Fila no computador, se o módulo estiver ligado
-    if(mode !== 'a4' && moduloAtivo('filaimpressao')){
+    /* 1º) Escolha explicita deste aparelho vence tudo.
+       Se alguem foi na aba Impressora e marcou "sempre direto na termica",
+       essa pessoa quer imprimir na termica ao lado dela -- nao mandar pro
+       computador do balcao. No automatico a fila continua ganhando, entao
+       aparelho que ninguem configurou segue como sempre foi. */
+    const escolhaDoAparelho = guardar.ler('omarkin_print_mode') || 'auto';
+    const diretoForcado = (mode !== 'a4' && escolhaDoAparelho === 'rawbt' && modoImpressao() === 'rawbt');
+
+    // 2º) Fila no computador, se o módulo estiver ligado
+    if(!diretoForcado && mode !== 'a4' && moduloAtivo('filaimpressao')){
       enviarParaFila('comanda').then(ok => {
         if(ok){
           const st = filaStatus();
@@ -4120,15 +4152,25 @@
       return;
     }
 
-    // 2º) Android com RawBT: manda direto, sem abrir janela
+    // 3º) Android com RawBT: manda direto, sem abrir janela
     if(mode !== 'a4' && modoImpressao() === 'rawbt'){
+      let envio;
       try{
-        enviarParaRawBT(htmlParaEscPos(html));
-        showToast('🖨️ Enviado para a impressora');
-        return;
+        envio = enviarParaRawBT(htmlParaEscPos(html));
       }catch(e){
         registrarFalha('imprimir pelo RawBT (caiu para o navegador)', e);
+        imprimirNoNavegador(html, mode);
+        return;
       }
+      showToast('🖨️ Enviando para a impressora…');
+      envio.then(entregue => {
+        if(entregue){ showToast('🖨️ Enviado para a impressora'); return; }
+        // O chamado caiu no vazio. Antes isto passava como sucesso.
+        registrarFalha('o RawBT nao atendeu (app ausente, fechado ou impressora fora de alcance)');
+        showToast('⚠️ O RawBT não abriu — imprimindo pelo navegador');
+        imprimirNoNavegador(html, mode);
+      });
+      return;
     }
     imprimirNoNavegador(html, mode);
   }
