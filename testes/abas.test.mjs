@@ -143,3 +143,41 @@ describe('sobras de edição aparecendo na página', () => {
     });
   }
 });
+
+/* ==================================================================
+   CADA AJUSTE NA ABA QUE PROMETE TE-LO
+   A aba Impressora diz "tudo da impressao num lugar so". Durante dias o
+   ajuste de imprimir direto do celular ficou na aba Loja — e procurar
+   coisa de impressao na aba Loja nao ocorre a ninguem. Foi a quarta vez
+   nesta semana que algo existia e nao era encontrado.
+   ================================================================== */
+describe('o que a aba Impressora promete ter', () => {
+
+  // O conteudo da aba vem de dois lugares: o HTML fixo da div e o que
+  // renderImpressora() escreve dentro dela. Olhar so um dos dois daria
+  // alarme falso — e alarme falso treina a pessoa a ignorar o teste.
+  const marcacaoDaAba = (() => {
+    const ini = PAINEL.indexOf('<div id="atabImpressora"');
+    const fim = PAINEL.indexOf('<!-- PAINEL TV TAB -->', ini);
+    return PAINEL.slice(ini, fim);
+  })();
+  const corpoDoRender = (() => {
+    const ini = PAINEL.indexOf('function renderImpressora()');
+    return PAINEL.slice(ini, PAINEL.indexOf('\n  function ', ini + 10));
+  })();
+  const dentroDaAba = (id) => marcacaoDaAba.includes(id) || corpoDoRender.includes(id);
+
+  for(const [id, oque] of [
+    ['id="printMode"',       'imprimir direto do celular'],
+    ['id="filaColunas"',     'largura do papel'],
+    ['id="filaLogo"',        'logo na impressao'],
+    ['id="filaTesteBtn"',    'enviar teste'],
+    ['id="filaRajadaBtn"',   'rajada de teste'],
+    ['id="instGerar"',       'baixar o instalador'],
+  ]){
+    test(`${oque} esta na aba Impressora`, () => {
+      assert.ok(dentroDaAba(id),
+        `${oque} ficou fora da aba que promete reunir tudo da impressao`);
+    });
+  }
+});

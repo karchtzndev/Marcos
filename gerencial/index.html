@@ -2004,6 +2004,53 @@
           </div>
 
           <div class="admin-list">
+            <h3>📱 Imprimir direto do celular</h3>
+            <div class="box-info" style="margin-bottom:16px;">
+              Sem computador no meio: o aparelho manda a comanda direto para a
+              térmica pareada nele. <b>Este ajuste vale só neste aparelho</b> — cada
+              celular e tablet tem o seu.
+            </div>
+            <div class="field">
+              <label>Como imprimir neste aparelho</label>
+              <select id="printMode">
+                <option value="auto">Automático — direto na térmica se for Android</option>
+                <option value="rawbt">Sempre direto na térmica (RawBT)</option>
+                <option value="browser">Sempre pelo navegador</option>
+              </select>
+            </div>
+            <div id="printInfo" class="box-info"></div>
+            <div class="form-actions">
+              <button class="btn-ghost" id="testPrintBtn">🧾 Imprimir teste</button>
+            </div>
+
+            <div class="box-info" style="border-color:var(--mustard); color:var(--mustard); background:rgba(240,180,41,.1); margin-top:16px;">
+              ⚠️ <b>No iPhone isso não funciona</b>, e não é limitação do sistema: o iOS
+              bloqueia impressora Bluetooth que não seja certificada pela Apple, e
+              térmica comum não é. Só o Android imprime direto.
+              <br><br>
+              Nos iPhones a comanda continua saindo — pela <b>fila de impressão</b>, que
+              um computador ou Raspberry Pi na loja consome. É para isso que ela existe:
+              fazer a comanda sair igual, venha de que aparelho vier.
+            </div>
+
+            <details class="bulk-tool" style="margin-top:14px;">
+              <summary>📱 Como configurar no Android</summary>
+              <div class="bulk-body">
+                <div class="passo-print"><span>1</span><div><strong>Instale o RawBT</strong><p>Pela Play Store, gratuito. É ele que fala com a térmica.</p></div></div>
+                <div class="passo-print"><span>2</span><div><strong>Pareie a impressora</strong><p>Ajustes → Bluetooth → parear a térmica. Depois abra o RawBT e escolha ela como impressora padrão.</p></div></div>
+                <div class="passo-print"><span>3</span><div><strong>Teste aqui</strong><p>Toque em "Imprimir teste". Deve sair na hora, sem abrir tela nenhuma.</p></div></div>
+                <div class="passo-print"><span>4</span><div><strong>Pronto</strong><p>Comandas e comprovantes saem direto desse aparelho.</p></div></div>
+                <div class="box-info" style="margin-top:14px;">
+                  Uma térmica Bluetooth só aceita <b>uma conexão por vez</b>. Se vários
+                  celulares vão imprimir na mesma impressora, cada um precisa esperar o
+                  outro soltar — na prática, escolha um aparelho para ser o da impressão,
+                  ou use a fila com um computador.
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <div class="admin-list">
             <h3>🩺 Quando não sair nada</h3>
             <div class="box-info" style="margin-bottom:16px;">
               Os agentes sobem sem janela nenhuma, então o que deu errado não aparece
@@ -2386,34 +2433,6 @@
               </div>
             </div>
           </div>
-          <div class="admin-list">
-            <h3>🖨️ Impressão</h3>
-            <div class="field">
-              <label>Como imprimir neste aparelho</label>
-              <select id="printMode">
-                <option value="auto">Automático — direto na térmica se for Android</option>
-                <option value="rawbt">Sempre direto na térmica (RawBT)</option>
-                <option value="browser">Sempre pelo navegador</option>
-              </select>
-            </div>
-            <div id="printInfo" class="box-info"></div>
-            <div class="form-actions">
-              <button class="btn-ghost" id="testPrintBtn">🧾 Imprimir teste</button>
-            </div>
-            <details class="bulk-tool" style="margin-top:14px;">
-              <summary>📱 Como configurar a impressão direta</summary>
-              <div class="bulk-body">
-                <div class="passo-print"><span>1</span><div><strong>No aparelho Android</strong><p>Instale o app <b>RawBT</b> pela Play Store (gratuito).</p></div></div>
-                <div class="passo-print"><span>2</span><div><strong>Pareie a impressora</strong><p>Ajustes → Bluetooth → parear a térmica. Depois abra o RawBT e escolha ela como impressora padrão.</p></div></div>
-                <div class="passo-print"><span>3</span><div><strong>Teste aqui</strong><p>Toque em "Imprimir teste". Deve sair na hora, sem abrir tela nenhuma.</p></div></div>
-                <div class="passo-print"><span>4</span><div><strong>Pronto</strong><p>Comandas e comprovantes saem direto. O ajuste vale só neste aparelho.</p></div></div>
-                <div class="box-info" style="margin-top:14px;">
-                  ⚠️ <b>No iPhone não funciona</b> com térmica Bluetooth comum — o iOS só aceita impressora AirPrint. Nele a impressão segue pelo navegador.
-                </div>
-              </div>
-            </details>
-          </div>
-
           <div class="admin-list">
             <h3>🕒 Horário de funcionamento</h3>
             <p style="font-size:13px; color:rgba(242,233,218,0.6); margin-bottom:16px;">Marque os dias que você abre e defina o horário de cada um. É isso que o site mostra ao cliente — e o que o módulo <b style="color:var(--mustard);">🕒 Abrir e fechar no horário</b> usa para abrir e fechar sozinho.</p>
@@ -3684,7 +3703,11 @@
       ? '🖨️ <b>Direto na térmica</b> — a comanda sai sem abrir tela. Precisa do RawBT instalado e a impressora pareada.'
       : (ehAndroid
           ? '🌐 <b>Pelo navegador</b> — abre a janela de impressão. Mude acima pra sair direto na térmica.'
-          : '🌐 <b>Pelo navegador</b> — este aparelho não é Android, então a impressão direta não está disponível. No iPhone, só com impressora AirPrint.');
+          // No iPhone não adianta insistir: o caminho é a fila. Dizer isso aqui
+          // evita que alguém passe a tarde tentando um ajuste que não existe.
+          : '🌐 <b>Pelo navegador</b> — este aparelho não imprime direto na térmica. '
+            + 'Se for iPhone, não é ajuste: o iOS bloqueia térmica Bluetooth comum. '
+            + 'A comanda deste aparelho sai pela <b>fila de impressão</b>, no computador da loja.');
   }
   document.getElementById('printMode')?.addEventListener('change', (e) => {
     guardar.salvar('omarkin_print_mode', e.target.value);
@@ -8379,6 +8402,9 @@
     }
 
     pintarStatusImpressora();
+    // O bloco "imprimir direto do celular" mora nesta aba agora; sem esta
+    // chamada ele abriria com o seletor em branco e sem explicação nenhuma.
+    atualizarInfoImpressao();
 
     // O instalador roda como administrador no PC da loja: é só do gerente.
     const inst = document.getElementById('impressoraInstalador');
