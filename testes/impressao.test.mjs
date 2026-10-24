@@ -117,3 +117,40 @@ describe('rajada de teste', () => {
     assert.ok(envio.includes('confirm('), 'dez cupons de uma vez sem avisar e maldade');
   });
 });
+
+describe('impressão direta no Android, pelo RawBT', () => {
+
+  const fonte = PAINEL.slice(PAINEL.indexOf('function enviarParaRawBT'),
+                             PAINEL.indexOf('rawbt:base64,') + 40);
+
+  test('não usa TextEncoder — ele codifica em utf8', () => {
+    // utf8 transforma todo byte acima de 127 em DOIS bytes. Com texto sem
+    // acento isso passa despercebido, porque ASCII sai igual nos dois. Com o
+    // logo, que é imagem em pontos e usa a faixa inteira de 0 a 255, cada
+    // ponto escuro viraria dois bytes: a impressora leria o tamanho errado
+    // da imagem e ficaria esperando dados que nunca chegam.
+    // Mira a CHAMADA, nao a palavra: o comentario do conserto cita o nome
+    // para explicar o que deu errado, e nao pode derrubar o teste.
+    assert.ok(!/new TextEncoder\(\)/.test(fonte),
+      'TextEncoder aqui corrompe a imagem e todo byte acima de 127');
+  });
+
+  test('trata cada caractere como um byte, igual ao agente', () => {
+    assert.ok(/charCodeAt\(i\) & 0xFF/.test(fonte),
+      'o caractere ja E o byte: mascarar em 0xFF e o que garante isso');
+  });
+
+  test('na prática: os bytes do logo sobrevivem', () => {
+    // Reproduz a conversão com uma sequência que tem bytes dos dois lados de
+    // 127, que é exatamente o caso do raster.
+    const cru = '\x1D\x76\x30\x00\x14\x00\x20\x00\xFF\x80\x7F\x01';
+    let bin = '';
+    for(let i = 0; i < cru.length; i++) bin += String.fromCharCode(cru.charCodeAt(i) & 0xFF);
+    assert.strictEqual(bin.length, cru.length, 'nenhum byte pode virar dois');
+
+    // E o que o jeito antigo faria, para o teste mostrar a diferença:
+    const utf8 = Buffer.from(cru, 'utf8');
+    assert.ok(utf8.length > cru.length,
+      'confirma que o utf8 inchava a imagem — e por isso quebrava');
+  });
+});

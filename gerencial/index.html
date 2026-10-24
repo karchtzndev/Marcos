@@ -3831,10 +3831,22 @@
   }
 
   function enviarParaRawBT(texto){
-    // O RawBT recebe pelo esquema rawbt: em base64
-    const bytes = new TextEncoder().encode(texto);
+    /* O RawBT recebe pelo esquema rawbt:, em base64.
+       
+       CORRIGIDO: aqui estava TextEncoder, que codifica em utf8 — e utf8
+       transforma TODO byte acima de 127 em dois bytes. Enquanto o cupom era
+       só texto sem acento isso não aparecia, porque ASCII puro sai igual nos
+       dois. Com o logo, que é imagem em pontos e usa a faixa inteira de 0 a
+       255, cada ponto escuro viraria dois bytes: a impressora leria o
+       tamanho errado da imagem, imprimiria lixo e ficaria esperando dados
+       que nunca chegam.
+       
+       Cada caractere aqui JÁ É um byte, de 0 a 255 — é o mesmo latin1 que o
+       agente usa. Então vai direto, sem reinterpretar nada. */
     let bin = '';
-    bytes.forEach(b => bin += String.fromCharCode(b));
+    for(let i = 0; i < texto.length; i++){
+      bin += String.fromCharCode(texto.charCodeAt(i) & 0xFF);
+    }
     const b64 = btoa(bin);
     const url = 'rawbt:base64,' + b64;
 
