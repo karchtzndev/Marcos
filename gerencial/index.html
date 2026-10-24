@@ -1968,6 +1968,32 @@
           </div>
 
           <div class="admin-list">
+            <h3>📶 Impressora longe do computador</h3>
+            <div class="box-info" style="margin-bottom:16px;">
+              Quando a cozinha fica longe do atendimento, o caminho é
+              <b>impressora de rede</b> — Wi-Fi ou cabo. Ela não depende do
+              computador: liga na tomada, entra na rede da loja e recebe a
+              comanda de onde estiver.
+            </div>
+            <div class="passo-print"><span>📡</span><div><strong>Rede (Wi-Fi) — recomendado para distância</strong>
+              <p>Procure por <b>impressora térmica Wi-Fi ESC/POS</b> ou <b>com porta
+                 Ethernet</b>. No instalador, escolha a opção <b>R</b> e informe o IP —
+                 a própria impressora imprime uma folha com ele quando você segura o
+                 botão de avanço ao ligar. O alcance passa a ser o do seu Wi-Fi.</p></div></div>
+            <div class="passo-print"><span>🔵</span><div><strong>Bluetooth — só para perto</strong>
+              <p>Funciona, e o sistema aceita: pareie no Windows em
+                 <b>Configurações → Bluetooth e dispositivos</b> e ela aparece na lista
+                 do instalador como uma impressora comum. Mas seja realista com a
+                 distância: Bluetooth comum alcança uns <b>10 metros em linha livre</b>,
+                 e bem menos atravessando parede, porta de câmara fria ou balcão de
+                 inox. Numa cozinha separada do atendimento, ela vai cair.</p></div></div>
+            <div class="passo-print"><span>🖥️</span><div><strong>Outra saída: um segundo computador</strong>
+              <p>Um PC simples ou um Raspberry Pi na cozinha, com a impressora no
+                 cabo USB dele. O sistema já aceita vários agentes ao mesmo tempo —
+                 é só rodar o instalador lá também, escolhendo o modo <b>cópia</b>.</p></div></div>
+          </div>
+
+          <div class="admin-list">
             <h3>🩺 Quando não sair nada</h3>
             <div class="box-info" style="margin-bottom:16px;">
               Os agentes sobem sem janela nenhuma, então o que deu errado não aparece
@@ -9871,11 +9897,17 @@ for /f "usebackq delims=" %%P in ("%TEMP%\\mk-prn.txt") do (
   echo      [!N!]  %%P
 )
 echo      [0]  criar uma nova numa porta USB, com o nome ${p.share}
+echo      [R]  impressora de REDE, por Wi-Fi ou cabo  ^(digite R^)
+echo.
+echo   Dica: impressora Bluetooth ja pareada no Windows aparece na lista
+echo         acima como uma impressora comum. Se nao aparecer, pareie
+echo         primeiro em Configuracoes, Bluetooth e dispositivos.
 echo.
 set "ESC="
-set /p "ESC=  Qual delas e a ${p.nome}?  numero: "
+set /p "ESC=  Qual delas e a ${p.nome}?  numero, 0 ou R: "
 
 set "MK_ALVO="
+if /i "!ESC!"=="R" goto :rede${i}
 if "!ESC!"=="0" goto :criar${i}
 set /a K=0
 for /f "usebackq delims=" %%P in ("%TEMP%\\mk-prn.txt") do (
@@ -9886,6 +9918,37 @@ if defined MK_ALVO goto :compartilhar${i}
 echo   [X] Numero invalido. Rode de novo e escolha um da lista.
 pause
 exit /b 1
+
+:rede${i}
+REM Impressora de rede escuta ESC/POS cru na porta 9100. Nao ha driver, nao ha
+REM compartilhamento do Windows, nao ha Bluetooth no meio: o agente abre uma
+REM conexao e entrega os bytes. E o unico caminho que atravessa a loja
+REM inteira — Bluetooth e feito para alguns metros, rede para predio.
+echo.
+set "IP="
+set /p "IP=  IP da impressora na rede, ex 192.168.0.50: "
+if "!IP!"=="" (
+  echo   [X] Sem IP nao da para continuar. Rode de novo.
+  pause
+  exit /b 1
+)
+echo   testando !IP! na porta 9100...
+powershell -NoProfile -Command "$c=New-Object Net.Sockets.TcpClient; try{ $t=$c.BeginConnect('%IP%',9100,$null,$null); if(-not $t.AsyncWaitHandle.WaitOne(5000)){ throw 'sem resposta' }; $c.EndConnect($t); $c.Close(); Write-Host '  [ok] a impressora respondeu' }catch{ Write-Host ('  [X] nao respondeu: ' + $_); exit 1 }"
+if errorlevel 1 (
+  echo.
+  echo   A impressora nao respondeu nesse endereco. Confira:
+  echo     - esta ligada e com papel
+  echo     - esta na MESMA rede que este computador
+  echo     - o IP esta certo ^(imprima a folha de configuracao dela:
+  echo       geralmente segurando o botao de avanco ao ligar^)
+  echo.
+  pause
+  exit /b 1
+)
+set "SHARE=tcp://!IP!:9100"
+set "SH${i}=!SHARE!"
+echo   [ok] rede  entrega em  !SHARE!
+goto :agente${i}
 
 :criar${i}
 REM Nenhum script sabe qual porta USB e qual impressora: para o Windows elas
@@ -9904,9 +9967,11 @@ if not defined SHARE (
   pause
   exit /b 1
 )
-set "SH${i}=!SHARE!"
+set "SH${i}=\\\\localhost\\!SHARE!"
 echo   [ok] !MK_ALVO!  entrega em  \\\\localhost\\!SHARE!
+set "SHARE=\\\\localhost\\!SHARE!"
 
+:agente${i}
 set "DEST=%BASE%\\agente-${p.nome}"
 if not exist "!DEST!" mkdir "!DEST!"
 cd /d "!DEST!"
@@ -9917,7 +9982,9 @@ curl.exe -fsSL -o package.json "${INST_RAW}package.json" || goto :semrede
 curl.exe -fsSL -o config.exemplo.json "${INST_RAW}config.exemplo.json" || goto :semrede
 
 set "MK_NOME=${p.nome}"
-set "MK_IMPRESSORA=\\\\localhost\\!SHARE!"
+REM O endereco ja vem pronto da escolha: compartilhamento, porta COM ou
+REM tcp://. O agente decide o caminho de impressao por ele.
+set "MK_IMPRESSORA=!SHARE!"
 REM O config sai do PowerShell, e nao de um node -e: a versao antiga tinha uma
 REM negacao que o cmd comia, a condicao invertia e o arquivo nascia errado.
 REM E grava com UTF8Encoding sem marca de ordem de bytes — aqueles tres bytes
@@ -9942,7 +10009,15 @@ echo   [ok] agente ${p.nome} instalado e ligado`).join('\n');
 
     const identificar = impressoras.map((p, i) => `
 powershell -NoProfile -Command "$b=[byte[]](0x1B,0x40) + [Text.Encoding]::ASCII.GetBytes(([char]10) + '   ESTA IMPRESSORA E A' + ([char]10) + '   >>> ${p.nome.toUpperCase()} <<<' + ([char]10) + '   cole a etiqueta nela' + ([char]10)+([char]10)+([char]10)) + [byte[]](0x1D,0x56,0x42,0x00); [IO.File]::WriteAllBytes($env:TEMP+'\\mkid.bin',$b)"
-copy /b "%TEMP%\\mkid.bin" "\\\\localhost\\!SH${i}!" >nul 2>&1`).join('\n');
+REM A folha vai pelo mesmo caminho que o cupom vai: compartilhamento com
+REM copy, rede com socket. Mandar por copy numa tcp:// nao chegaria a lugar
+REM nenhum, e a pessoa ficaria esperando um papel que nunca sai.
+echo !SH${i}! | findstr /b /c:"tcp://" >nul
+if errorlevel 1 (
+  copy /b "%TEMP%\\mkid.bin" "!SH${i}!" >nul 2>&1
+) else (
+  powershell -NoProfile -Command "$a='!SH${i}!' -replace '^tcp://',''; $p=$a.Split(':'); $c=New-Object Net.Sockets.TcpClient; $c.Connect($p[0], [int]$p[1]); $s=$c.GetStream(); $b=[IO.File]::ReadAllBytes($env:TEMP+'\mkid.bin'); $s.Write($b,0,$b.Length); $s.Flush(); $c.Close()" >nul 2>&1
+)`).join('\n');
 
     const testes = impressoras.map(p =>
       `echo      cd /d "%BASE%\\agente-${p.nome}" ^&^& npm run testar`).join('\n');

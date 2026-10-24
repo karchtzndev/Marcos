@@ -13,11 +13,15 @@
   "_impressora": "Linux/Raspberry: caminho do dispositivo. Windows: o compartilhamento.",
   "impressora": "/dev/markin-cozinha",
   "_exemplos_impressora": [
-    "/dev/markin-cozinha        (USB, nome fixo por udev — recomendado)",
-    "/dev/usb/lp0              (USB, nome que pode trocar ao reiniciar)",
-    "/dev/rfcomm0              (Bluetooth)",
-    "\\\\localhost\\CUPOM        (Windows)"
+    "tcp://192.168.0.50        (REDE: Wi-Fi ou cabo. Alcanca a loja inteira — e a resposta quando a cozinha fica longe do atendimento. Porta 9100 se nao disser outra.)",
+    "COM3                      (Bluetooth pareado no Windows, que aparece como porta serial)",
+    "\\\\localhost\\CUPOM        (USB no Windows, pelo compartilhamento)",
+    "/dev/usb/lp0              (USB no Linux e no Raspberry Pi)",
+    "/dev/rfcomm0              (Bluetooth no Linux)"
   ],
+  "_alcance": "Bluetooth e feito para alguns metros e atravessa mal parede e porta de camara fria. Se a impressora fica longe do computador, use REDE: o alcance passa a ser o do Wi-Fi da loja.",
+  "_tempoLimiteRede": "Opcional, so para tcp://. Quanto esperar a impressora responder, em milissegundos. Padrao 8000.",
+  "_velocidadeSerial": "Opcional, so para COM. Padrao 9600. Algumas Bluetooth pedem 115200 — esta no manual ou na folha de configuracao dela.",
 
   "usuario": "impressora@omarkin.com.br",
   "senha": "TROCAR-PELA-SENHA-DA-CONTA",

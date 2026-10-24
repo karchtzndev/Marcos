@@ -126,9 +126,77 @@ function imprimirWindows(buf){
   });
 }
 
-const imprimir = (escpos) => process.platform === 'win32'
-  ? imprimirWindows(paraBytes(escpos))
-  : imprimirLinux(paraBytes(escpos));
+// ---------- IMPRESSORA DE REDE (Wi-Fi ou cabo) ----------
+// Praticamente toda termica com rede escuta ESC/POS cru na porta 9100. Nao ha
+// driver, nao ha compartilhamento do Windows, nao ha Bluetooth no meio: o
+// agente abre uma conexao, entrega os bytes e fecha.
+//
+// E o unico caminho que atravessa a loja inteira. Bluetooth e feito para
+// alguns metros; rede e feita para predio. Quando a cozinha fica longe do
+// atendimento, e esta a resposta.
+// O endereco entra por parametro, com o do config como padrao: assim da
+// para provar o caminho de rede num teste, sem depender de um arquivo de
+// configuracao e sem impressora nenhuma na mesa.
+function imprimirRede(buf, alvo = cfg.impressora){
+  const net = require('net');
+  const m = String(alvo).match(/^tcp:\/\/([^:/]+)(?::(\d+))?/i);
+  const host = m[1];
+  const porta = Number(m[2] || 9100);
+
+  return new Promise((resolve, reject) => {
+    const s = new net.Socket();
+    // Sem limite de tempo, uma impressora desligada deixaria a conexao
+    // pendurada e a fila parada — sem nada na tela dizendo por que.
+    s.setTimeout(Number(cfg.tempoLimiteRede) || 8000);
+    const falhar = (e) => { s.destroy(); reject(e); };
+    s.once('timeout', () => falhar(new Error(`a impressora ${host}:${porta} nao respondeu`)));
+    s.once('error', (e) => falhar(new Error(`${host}:${porta} — ${e.message}`)));
+    s.connect(porta, host, () => {
+      // end() so resolve depois que o socket escoou o que foi escrito
+      s.end(buf, () => { s.destroy(); resolve(); });
+    });
+  });
+}
+
+// ---------- PORTA SERIAL (Bluetooth no Windows) ----------
+// Impressora Bluetooth pareada no Windows costuma aparecer como porta COM.
+// Escrever direto nela entrega os bytes crus, sem driver nenhum — mesmo
+// principio do compartilhamento, outro destino.
+function imprimirSerial(buf, alvo = cfg.impressora){
+  return new Promise((resolve, reject) => {
+    const porta = String(alvo).toUpperCase().replace(/:$/, '');
+    const tmp = path.join(os.tmpdir(), 'markin-cupom-' + Date.now() + '.bin');
+    fs.writeFile(tmp, buf, (err) => {
+      if(err) return reject(err);
+      // O "mode" fixa a velocidade antes de escrever: sem isso o Windows usa
+      // o que estiver sobrando e sai lixo no papel.
+      const baud = Number(cfg.velocidadeSerial) || 9600;
+      execFile('cmd', ['/c',
+        `mode ${porta}: BAUD=${baud} PARITY=N DATA=8 STOP=1 >nul & copy /b "${tmp}" ${porta}:`
+      ], (erro, _s, stderr) => {
+        fs.unlink(tmp, () => {});
+        erro ? reject(new Error(stderr || erro.message)) : resolve();
+      });
+    });
+  });
+}
+
+/* Qual caminho usar sai do proprio endereco configurado, nao do sistema:
+     tcp://192.168.0.50       impressora de rede, Wi-Fi ou cabo
+     COM3                     Bluetooth pareado no Windows, ou serial
+     \\localhost\COZINHA      compartilhamento do Windows (USB)
+     /dev/usb/lp0             USB no Linux e no Raspberry Pi
+     /dev/rfcomm0             Bluetooth no Linux
+   Assim a mesma versao do agente serve para os quatro, e trocar de
+   impressora e trocar uma linha do config — nao reinstalar nada. */
+function caminhoDeImpressao(endereco = cfg.impressora){
+  const alvo = String(endereco || '');
+  if(/^tcp:\/\//i.test(alvo)) return imprimirRede;
+  if(/^COM\d+:?$/i.test(alvo)) return imprimirSerial;
+  return process.platform === 'win32' ? imprimirWindows : imprimirLinux;
+}
+
+const imprimir = (escpos) => caminhoDeImpressao()(paraBytes(escpos));
 
 /* ============ MODOS ============ */
 //
@@ -357,7 +425,8 @@ if(require.main === module){
 }
 
 module.exports = {
-  lerConfig,
+  lerConfig, caminhoDeImpressao,
+  imprimirRede, imprimirSerial, imprimirWindows, imprimirLinux,
   reivindicar, reivindicarPreso, devolver,
   marcarMinhaVia, jaImprimiAqui, fecharAntigos, chaveAgente,
 };

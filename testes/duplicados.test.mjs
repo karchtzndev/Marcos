@@ -249,10 +249,36 @@ describe('o .bat gerado pelas duas telas', () => {
     assert.ok(/Get-Printer \| Select-Object -ExpandProperty Name/.test(bat),
       'o instalador precisa listar as impressoras do computador');
     assert.ok(/Qual delas e a cozinha/.test(bat), 'e precisa perguntar qual e qual');
-    assert.ok(bat.includes('set "MK_IMPRESSORA=\\\\localhost\\!SHARE!"'),
-      'o caminho tem que sair da escolha, nao vir fixo do formulario');
+    assert.ok(bat.includes('set "MK_IMPRESSORA=!SHARE!"'),
+      'o endereco tem que sair da escolha, nao vir fixo do formulario');
     // E ainda deve dar a saida de criar uma nova, para PC sem impressora.
     assert.ok(/criar uma nova numa porta USB/.test(bat));
+  });
+
+  test('da a opcao de impressora de rede, para a cozinha longe', () => {
+    // Bluetooth alcanca alguns metros; rede alcanca o predio. Com a cozinha
+    // longe do atendimento, e este o caminho — e o instalador precisa
+    // oferece-lo, nao so o agente aceitar.
+    const b = montadorDe(PAINEL)(casos[0].impressoras, 'copia', 'a@b.c');
+    assert.ok(/impressora de REDE/.test(b), 'falta a opcao na lista de escolha');
+    assert.ok(/IP da impressora na rede/.test(b), 'precisa perguntar o IP');
+    assert.ok(/tcp:\/\/!IP!:9100/.test(b), 'e montar o endereco tcp');
+    // Testar antes de terminar evita descobrir na hora do movimento.
+    assert.ok(/TcpClient/.test(b), 'tem que testar a conexao durante a instalacao');
+  });
+
+  test('explica onde a Bluetooth aparece', () => {
+    const b = montadorDe(PAINEL)(casos[0].impressoras, 'copia', 'a@b.c');
+    assert.ok(/Bluetooth ja pareada/.test(b),
+      'quem tem Bluetooth precisa saber que ela cai na lista de impressoras');
+  });
+
+  test('a folha de identificacao sabe ir pela rede', () => {
+    // copy /b numa tcp:// nao chega a lugar nenhum, e a pessoa ficaria
+    // esperando um papel que nunca sai.
+    const b = montadorDe(PAINEL)(casos[1].impressoras, 'copia', 'a@b.c');
+    assert.ok(/findstr \/b \/c:"tcp:\/\/"/.test(b), 'precisa separar os dois caminhos');
+    assert.ok(/Net\.Sockets\.TcpClient/.test(b), 'e mandar por socket quando for rede');
   });
 
   test('o Node tem plano B quando a loja do Windows nao resolve', () => {
