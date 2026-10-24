@@ -24,8 +24,8 @@ describe('o endereço decide o caminho, não o sistema', () => {
   const casos = [
     ['tcp://192.168.0.50',      'imprimirRede',    'impressora de rede, sem porta'],
     ['tcp://10.0.0.7:9100',     'imprimirRede',    'impressora de rede, com porta'],
-    ['COM3',                    'imprimirSerial',  'Bluetooth pareado no Windows'],
-    ['COM12:',                  'imprimirSerial',  'porta serial de dois dígitos'],
+    ['COM3',                    'imprimirSerialComRetentativa',  'Bluetooth pareado no Windows'],
+    ['COM12:',                  'imprimirSerialComRetentativa',  'porta serial de dois dígitos'],
     ['/dev/rfcomm0',            'imprimirLinux',   'Bluetooth no Linux'],
     ['/dev/usb/lp0',            'imprimirLinux',   'USB no Raspberry Pi'],
   ];
@@ -44,6 +44,25 @@ describe('o endereço decide o caminho, não o sistema', () => {
   test('compartilhamento do Windows continua sendo o padrão', () => {
     const escolhido = agente.caminhoDeImpressao('\\\\localhost\\COZINHA');
     assert.ok(escolhido === agente.imprimirWindows || escolhido === agente.imprimirLinux);
+  });
+});
+
+describe('Bluetooth cai e volta', () => {
+
+  test('a porta serial passa pela função que repete a tentativa', () => {
+    // O rádio Bluetooth dorme sem uso e a conexão é refeita no primeiro
+    // envio — que falha. Tentar uma vez só perde a comanda numa impressora
+    // que estava funcionando, e a cozinha descobre tarde.
+    assert.strictEqual(agente.caminhoDeImpressao('COM5'),
+                       agente.imprimirSerialComRetentativa);
+  });
+
+  test('desiste depois de insistir, e diz quantas vezes tentou', async () => {
+    // COM254 não existe em computador nenhum: serve para ver a desistência.
+    await assert.rejects(
+      () => agente.imprimirSerialComRetentativa(Buffer.from('x','latin1'), 'COM254'),
+      (e) => /COM254/.test(e.message) && /tentativas/.test(e.message)
+    );
   });
 });
 

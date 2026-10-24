@@ -162,7 +162,30 @@ function imprimirRede(buf, alvo = cfg.impressora){
 // Impressora Bluetooth pareada no Windows costuma aparecer como porta COM.
 // Escrever direto nela entrega os bytes crus, sem driver nenhum — mesmo
 // principio do compartilhamento, outro destino.
-function imprimirSerial(buf, alvo = cfg.impressora){
+/* Bluetooth cai. Nao e defeito da impressora nem da instalacao: o radio
+   dorme quando fica sem uso, a conexao e refeita no primeiro envio, e esse
+   primeiro envio falha. Tentar uma vez so significa perder a comanda numa
+   impressora que estava funcionando — e o cozinheiro descobre tarde.
+
+   Por isso a tentativa e repetida, com espera crescente, antes de desistir.
+   Dois segundos de insistencia resolvem a quase totalidade das quedas. */
+async function imprimirSerialComRetentativa(buf, alvo = cfg.impressora){
+  const tentativas = Number(cfg.tentativasSerial) || 4;
+  let ultimo;
+  for(let i = 0; i < tentativas; i++){
+    try{ return await imprimirSerialUmaVez(buf, alvo); }
+    catch(e){
+      ultimo = e;
+      if(i === tentativas - 1) break;
+      const espera = 400 * (i + 1);   // 400, 800, 1200ms
+      log(`impressora nao respondeu (tentativa ${i+1} de ${tentativas}), repetindo em ${espera}ms`);
+      await new Promise(r => setTimeout(r, espera));
+    }
+  }
+  throw new Error(`${alvo} nao respondeu em ${tentativas} tentativas — ${ultimo && ultimo.message}`);
+}
+
+function imprimirSerialUmaVez(buf, alvo = cfg.impressora){
   return new Promise((resolve, reject) => {
     const porta = String(alvo).toUpperCase().replace(/:$/, '');
     const tmp = path.join(os.tmpdir(), 'markin-cupom-' + Date.now() + '.bin');
@@ -192,7 +215,7 @@ function imprimirSerial(buf, alvo = cfg.impressora){
 function caminhoDeImpressao(endereco = cfg.impressora){
   const alvo = String(endereco || '');
   if(/^tcp:\/\//i.test(alvo)) return imprimirRede;
-  if(/^COM\d+:?$/i.test(alvo)) return imprimirSerial;
+  if(/^COM\d+:?$/i.test(alvo)) return imprimirSerialComRetentativa;
   return process.platform === 'win32' ? imprimirWindows : imprimirLinux;
 }
 
@@ -426,7 +449,8 @@ if(require.main === module){
 
 module.exports = {
   lerConfig, caminhoDeImpressao,
-  imprimirRede, imprimirSerial, imprimirWindows, imprimirLinux,
+  imprimirRede, imprimirSerialComRetentativa, imprimirSerialUmaVez,
+  imprimirWindows, imprimirLinux,
   reivindicar, reivindicarPreso, devolver,
   marcarMinhaVia, jaImprimiAqui, fecharAntigos, chaveAgente,
 };

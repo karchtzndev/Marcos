@@ -267,10 +267,38 @@ describe('o .bat gerado pelas duas telas', () => {
     assert.ok(/TcpClient/.test(b), 'tem que testar a conexao durante a instalacao');
   });
 
-  test('explica onde a Bluetooth aparece', () => {
+  test('tem caminho proprio para Bluetooth', () => {
     const b = montadorDe(PAINEL)(casos[0].impressoras, 'copia', 'a@b.c');
-    assert.ok(/Bluetooth ja pareada/.test(b),
-      'quem tem Bluetooth precisa saber que ela cai na lista de impressoras');
+    assert.ok(/impressora BLUETOOTH pareada/.test(b), 'falta a opcao na escolha');
+    // No Windows a Bluetooth pareada vira uma PORTA SERIAL, e achar o numero
+    // dela a mao e onde a instalacao emperra.
+    assert.ok(/Get-PnpDevice -Class Ports/.test(b), 'precisa listar as portas seriais');
+    assert.ok(/Standard Serial over Bluetooth/.test(b), 'e dizer como ela se chama na lista');
+    assert.ok(/set "SHARE=COM!COMP!"/.test(b), 'e montar o endereco COM');
+  });
+
+  test('pergunta a velocidade da serial e a leva ao config', () => {
+    // A maioria usa 9600, algumas pedem 115200. Com a velocidade errada sai
+    // lixo no papel, e nada na tela explica.
+    const b = montadorDe(PAINEL)(casos[0].impressoras, 'copia', 'a@b.c');
+    assert.ok(/BAUD=!BAUD!/.test(b), 'tem que aplicar a velocidade escolhida');
+    assert.ok(/velocidadeSerial/.test(b), 'e gravar no config, senao o agente usa outra');
+  });
+
+  test('imprime uma folha de teste na Bluetooth durante a instalacao', () => {
+    // Descobrir que a porta era a errada so na hora do movimento e caro: o
+    // Windows cria DUAS portas por dispositivo, e so uma serve.
+    const b = montadorDe(PAINEL)(casos[0].impressoras, 'copia', 'a@b.c');
+    assert.ok(/TESTE BLUETOOTH - O MARKIN/.test(b));
+    assert.ok(/porta de SAIDA, nao a de entrada/.test(b),
+      'precisa avisar da porta errada, que e o tropeço classico');
+  });
+
+  test('a folha de identificacao sabe ir pelos tres caminhos', () => {
+    const b = montadorDe(PAINEL)(casos[1].impressoras, 'copia', 'a@b.c');
+    assert.ok(/findstr \/b \/c:"COM"/.test(b), 'serial');
+    assert.ok(/findstr \/b \/c:"tcp:\/\/"/.test(b), 'rede');
+    assert.ok(/fim_id0/.test(b), 'e o desvio precisa ter para onde ir');
   });
 
   test('a folha de identificacao sabe ir pela rede', () => {
