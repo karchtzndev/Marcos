@@ -211,3 +211,42 @@ describe('imprimir pelo celular sem mentir pro operador', () => {
       'a fila deixou de respeitar a escolha do aparelho');
   });
 });
+
+describe('loja sem computador nenhum', () => {
+
+  const render = (PAINEL.match(/function renderImpressora\(\)[\s\S]*?\n  \}\n/) || [''])[0];
+
+  test('achei a função', () => {
+    assert.ok(render.length > 500, 'renderImpressora sumiu');
+  });
+
+  test('não empurra o dono a ligar uma fila que ninguém vai esvaziar', () => {
+    // Fila ligada sem computador = comanda parada esperando um agente que
+    // não existe, e nenhum erro na tela. O aviso amarelo levava direto a isso.
+    assert.match(render, /const direto = modoImpressao\(\) === 'rawbt'/,
+      'voltou a dar o mesmo conselho para quem tem e para quem não tem computador');
+    assert.ok(render.indexOf('Somente celular') > -1,
+      'sumiu a confirmação de que imprimir só pelo celular é configuração válida');
+  });
+
+  test('avisa quando a comanda não sai sozinha', () => {
+    // Sem fila, quem imprime sozinho é o módulo autoprint. Se ele estiver
+    // desligado, cada comanda depende de alguém lembrar de mandar imprimir.
+    assert.match(render, /const autoOn = moduloAtivo\('autoprint'\)/,
+      'ninguém está conferindo a impressão automática');
+    assert.match(render, /ligarAuto/, 'falta o botão para ligar sem sair da aba');
+    assert.match(render, /autoprint: true/, 'o botão não liga nada');
+  });
+
+  test('diz o que mais é preciso, incluindo o celular bloqueado', () => {
+    assert.match(render, /RawBT/, 'não menciona o app sem o qual nada sai');
+    assert.match(render, /pareada/, 'não menciona o pareamento');
+    assert.match(render, /bloqueado/,
+      'celular bloqueado não imprime — se não avisar, viram pedido perdido sem explicação');
+  });
+
+  test('ainda dá saída para quem tem computador', () => {
+    assert.match(render, /ligarFila/,
+      'quem instalar um computador depois ficaria sem como ligar a fila');
+  });
+});

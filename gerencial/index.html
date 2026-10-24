@@ -8355,12 +8355,55 @@
       // descobre que ela existe; mostre-a explicando, e o problema vira um
       // clique. Por isso também o botão está aqui, em vez de um recado
       // mandando procurar em outra tela.
-      box.innerHTML = `
+
+      /* Mas o aviso só vale para quem depende do computador. Existe loja sem
+         computador nenhum: só celular Android e a térmica no Bluetooth. Nessa
+         loja a fila PRECISA ficar desligada, e o aviso amarelo estaria
+         empurrando o dono a ligar uma fila que nenhum agente vai esvaziar —
+         as comandas parariam de sair, caladas. Então quando o aparelho
+         imprime direto, aqui não há problema a resolver: há uma configuração
+         correta a confirmar. */
+      const direto = modoImpressao() === 'rawbt';
+      const autoOn = moduloAtivo('autoprint');
+
+      box.innerHTML = direto ? `
+        <div class="admin-list">
+          <h3>📱 Somente celular</h3>
+          <div class="box-info" style="border-color:var(--green); color:var(--green); background:rgba(76,175,109,.1);">
+            ✅ Este aparelho imprime <b>direto na térmica</b>, sem computador.
+            A <b>fila</b> está desligada, que é o certo para esta loja: fila ligada
+            sem computador significa comanda parada esperando alguém que não existe.
+          </div>
+          <div class="box-info" style="border-color:${autoOn ? 'var(--green)' : 'var(--mustard)'}; color:${autoOn ? 'var(--green)' : 'var(--mustard)'}; background:${autoOn ? 'rgba(76,175,109,.1)' : 'rgba(240,180,41,.1)'};">
+            ${autoOn
+              ? '✅ <b>Comanda sai sozinha</b> quando você aceita o pedido.'
+              : '⚠️ A comanda <b>não sai sozinha</b>: alguém precisa mandar imprimir em cada pedido.'}
+          </div>
+          ${(!autoOn && currentRole === 'gerente') ? `
+          <div class="form-actions">
+            <button class="btn-primary" id="ligarAuto">Fazer a comanda sair sozinha</button>
+          </div>` : ''}
+          <div class="box-info" style="font-size:13px; opacity:.85;">
+            Para funcionar: <b>RawBT</b> instalado, térmica <b>pareada</b> neste celular,
+            e o painel <b>aberto na tela</b> na hora que o pedido chega. Celular bloqueado
+            não imprime — a comanda sai quando alguém destravar e aceitar.
+          </div>
+          ${currentRole === 'gerente' ? `
+          <div class="form-actions">
+            <button class="btn-ghost" id="ligarFila" style="font-size:13px;">Tenho um computador — ligar a fila</button>
+          </div>` : ''}
+          <div class="error-msg" id="filaMsg"></div>
+        </div>` : `
         <div class="admin-list">
           <h3>🖨️ Fila de impressão</h3>
           <div class="box-info" style="border-color:var(--mustard); color:var(--mustard); background:rgba(240,180,41,.1);">
             ⚠️ A <b>Fila de impressão</b> está <b>desligada</b>. Enquanto estiver assim,
             a comanda não sai sozinha na térmica — só pelo navegador.
+            ${ehAndroid
+              ? '<br><br>📱 Loja <b>sem computador</b>? Então não ligue a fila: '
+                + 'marque <b>“Sempre direto na térmica”</b> logo abaixo e este celular '
+                + 'imprime sozinho, pelo Bluetooth.'
+              : ''}
           </div>
           <div class="form-actions">
             ${currentRole === 'gerente'
@@ -8369,6 +8412,20 @@
           </div>
           <div class="error-msg" id="filaMsg"></div>
         </div>`;
+
+      const auto = document.getElementById('ligarAuto');
+      if(auto) auto.addEventListener('click', async () => {
+        auto.disabled = true; auto.textContent = 'Ligando…';
+        try{
+          await db.collection('store').doc('features').set({autoprint: true}, {merge:true});
+          showToast('A comanda passa a sair sozinha ✓');
+          setTimeout(renderImpressora, 400);
+        }catch(e){
+          registrarFalha('ligar a impressão automática', e);
+          auto.disabled = false; auto.textContent = 'Fazer a comanda sair sozinha';
+          document.getElementById('filaMsg').textContent = 'Não foi possível ligar. Tente de novo.';
+        }
+      });
 
       const lig = document.getElementById('ligarFila');
       if(lig) lig.addEventListener('click', async () => {
