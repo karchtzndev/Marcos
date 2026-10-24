@@ -223,8 +223,9 @@ describe('loja sem computador nenhum', () => {
   test('não empurra o dono a ligar uma fila que ninguém vai esvaziar', () => {
     // Fila ligada sem computador = comanda parada esperando um agente que
     // não existe, e nenhum erro na tela. O aviso amarelo levava direto a isso.
-    assert.match(render, /const direto = modoImpressao\(\) === 'rawbt'/,
-      'voltou a dar o mesmo conselho para quem tem e para quem não tem computador');
+    assert.match(render, /const direto = \(modoImpressao\(\) === 'rawbt' \|\| modoImpressao\(\) === 'share'\)/,
+      'voltou a dar o mesmo conselho para quem tem e para quem não tem computador — ' +
+      'e o iPhone, que agora imprime por compartilhamento, precisa contar como direto');
     assert.ok(render.indexOf('Somente celular') > -1,
       'sumiu a confirmação de que imprimir só pelo celular é configuração válida');
   });
@@ -248,5 +249,138 @@ describe('loja sem computador nenhum', () => {
   test('ainda dá saída para quem tem computador', () => {
     assert.match(render, /ligarFila/,
       'quem instalar um computador depois ficaria sem como ligar a fila');
+  });
+});
+
+describe('a comanda desenhada em imagem, para o iPhone', () => {
+
+  // Extrai a função do painel e roda de verdade, com um canvas de mentira
+  // que anota tudo que seria desenhado. Conferir o texto-fonte diria só que
+  // a função existe; isto diz se ela desenha certo.
+  const src = (PAINEL.match(/function escposParaCanvas[\s\S]*?\n  \}\n/) || [''])[0];
+
+  function desenhar(bytes, colunas){
+    const chamadas = [];
+    // O stub carrega a transformacao do canvas, senao as posicoes medidas
+    // aqui seriam as locais e um erro de escala passaria batido.
+    let tr = {dx:0, dy:0, sx:1, sy:1};
+    const pilha = [];
+    const ctx = {
+      font:'', textBaseline:'', fillStyle:'',
+      save:() => pilha.push({...tr}),
+      restore:() => { tr = pilha.pop() || {dx:0,dy:0,sx:1,sy:1}; },
+      translate:(x,y) => { tr.dx += x * tr.sx; tr.dy += y * tr.sy; },
+      scale:(x,y) => { tr.sx *= x; tr.sy *= y; },
+      fillRect:(x,y,w,h) => chamadas.push({op:'rect', x:tr.dx+x*tr.sx, y:tr.dy+y*tr.sy,
+                                           w:w*tr.sx, h:h*tr.sy}),
+      fillText:(t,x,y)   => chamadas.push({op:'texto', t, x:tr.dx+x*tr.sx, y:tr.dy+y*tr.sy,
+                                           sx:tr.sx, sy:tr.sy}),
+      measureText:(t)    => ({width: t.length * 10}),
+      createImageData:(w,h) => ({width:w, height:h, data:new Uint8ClampedArray(w*h*4)}),
+      putImageData:(d,x,y) => chamadas.push({op:'imagem', w:d.width, h:d.height, x,y})
+    };
+    const cv = { width:0, height:0, getContext:() => ctx };
+    const doc = { createElement:() => cv };
+    const fn = new Function('document', 'return (' + src + ')')(doc);
+    const r = fn(bytes, colunas);
+    return {cv:r, chamadas};
+  }
+
+  const ESC = {
+    init:'\x1B\x40', center:'\x1B\x61\x01', left:'\x1B\x61\x00',
+    bold:'\x1B\x45\x01', boldOff:'\x1B\x45\x00',
+    grande:'\x1D\x21\x11', medio:'\x1D\x21\x01', normal:'\x1D\x21\x00',
+    inverso:'\x1D\x42\x01', inversoOff:'\x1D\x42\x00',
+    cortar:'\x1D\x56\x42\x00'
+  };
+
+  test('achei a função', () => {
+    assert.ok(src.length > 500, 'escposParaCanvas sumiu');
+  });
+
+  test('o papel sai na largura certa: 48 colunas = 80 mm', () => {
+    // Fonte A do ESC/POS é 12 pontos de largura. 48 × 12 = 576, que é a
+    // área de impressão de 80 mm. Errar isto imprime metade da comanda.
+    const {cv} = desenhar(ESC.init + 'OI\n' + ESC.cortar, 48);
+    assert.strictEqual(cv.width - 32, 576, 'largura de 80 mm errada');
+    const b = desenhar(ESC.init + 'OI\n', 32);
+    assert.strictEqual(b.cv.width - 32, 384, 'largura de 58 mm errada');
+  });
+
+  test('não desenha os comandos como se fossem letras', () => {
+    // O erro clássico: a impressora obedece os bytes de controle, a imagem
+    // os imprimiria como caracteres soltos no meio da comanda.
+    const {chamadas} = desenhar(ESC.init + ESC.center + ESC.bold + 'TESTE' + ESC.boldOff + '\n', 48);
+    const texto = chamadas.filter(c => c.op === 'texto').map(c => c.t).join('');
+    assert.strictEqual(texto, 'TESTE', 'vazou byte de controle para o papel: ' + JSON.stringify(texto));
+  });
+
+  test('centraliza de verdade, contando colunas', () => {
+    const {chamadas} = desenhar(ESC.init + ESC.center + 'ABCD\n', 48);
+    const prim = chamadas.find(c => c.op === 'texto');
+    // 48 colunas, 4 letras → sobra 44, metade de cada lado = 22 colunas
+    assert.ok(Math.abs(prim.x - (16 + 22 * 12)) < 13,
+      'texto centralizado fora do lugar: x=' + prim.x);
+  });
+
+  test('cada letra cai na sua coluna — é o que alinha os preços', () => {
+    const {chamadas} = desenhar(ESC.init + ESC.left + 'AB\n', 48);
+    const t = chamadas.filter(c => c.op === 'texto');
+    assert.strictEqual(t.length, 2, 'deveria desenhar letra por letra');
+    assert.ok(Math.abs((t[1].x - t[0].x) - 12) < 1,
+      'passo entre colunas ≠ 12 pontos: as colunas de preço sairiam tortas');
+  });
+
+  test('letra dobrada ocupa o dobro', () => {
+    const normal = desenhar(ESC.init + 'AB\n', 48).chamadas.filter(c=>c.op==='texto');
+    const dobro  = desenhar(ESC.init + ESC.grande + 'AB\n', 48).chamadas.filter(c=>c.op==='texto');
+    assert.ok((dobro[1].x - dobro[0].x) === 2 * (normal[1].x - normal[0].x),
+      'GS ! 0x11 não dobrou a largura');
+  });
+
+  test('corpo alto estica só a altura, não engorda a letra', () => {
+    // GS ! 0x01 dobra a altura e mantém as 12 colunas de pontos. Escalar os
+    // dois eixos montava uma letra em cima da outra em "O MARKIN" e no
+    // número do pedido — e isso só apareceu olhando a imagem.
+    const alto = desenhar(ESC.init + ESC.medio + 'AB\n', 48).chamadas.filter(c=>c.op==='texto');
+    assert.strictEqual(alto[1].x - alto[0].x, 12,
+      'corpo alto empurrou a letra para o lado: elas vão se sobrepor');
+    assert.strictEqual(alto[0].sy, 2, 'não esticou a altura');
+    assert.strictEqual(alto[0].sx, 1, 'engordou a letra junto — é o defeito');
+  });
+
+  test('o branco-sobre-preto vira tarja preta de verdade', () => {
+    const {chamadas} = desenhar(ESC.init + ESC.inverso + ' 42 ' + ESC.inversoOff + '\n', 48);
+    // O primeiro rect é o fundo branco da folha; a tarja é a seguinte.
+    const rect = chamadas.filter(c => c.op === 'rect' && !(c.x === 0 && c.y === 0))[0];
+    assert.ok(rect, 'sem tarja: o número do pedido perderia o destaque');
+    assert.strictEqual(rect.w, 4 * 12, 'tarja não cobre exatamente o texto');
+  });
+
+  test('o logo é desenhado como imagem, no tamanho que declara', () => {
+    const b64 = (PAINEL.match(/const LOGO_TERMICA_B64 = '([A-Za-z0-9+/=]+)'/) || [])[1];
+    const cru = Buffer.from(b64, 'base64').toString('latin1');
+    const {chamadas} = desenhar(ESC.init + ESC.center + cru + '\n', 48);
+    const img = chamadas.find(c => c.op === 'imagem');
+    assert.ok(img, 'o logo sumiu da imagem — sairia comanda sem marca');
+    assert.strictEqual(img.w, 160, 'largura do logo errada');
+    assert.strictEqual(img.h, 160, 'altura do logo errada');
+  });
+
+  test('os pontos do logo não viram texto depois dele', () => {
+    // Se o leitor não pular os bytes da imagem, eles entram como letras e
+    // a comanda sai com lixo logo abaixo do logo.
+    const b64 = (PAINEL.match(/const LOGO_TERMICA_B64 = '([A-Za-z0-9+/=]+)'/) || [])[1];
+    const cru = Buffer.from(b64, 'base64').toString('latin1');
+    const {chamadas} = desenhar(ESC.init + cru + '\n' + 'FIM\n', 48);
+    const texto = chamadas.filter(c => c.op === 'texto').map(c => c.t).join('');
+    assert.strictEqual(texto, 'FIM', 'lixo impresso depois do logo: ' + JSON.stringify(texto));
+  });
+
+  test('a comanda cresce para baixo, sem empilhar tudo na mesma linha', () => {
+    const {chamadas} = desenhar(ESC.init + 'UM\nDOIS\nTRES\n', 48);
+    const ys = [...new Set(chamadas.filter(c=>c.op==='texto').map(c=>c.y))];
+    assert.strictEqual(ys.length, 3, 'as três linhas saíram sobrepostas');
+    assert.ok(ys[1] - ys[0] === 24, 'altura de linha ≠ 24 pontos');
   });
 });

@@ -2014,7 +2014,8 @@
               <label>Como imprimir neste aparelho</label>
               <select id="printMode">
                 <option value="auto">Automático — direto na térmica se for Android</option>
-                <option value="rawbt">Sempre direto na térmica (RawBT)</option>
+                <option value="rawbt">Sempre direto na térmica (RawBT — Android)</option>
+                <option value="share">Compartilhar para o app da impressora (iPhone)</option>
                 <option value="browser">Sempre pelo navegador</option>
               </select>
             </div>
@@ -3686,11 +3687,213 @@
     return false;
   })();
 
+  // iPhone/iPad precisa de caminho proprio: o iOS nao da Bluetooth para
+  // pagina web nenhuma, entao a comanda sai pelo menu de compartilhar, para
+  // um app que fale com a impressora.
+  const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
+             || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  /* ---------------- A TERMICA DESENHADA NUMA IMAGEM ----------------
+     O iPhone nao fala ESC/POS com a impressora, mas os apps de impressao do
+     iOS aceitam imagem. Entao a comanda vira figura.
+
+     A tentacao era montar um segundo layout em HTML e fotografar. Seria um
+     segundo layout para manter: toda mudanca na comanda teria que ser feita
+     duas vezes, e a que ninguem testasse sairia diferente no iPhone -- do
+     tipo de diferenca que so aparece no papel, na cozinha, no sabado.
+
+     Entao aqui se le o MESMO fluxo de bytes que a termica recebe e se
+     desenha o que ela desenharia. Fonte A do ESC/POS e 12x24 pontos: 48
+     colunas em 80mm (576), 32 em 58mm (384) -- as contas fecham, e cada
+     caractere cai na coluna exata, igual no papel. */
+  function escposParaCanvas(bytes, colunas){
+    const CW = 12, CH = 24;                 // celula de um caractere
+    const largura = colunas * CW;
+
+    // 1a passada: montar a lista de coisas a desenhar e medir a altura.
+    const itens = [];
+    let y = 0, align = 0, bold = false, inverso = false;
+    let escalaX = 1, escalaY = 1;
+    let segs = [], atual = '';
+
+    /* A linha nao pode ser guardada como um texto so com os atributos do
+       final: o cupom escreve ESC.inverso + numero + ESC.inversoOff ANTES da
+       quebra, entao no fim da linha o inverso ja esta desligado -- e a tarja
+       preta do numero do pedido simplesmente nao sairia. Por isso a linha e
+       uma lista de pedacos, cada um com os atributos de quando foi escrito. */
+    const fechaPedaco = () => {
+      if(atual.length){
+        segs.push({txt:atual, bold, inverso, ex:escalaX, ey:escalaY});
+        atual = '';
+      }
+    };
+
+    const fechaLinha = () => {
+      fechaPedaco();
+      const ey = segs.length ? Math.max(...segs.map(g => g.ey)) : escalaY;
+      if(segs.length){
+        const cols = segs.reduce((n, g) => n + g.txt.length * g.ex, 0);
+        itens.push({tipo:'txt', segs, cols, y, align});
+      }
+      y += CH * ey;
+      segs = [];
+    };
+
+    for(let i = 0; i < bytes.length; i++){
+      const c = bytes.charCodeAt(i) & 0xFF;
+
+      if(c === 0x1B){                        // ESC
+        const cmd = bytes.charCodeAt(i+1) & 0xFF;
+        if(cmd === 0x40){ i += 1; continue; }                       // init
+        if(cmd === 0x61){ align = bytes.charCodeAt(i+2) & 0xFF; i += 2; continue; }
+        if(cmd === 0x45){ fechaPedaco(); bold = (bytes.charCodeAt(i+2) & 0xFF) !== 0; i += 2; continue; }
+        i += 1; continue;
+      }
+      if(c === 0x1D){                        // GS
+        const cmd = bytes.charCodeAt(i+1) & 0xFF;
+        if(cmd === 0x21){                                            // tamanho
+          const n = bytes.charCodeAt(i+2) & 0xFF;
+          fechaPedaco();
+          escalaX = ((n >> 4) & 0x07) + 1;
+          escalaY = (n & 0x07) + 1;
+          i += 2; continue;
+        }
+        if(cmd === 0x42){ fechaPedaco(); inverso = (bytes.charCodeAt(i+2) & 0xFF) !== 0; i += 2; continue; }
+        if(cmd === 0x56){ i += 3; continue; }                        // corte
+        if(cmd === 0x76 && (bytes.charCodeAt(i+2) & 0xFF) === 0x30){  // GS v 0: imagem
+          const bpl = (bytes.charCodeAt(i+4) & 0xFF) | ((bytes.charCodeAt(i+5) & 0xFF) << 8);
+          const lin = (bytes.charCodeAt(i+6) & 0xFF) | ((bytes.charCodeAt(i+7) & 0xFF) << 8);
+          const ini = i + 8;
+          itens.push({tipo:'img', ini, bpl, lin, y, align});
+          y += lin;
+          i = ini + bpl * lin - 1;
+          continue;
+        }
+        i += 1; continue;
+      }
+      if(c === 0x0A){ fechaLinha(); continue; }
+      if(c < 0x20) continue;                 // outro controle: ignora
+      atual += String.fromCharCode(c);
+    }
+    fechaLinha();
+
+    const MARGEM = 16;
+    const cv = document.createElement('canvas');
+    cv.width  = largura + MARGEM * 2;
+    cv.height = Math.max(y + MARGEM * 2, 80);
+    const ctx = cv.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.textBaseline = 'top';
+
+    const inicioX = (comprimento, ex, al) => {
+      const w = comprimento * CW * ex;
+      if(al === 1) return MARGEM + (largura - w) / 2;
+      if(al === 2) return MARGEM + largura - w;
+      return MARGEM;
+    };
+
+    itens.forEach(it => {
+      if(it.tipo === 'img'){
+        // Pontos crus: 1 bit por ponto, o bit mais alto primeiro.
+        const w = it.bpl * 8;
+        const dados = ctx.createImageData(w, it.lin);
+        for(let ly = 0; ly < it.lin; ly++){
+          for(let bx = 0; bx < it.bpl; bx++){
+            const b = bytes.charCodeAt(it.ini + ly * it.bpl + bx) & 0xFF;
+            for(let bit = 0; bit < 8; bit++){
+              const aceso = (b >> (7 - bit)) & 1;
+              const o = ((ly * w) + bx * 8 + bit) * 4;
+              const v = aceso ? 0 : 255;
+              dados.data[o] = v; dados.data[o+1] = v; dados.data[o+2] = v; dados.data[o+3] = 255;
+            }
+          }
+        }
+        const x = it.align === 1 ? MARGEM + (largura - w) / 2 : MARGEM;
+        ctx.putImageData(dados, Math.max(MARGEM, Math.round(x)), Math.round(it.y));
+        return;
+      }
+
+      let x = inicioX(it.cols, 1, it.align);
+
+      it.segs.forEach(g => {
+        const alt = CH * g.ey;
+        const corpo = Math.round(CH * 0.78);
+
+        if(g.inverso){
+          ctx.fillStyle = '#000';
+          ctx.fillRect(x, it.y, g.txt.length * CW * g.ex, alt);
+        }
+
+        /* Largura e altura sao independentes no ESC/POS: GS ! 0x01 dobra SO a
+           altura, e a letra continua ocupando as mesmas 12 colunas de pontos.
+           Escalar a fonte pela altura engordava a letra junto, e "O MARKIN" e
+           o numero do pedido sairam com as letras montadas umas nas outras.
+           Entao a letra e sempre do mesmo corpo, e quem estica e o canvas --
+           exatamente como a impressora faz com os pontos. */
+        ctx.save();
+        ctx.translate(x, it.y);
+        ctx.scale(g.ex, g.ey);
+        ctx.font = (g.bold ? 'bold ' : '') + corpo + 'px "Courier New", monospace';
+        ctx.fillStyle = g.inverso ? '#fff' : '#000';
+
+        // Caractere por caractere, cada um na sua coluna. Deixar o canvas
+        // espacar sozinho desalinharia as colunas de preco, que no cupom sao
+        // alinhadas contando caracteres.
+        for(let k = 0; k < g.txt.length; k++){
+          const m = ctx.measureText(g.txt[k]).width;
+          ctx.fillText(g.txt[k], k * CW + (CW - m) / 2, (CH - corpo) / 2);
+        }
+        ctx.restore();
+        x += g.txt.length * CW * g.ex;
+      });
+    });
+
+    return cv;
+  }
+
   function modoImpressao(){
     const salvo = guardar.ler('omarkin_print_mode') || 'auto';
     if(salvo === 'browser') return 'browser';
     if(salvo === 'rawbt')   return 'rawbt';
-    return ehAndroid ? 'rawbt' : 'browser';   // automático
+    if(salvo === 'share')   return podeCompartilharArquivo() ? 'share' : 'browser';
+    // Automatico: cada sistema pelo caminho que ele permite.
+    if(ehAndroid) return 'rawbt';
+    if(ehIOS && podeCompartilharArquivo()) return 'share';
+    return 'browser';
+  }
+
+  // Compartilhar ARQUIVO e diferente de compartilhar link: iOS antigo e a
+  // maioria dos navegadores de computador tem navigator.share mas recusam
+  // arquivo. Perguntar antes evita abrir um compartilhamento que nao aceita
+  // a comanda e deixar o pedido sem sair.
+  function podeCompartilharArquivo(){
+    try{
+      if(!navigator.canShare || !navigator.share) return false;
+      const f = new File([new Blob([''], {type:'image/png'})], 't.png', {type:'image/png'});
+      return navigator.canShare({files:[f]});
+    }catch(e){ return false; }
+  }
+
+  /* Monta a comanda como imagem e entrega ao app de impressao do iPhone.
+     Devolve true so quando o compartilhamento foi aberto -- cancelar no meio
+     conta como nao impresso, e quem chamou precisa saber disso. */
+  async function compartilharComanda(html){
+    const bytes = htmlParaEscPos(html);
+    const cv = escposParaCanvas(bytes, larguraPapel());
+    const blob = await new Promise(res => cv.toBlob(res, 'image/png'));
+    if(!blob) throw new Error('nao consegui gerar a imagem da comanda');
+    const arq = new File([blob], 'comanda.png', {type:'image/png'});
+    if(!navigator.canShare || !navigator.canShare({files:[arq]})){
+      throw new Error('este aparelho nao aceita compartilhar arquivo');
+    }
+    try{
+      await navigator.share({files:[arq]});
+      return true;
+    }catch(e){
+      // Cancelar e normal e nao e falha: nao polui o registro de erros.
+      if(e && (e.name === 'AbortError' || /abort|cancel/i.test(e.message || ''))) return false;
+      throw e;
+    }
   }
 
   function atualizarInfoImpressao(){
@@ -3699,15 +3902,27 @@
     sel.value = guardar.ler('omarkin_print_mode') || 'auto';
     const m = modoImpressao();
     const box = document.getElementById('printInfo');
-    box.innerHTML = m === 'rawbt'
-      ? '🖨️ <b>Direto na térmica</b> — a comanda sai sem abrir tela. Precisa do RawBT instalado e a impressora pareada.'
-      : (ehAndroid
-          ? '🌐 <b>Pelo navegador</b> — abre a janela de impressão. Mude acima pra sair direto na térmica.'
-          // No iPhone não adianta insistir: o caminho é a fila. Dizer isso aqui
-          // evita que alguém passe a tarde tentando um ajuste que não existe.
-          : '🌐 <b>Pelo navegador</b> — este aparelho não imprime direto na térmica. '
-            + 'Se for iPhone, não é ajuste: o iOS bloqueia térmica Bluetooth comum. '
-            + 'A comanda deste aparelho sai pela <b>fila de impressão</b>, no computador da loja.');
+    if(m === 'rawbt'){
+      box.innerHTML = '🖨️ <b>Direto na térmica</b> — a comanda sai sem abrir tela. '
+        + 'Precisa do RawBT instalado e a impressora pareada neste aparelho.';
+    }else if(m === 'share'){
+      // O iPhone nao fala Bluetooth com pagina web, mas fala com app. A
+      // comanda vai como imagem pelo compartilhar do iOS.
+      box.innerHTML = '📲 <b>Compartilhar</b> — a comanda vira imagem e abre o menu de '
+        + 'compartilhar do iPhone. Escolha o app da impressora (ex.: <b>Thermer</b>) e mande imprimir. '
+        + 'A impressora conecta <b>dentro do app</b>, não nos Ajustes do iPhone.';
+    }else if(ehAndroid){
+      box.innerHTML = '🌐 <b>Pelo navegador</b> — abre a janela de impressão. '
+        + 'Mude acima pra sair direto na térmica.';
+    }else if(ehIOS){
+      // Nao da para compartilhar arquivo: iOS antigo. Ai o caminho e atualizar.
+      box.innerHTML = '🌐 <b>Pelo navegador</b> — este iPhone não permite compartilhar a comanda '
+        + 'como arquivo, o que costuma ser versão antiga do iOS. Atualize o aparelho e escolha '
+        + '<b>Compartilhar para o app da impressora</b> acima.';
+    }else{
+      box.innerHTML = '🌐 <b>Pelo navegador</b> — abre a janela de impressão. '
+        + 'Impressão direta na térmica existe no Android (RawBT) e no iPhone (compartilhar).';
+    }
   }
   document.getElementById('printMode')?.addEventListener('change', (e) => {
     guardar.salvar('omarkin_print_mode', e.target.value);
@@ -4134,7 +4349,9 @@
        computador do balcao. No automatico a fila continua ganhando, entao
        aparelho que ninguem configurou segue como sempre foi. */
     const escolhaDoAparelho = guardar.ler('omarkin_print_mode') || 'auto';
-    const diretoForcado = (mode !== 'a4' && escolhaDoAparelho === 'rawbt' && modoImpressao() === 'rawbt');
+    const diretoForcado = (mode !== 'a4'
+      && (escolhaDoAparelho === 'rawbt' || escolhaDoAparelho === 'share')
+      && (modoImpressao() === 'rawbt'  || modoImpressao() === 'share'));
 
     // 2º) Fila no computador, se o módulo estiver ligado
     if(!diretoForcado && mode !== 'a4' && moduloAtivo('filaimpressao')){
@@ -4152,7 +4369,21 @@
       return;
     }
 
-    // 3º) Android com RawBT: manda direto, sem abrir janela
+    // 3º) iPhone: a comanda vira imagem e vai pelo compartilhar do iOS
+    if(mode !== 'a4' && modoImpressao() === 'share'){
+      showToast('🖨️ Preparando a comanda…');
+      compartilharComanda(html).then(abriu => {
+        if(abriu) showToast('🖨️ Comanda enviada ao app da impressora');
+        else showToast('Impressão cancelada');
+      }).catch(e => {
+        registrarFalha('compartilhar a comanda no iPhone', e);
+        showToast('Não deu para compartilhar — abrindo o navegador');
+        imprimirNoNavegador(html, mode);
+      });
+      return;
+    }
+
+    // 4º) Android com RawBT: manda direto, sem abrir janela
     if(mode !== 'a4' && modoImpressao() === 'rawbt'){
       let envio;
       try{
@@ -8363,7 +8594,7 @@
          as comandas parariam de sair, caladas. Então quando o aparelho
          imprime direto, aqui não há problema a resolver: há uma configuração
          correta a confirmar. */
-      const direto = modoImpressao() === 'rawbt';
+      const direto = (modoImpressao() === 'rawbt' || modoImpressao() === 'share');
       const autoOn = moduloAtivo('autoprint');
 
       box.innerHTML = direto ? `
@@ -8384,9 +8615,13 @@
             <button class="btn-primary" id="ligarAuto">Fazer a comanda sair sozinha</button>
           </div>` : ''}
           <div class="box-info" style="font-size:13px; opacity:.85;">
-            Para funcionar: <b>RawBT</b> instalado, térmica <b>pareada</b> neste celular,
-            e o painel <b>aberto na tela</b> na hora que o pedido chega. Celular bloqueado
-            não imprime — a comanda sai quando alguém destravar e aceitar.
+            ${ehIOS
+              ? 'Neste iPhone a comanda vira <b>imagem</b> e abre o menu de compartilhar: '
+                + 'escolha o app da impressora (ex.: <b>Thermer</b>) e mande imprimir. '
+                + 'A impressora conecta <b>dentro do app</b>, não nos Ajustes.'
+              : 'Para funcionar: <b>RawBT</b> instalado e a térmica <b>pareada</b> neste celular.'}
+            O painel precisa estar <b>aberto na tela</b> quando o pedido chega. Celular
+            bloqueado não imprime — a comanda sai quando alguém destravar e aceitar.
           </div>
           ${currentRole === 'gerente' ? `
           <div class="form-actions">
